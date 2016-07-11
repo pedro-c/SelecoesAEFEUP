@@ -1,4 +1,5 @@
-SET UP
+# SET UP
+
 
 1. Install Ionic Lab ( http://lab.ionic.io/ );
 2. Clone SeleccoesAEFEUP's repository ( https://github.com/pedro-c/SelecoesAEFEUP );

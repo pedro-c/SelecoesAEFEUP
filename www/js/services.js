@@ -2,37 +2,45 @@ angular.module('app.services', [])
 
 .factory('Teams', [function(){
     teams = [
-        'Andebol Masculino',
-        'Basquetebol Feminino',
-        'Basquetebol Masculino',
-        'Futebol 11 Masculino',
-        'Futsal Feminino',
-        'Futsal Masculino',
-        'Voleibol Feminino',
-        'Voleibol Masculino',
-        'Rugby 7'
+        {
+            id: '0', name: 'Andebol Masculino'
+        },
+        {
+            id: '1', name: 'Basquetebol Feminino'
+        },
+        {
+            id: '2', name: 'Basquetebol Masculino'
+        },
+        {
+            id: '3', name: 'Futebol 11 Masculino'
+        },
+        {
+            id: '4', name: 'Futsal Feminino'
+        },
+        {
+            id: '5', name: 'Futsal Masculino'
+        },
+        {
+            id: '6', name: 'Voleibol Feminino'
+        },
+        {
+            id: '7', name: 'Voleibol Masculino'
+        },
+        {
+            id: '8', name: 'Rugby 7'
+        }
     ];
 
-    return teams;
-}])
+    getTeam = function(id) {
+        return teams[id];
+    }
 
-.service('BlankService', [function(){
-
-}])
-
-.service('CurrentTeam' [function () {
-    currentTeam = null;
-
-    setCurrentTeam = function(newTeam) {
-        currentTeam = newTeam;
-    };
-
-    getCurrentTeam = function() {
-        return currentTeam;
-    };
+    getTeams = function() {
+        return teams;
+    }
 
     return {
-        setCurrentTeam, getCurrentTeam
+        getTeam, getTeams
     };
 }])
 

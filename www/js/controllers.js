@@ -10,13 +10,13 @@ angular.module('app.controllers', [])
 })
    
 .controller('teamsCtrl', function($scope, Teams) {
-    $scope.teams = Teams;
+    $scope.teams = Teams.getTeams();
 })
 
-.controller('teamDetailCtrl', function($scope, CurrentTeam) {
-
+.controller('teamDetailsCtrl', function($scope, $stateParams, Teams) {
+    $scope.team = Teams.getTeam($stateParams.teamId);
 })
       
 .controller('optionsCtrl', function($scope, Teams) {
-    $scope.teams = Teams;
+    $scope.teams = Teams.getTeams();
 }); 

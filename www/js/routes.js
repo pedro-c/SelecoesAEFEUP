@@ -9,13 +9,13 @@ angular.module('app.routes', [])
   $stateProvider
 
   .state('tabsController', {
-    url: '/page1',
+    url: '/tabs',
     templateUrl: 'templates/tabsController.html',
     abstract:true
   })
 
     .state('tabsController.games', {
-    url: '/page2',
+    url: '/games',
     views: {
       'tab1': {
         templateUrl: 'templates/games.html',
@@ -25,7 +25,7 @@ angular.module('app.routes', [])
   })
 
   .state('tabsController.calendar', {
-    url: '/page3',
+    url: '/calendar',
     views: {
       'tab2': {
         templateUrl: 'templates/calendar.html',
@@ -35,7 +35,7 @@ angular.module('app.routes', [])
   })
 
   .state('tabsController.teams', {
-    url: '/page4',
+    url: '/teams',
     views: {
       'tab3': {
         templateUrl: 'templates/teams.html',
@@ -45,7 +45,7 @@ angular.module('app.routes', [])
   })
 
   .state('tabsController.options', {
-    url: '/page5',
+    url: '/options',
     views: {
       'tab4': {
         templateUrl: 'templates/options.html',
@@ -55,16 +55,16 @@ angular.module('app.routes', [])
   })
 
   .state('tabsController.teamDetails', {
-    url: '/page6',
+    url: '/teams/:teamId',
     views: {
       'tab3': {
         templateUrl: 'templates/teamDetails.html',
-        controller: 'teamDetailCtrl'
+        controller: 'teamDetailsCtrl'
       }
     }
-  })
+  });
 
-$urlRouterProvider.otherwise('/page1/page2')
+$urlRouterProvider.otherwise('/tabs/games')
 
   
 

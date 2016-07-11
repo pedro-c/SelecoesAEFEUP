@@ -1,11 +1,39 @@
 angular.module('app.services', [])
 
-.factory('BlankFactory', [function(){
+.factory('Teams', [function(){
+    teams = [
+        'Andebol Masculino',
+        'Basquetebol Feminino',
+        'Basquetebol Masculino',
+        'Futebol 11 Masculino',
+        'Futsal Feminino',
+        'Futsal Masculino',
+        'Voleibol Feminino',
+        'Voleibol Masculino',
+        'Rugby 7'
+    ];
 
+    return teams;
 }])
 
 .service('BlankService', [function(){
 
+}])
+
+.service('CurrentTeam' [function () {
+    currentTeam = null;
+
+    setCurrentTeam = function(newTeam) {
+        currentTeam = newTeam;
+    };
+
+    getCurrentTeam = function() {
+        return currentTeam;
+    };
+
+    return {
+        setCurrentTeam, getCurrentTeam
+    };
 }])
 
 .factory('LastResults', [function(){

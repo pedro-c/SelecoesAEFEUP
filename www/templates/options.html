@@ -8,15 +8,9 @@
             <label class="item item-input " id="opEs-textarea4">
                 <span class="input-label">Equipas Favoritas</span><textarea placeholder=""></textarea>
             </label>
-            <ion-checkbox>Andebol Masculino</ion-checkbox>
-            <ion-checkbox>Basquetebol Feminino</ion-checkbox>
-            <ion-checkbox>Basquetebol Masculino</ion-checkbox>
-            <ion-checkbox>Futebol 11 Masculino</ion-checkbox>
-            <ion-checkbox>Futsal Feminino</ion-checkbox>
-            <ion-checkbox>Futsal Masculino</ion-checkbox>
-            <ion-checkbox>Voleibol Feminino</ion-checkbox>
-            <ion-checkbox>Voleibol Masculino</ion-checkbox>
-            <ion-checkbox>Rugby 7</ion-checkbox>
+            <ion-list>
+                <ion-toggle ng-repeat="team in teams">{{team}}</ion-checkbox>
+            </ion-list>
         </form>
     </ion-content>
 </ion-view>

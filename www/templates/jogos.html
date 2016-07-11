@@ -12,13 +12,17 @@
                     </ion-item>
             </ion-list>
         </form>
-        <ion-list id="jogos-list2" class=" ">
-            <label class="item item-input " id="jogos-textarea3">
+        <label class="item item-input " id="jogos-textarea3">
                 <span class="input-label">Próximos Jogos</span><textarea placeholder=""></textarea>
             </label>
-            <ion-item id="jogos-list-item4" class="  ">Item 1</ion-item>
-            <ion-item id="jogos-list-item5" class="  ">Item 2</ion-item>
-            <ion-item id="jogos-list-item6" class="  ">Item 3</ion-item>
+        <ion-list id="jogos-list2" class=" ">
+            <ion-item ng-repeat="nextMatch in nextMatches">
+                <p font-size="10">{{nextMatch.place}}</p>
+                <hr>
+                <div style="float:left">{{nextMatch.team1}}</div> <div style="float:right">{{nextMatch.date}}</div>
+                <br>
+                <div style="float:left">{{nextMatch.team2}}</div> <div style="float:right">{{nextMatch.time}}</div>
+            </ion-item>
         </ion-list>
     </ion-content>
 </ion-view>

@@ -33,17 +33,23 @@ angular.module('app.services', [])
         {
             team1: 'Futsal Feminino AEFEUP',
             team2: 'Futsal Feminino AEFMUP',
-            place: 'Pavilhão Desportivo Luís Falcão'
+            place: 'Pavilhão Desportivo Luís Falcão',
+            date: '12/07/2016',
+            time: '14h00'
         },
         {
             team1: 'Rugby 7 AEFEUP',
             team2: 'Rugby 7 AEFADEUP',
-            place: 'Campo FADEUP'
+            place: 'Campo FADEUP',
+            date: '13/07/2016',
+            time: '17h00'
         },
         {
             team1: 'Basquetebol Feminino AEFEUP',
             team2: 'Basquetebol Feminino AEFADEUP',
-            place: 'Pavilhão Desportivo Luís Falcão'
+            place: 'Pavilhão Desportivo Luís Falcão',
+            date: '14/07/2016',
+            time: '18h30'
         }
     ];
 

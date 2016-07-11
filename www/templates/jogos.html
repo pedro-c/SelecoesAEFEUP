@@ -2,26 +2,62 @@
     <ion-content padding="true" class="manual-ios-statusbar-padding">
         <form id="jogos-form3" class="list ">
             <label class="item item-input " id="jogos-textarea1">
-                <span class="input-label" >Últimos Resultados</span><textarea placeholder=""></textarea>
+                <span class="input-label" > <b> Últimos Resultados </b> </span>
             </label>
             <ion-list id="jogos-list1" class=" ">
                 <ion-item ng-repeat="result in lastResults">
-                    <div style="float:left">{{result.team1}}</div> <div style="float:right">{{result.score1}}</div>
-                    <br>
-                    <div style="float:left">{{result.team2}}</div> <div style="float:right">{{result.score2}}</div>
+                        <table style="width:100%">
+                            <tr>
+                                    <td align="left"> <font size="3"> {{result.teamType}} </font></td>
+                                    <td align="right"> <font size="2"> {{result.place}} </font></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <hr>
+                                </td>
+                                <td>
+                                    <hr>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td align="left"> <font size="3"> {{result.team1}} </font></td>
+                                <td align="right"> <font size="3"> {{result.score1}} </font></td>
+                            </tr>
+                            <tr>
+                                <td align="left"> <font size="3"> {{result.team2}} </font></td> 
+                                <td align="right"> <font size="3"> {{result.score2}} </font></td>
+                            </tr>
+                        </table>
                     </ion-item>
             </ion-list>
         </form>
         <label class="item item-input " id="jogos-textarea3">
-                <span class="input-label">Próximos Jogos</span><textarea placeholder=""></textarea>
+                <span class="input-label"> <b>Próximos Jogos </b> </span>
             </label>
-        <ion-list id="jogos-list2" class=" ">
+        <ion-list>
             <ion-item ng-repeat="nextMatch in nextMatches">
-                <p font-size="10">{{nextMatch.place}}</p>
-                <hr>
-                <div style="float:left">{{nextMatch.team1}}</div> <div style="float:right">{{nextMatch.date}}</div>
-                <br>
-                <div style="float:left">{{nextMatch.team2}}</div> <div style="float:right">{{nextMatch.time}}</div>
+                <table style="width:100%">
+                    <tr>
+                            <td align="left"> <font size="3"> {{nextMatch.teamType}} </font></td>
+                            <td align="right"> <font size="2"> {{nextMatch.place}} </font></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <hr>
+                        </td>
+                        <td>
+                            <hr>
+                        </td>
+                    </tr>
+                    <tr>
+                         <td align="left"> <font size="3"> {{nextMatch.team1}} </font></td>
+                         <td align="right"> <font size="3"> {{nextMatch.date}} </font></td>
+                    </tr>
+                    <tr>
+                         <td align="left"> <font size="3"> {{nextMatch.team2}} </font></td> 
+                         <td align="right"> <font size="3"> {{nextMatch.time}} </font></td>
+                    </tr>
+                </table>
             </ion-item>
         </ion-list>
     </ion-content>

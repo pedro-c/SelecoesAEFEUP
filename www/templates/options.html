@@ -1,15 +1,15 @@
-<ion-view title="Opções" hide-nav-bar="true" id="page5" class=" ">
+<ion-view title="Opções" hide-nav-bar="true" id="page5">
     <ion-content padding="true" class="manual-ios-statusbar-padding">
-        <form id="opEs-form1" class="list ">
-            <ion-toggle toggle-class="toggle-assertive" id="opEs-toggle1" class=" ">Notificações</ion-toggle>
+        <form >
+            <ion-toggle toggle-class="toggle-assertive">Notificações</ion-toggle>
         </form>
-        <button id="opEs-button11" class=" button button-assertive  button-block ">Liga AEFEUP</button>
-        <form id="opEs-form5" class="list ">
-            <label class="item item-input " id="opEs-textarea4">
-                <span class="input-label">Equipas Favoritas</span><textarea placeholder=""></textarea>
+        <button class="button button-assertive button-block">Liga AEFEUP</button>
+        <form>
+            <label class="item">
+                <span class="input-label">Equipas Favoritas</span>
             </label>
             <ion-list>
-                <ion-toggle ng-repeat="team in teams">{{team}}</ion-checkbox>
+                <ion-toggle ng-repeat="team in teams" toggle-class="toggle-assertive">{{team}}</ion-checkbox>
             </ion-list>
         </form>
     </ion-content>

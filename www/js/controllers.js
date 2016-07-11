@@ -1,7 +1,8 @@
 angular.module('app.controllers', [])
   
-.controller('jogosCtrl', function($scope) {
-
+.controller('jogosCtrl', function($scope, LastResults, NextMatches) {
+    $scope.lastResults = LastResults;
+    $scope.nextMatches = nextMatches;
 })
    
 .controller('calendarioCtrl', function($scope) {

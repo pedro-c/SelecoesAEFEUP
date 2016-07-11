@@ -2,12 +2,14 @@
     <ion-content padding="true" class="manual-ios-statusbar-padding">
         <form id="jogos-form3" class="list ">
             <label class="item item-input " id="jogos-textarea1">
-                <span class="input-label">Ultimos Resultados</span><textarea placeholder=""></textarea>
+                <span class="input-label" >Últimos Resultados</span><textarea placeholder=""></textarea>
             </label>
             <ion-list id="jogos-list1" class=" ">
-                <ion-item id="jogos-list-item1" class="  ">Item 1</ion-item>
-                <ion-item id="jogos-list-item2" class="  ">Item 2</ion-item>
-                <ion-item id="jogos-list-item3" class="  ">Item 3</ion-item>
+                <ion-item ng-repeat="result in lastResults">
+                    <div style="float:left">{{result.team1}}</div> <div style="float:right">{{result.score1}}</div>
+                    <br>
+                    <div style="float:left">{{result.team2}}</div> <div style="float:right">{{result.score2}}</div>
+                    </ion-item>
             </ion-list>
         </form>
         <ion-list id="jogos-list2" class=" ">

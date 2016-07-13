@@ -14,12 +14,12 @@ angular.module('app.routes', [])
     abstract:true
   })
 
-    .state('tabsController.games', {
-    url: '/games',
+    .state('tabsController.matches', {
+    url: '/matches',
     views: {
       'tab1': {
-        templateUrl: 'templates/games.html',
-        controller: 'gamesCtrl'
+        templateUrl: 'templates/matches.html',
+        controller: 'matchesCtrl'
       }
     }
   })
@@ -62,9 +62,19 @@ angular.module('app.routes', [])
         controller: 'teamDetailsCtrl'
       }
     }
+  })
+  
+   .state('tabsController.matchDetails', {
+    url: '/matches/:matchId',
+    views: {
+      'tab1': {
+        templateUrl: 'templates/matchDetails.html',
+        controller: 'matchDetailsCtrl'
+      }
+    }
   });
 
-$urlRouterProvider.otherwise('/tabs/games')
+$urlRouterProvider.otherwise('/tabs/matches')
 
   
 

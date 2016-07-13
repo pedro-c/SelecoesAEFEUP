@@ -1,8 +1,9 @@
 angular.module('app.controllers', [])
   
-.controller('gamesCtrl', function($scope, LastResults, NextMatches) {
-    $scope.lastResults = LastResults;
-    $scope.nextMatches = nextMatches;
+.controller('matchesCtrl', function($scope, Matches, NextMatches, Entities) {
+    $scope.lastMatches = Matches.getLastMatches(1);
+    $scope.getEntityById = Entities.getEntityById;
+    $scope.nextMatches = Matches.getNextMatches(2);
 })
    
 .controller('calendarCtrl', function($scope) {
@@ -19,4 +20,9 @@ angular.module('app.controllers', [])
       
 .controller('optionsCtrl', function($scope, Teams) {
     $scope.teams = Teams.getTeams();
+})
+
+.controller('matchDetailsCtrl', function($scope, $stateParams, Matches, Entities) {
+    $scope.match = Matches.getMatchById($stateParams.matchId);
+    $scope.getEntityById = Entities.getEntityById;
 }); 

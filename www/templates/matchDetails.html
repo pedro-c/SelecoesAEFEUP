@@ -1,0 +1,23 @@
+<ion-view hide-nav-bar="true" id="matchDetails" class=" ">
+    <ion-content padding="true" class="manual-ios-statusbar-padding">
+        <h>{{match.status}}</h>
+        <table>
+            <tr>
+                <th>{{match.teamType}}</th>
+            </tr>
+            <tr>
+                <td>{{getEntityById(match.teamId1).shortName}}</td>
+                <td>{{match.score1}} - {{match.score2}}</td>
+                <td>{{getEntityById(match.teamId2).shortName}}</td>
+            </tr>  
+            <tr>
+                <td>{{match.local}}</td>
+            </tr>
+            <tr>
+                <td>{{match.date | date:"dd'/'MM'/'yyyy"}}</td>
+                <td>{{match.date | date:"HH'h'mm"}}</td>
+            </tr>
+        </table>
+
+    </ion-content>
+</ion-view>

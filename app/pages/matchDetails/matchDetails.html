@@ -1,0 +1,29 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Jogo Especial
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding class="matchDetails">
+  <h>{{match.status}}</h>
+  <table>
+    <tr>
+      <th>{{match.teamType}}</th>
+    </tr>
+    <tr>
+      <td>{{getEntityById(match.teamId1).shortName}}</td>
+      <td>{{match.score1}} - {{match.score2}}</td>
+      <td>{{getEntityById(match.teamId2).shortName}}</td>
+    </tr>
+    <tr>
+      <td>{{match.local}}</td>
+    </tr>
+    <tr>
+      <td>{{match.date | date:"dd'/'MM'/'yyyy"}}</td>
+      <td>{{match.date | date:"HH'h'mm"}}</td>
+    </tr>
+  </table>
+
+</ion-content>

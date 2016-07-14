@@ -1,10 +1,16 @@
 <ion-header>
   <ion-navbar>
     <ion-title>
-      Teams
+      Equipas
     </ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding class="teams">
+  <ion-list>
+    <a *ngFor="let modality of modalities" (click)="openModality(modality)"
+    class="button button-assertive button-block icon-right ion-ios-arrow-forward">
+                {{modality.name}}
+            </a>
+  </ion-list>
 </ion-content>

@@ -1,17 +1,70 @@
 <ion-header>
   <ion-navbar>
-    <ion-title>Matches</ion-title>
+    <ion-title>
+      Jogos
+    </ion-title>
   </ion-navbar>
 </ion-header>
 
 <ion-content padding class="matches">
-  <h2>Welcome to Ionic!</h2>
-  <p>
-    This starter project comes with simple tabs-based layout for apps
-    that are going to primarily use a Tabbed UI.
-  </p>
-  <p>
-    Take a look at the <code>app/</code> directory to add or change tabs,
-    update any existing page or create new pages.
-  </p>
+  <form class="list ">
+    <label class="item item-input ">
+      <span class="input-label"> <b> Últimos Resultados </b> </span>
+    </label>
+    <ion-list class=" ">
+      <ion-item *ngFor="let result of lastMatches" (click)="openMatch(result)" href="#/tabs/matches/{{result.id}}">
+        <table style="width:100%">
+          <tr>
+            <td align="left"> <font size="3"> {{result.teamType}} </font></td>
+            <td align="right"> <font size="2"> {{result.local}} </font></td>
+          </tr>
+          <tr>
+            <td>
+              <hr>
+            </td>
+            <td>
+              <hr>
+            </td>
+          </tr>
+          <tr>
+            <td align="left"> <font size="3"> {{getEntityById(result.teamId1).shortName}} </font></td>
+            <td align="right"> <font size="3"> {{result.score1}} </font></td>
+          </tr>
+          <tr>
+            <td align="left"> <font size="3"> {{getEntityById(result.teamId2).shortName}} </font></td>
+            <td align="right"> <font size="3"> {{result.score2}} </font></td>
+          </tr>
+        </table>
+      </ion-item>
+    </ion-list>
+  </form>
+  <label class="item item-input " id="jogos-textarea3">
+    <span class="input-label"> <b>Próximos Jogos </b> </span>
+  </label>
+  <ion-list>
+    <ion-item *ngFor="let nextMatch of nextMatches" (click)="openMatch(nextMatch)">
+      <table style="width:100%">
+        <tr>
+          <td align="left"> <font size="3"> {{nextMatch.teamType}} </font></td>
+          <td align="right"> <font size="2"> {{nextMatch.local}} </font></td>
+        </tr>
+        <tr>
+          <td>
+            <hr>
+          </td>
+          <td>
+            <hr>
+          </td>
+        </tr>
+        <tr>
+          <td align="left"> <font size="3"> {{getEntityById(nextMatch.teamId1).shortName}} </font></td>
+          <td align="right"> <font size="3"> {{nextMatch.date | date:"dd'/'MM'/'yyyy"}} </font></td>
+        </tr>
+        <tr>
+          <td align="left"> <font size="3"> {{getEntityById(nextMatch.teamId2).shortName}} </font></td>
+          <td align="right"> <font size="3"> {{nextMatch.date | date:"HH'h'mm"}} </font></td>
+        </tr>
+      </table>
+    </ion-item>
+  </ion-list>
 </ion-content>

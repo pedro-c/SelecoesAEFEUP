@@ -16,17 +16,3 @@
 10. BIRA!
 
 P.S. You may have to install some dependencies such as node.js and cordova framework, I already had them installed so I'm not sure which ones you have to install but any doubt just ask :)
-
-Everything about building with Ionic can be found here - http://ionicframework.com/docs/overview/
-
-# To Figure Out
-
-1. How to get the scores into the app;
-2. Where to save them (firebase?);
-
-
-# Development Plan
-
-1. Design the overall look of the app (maybe test it on a real android/iphone);
-2. API for the scores;
-3. 

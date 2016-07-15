@@ -15,7 +15,7 @@ export class TeamsPage {
       this.modalities = modalitiesFactory.getModalities();
   }
 
-  openModality(modality : any) {
+  openModalityDetails(modality : any) {
     this.navController.push(TeamDetailsPage, {
       modalityId : modality.id
     });

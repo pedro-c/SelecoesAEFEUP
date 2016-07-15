@@ -12,7 +12,7 @@
       <span class="input-label"> <b> Últimos Resultados </b> </span>
     </label>
     <ion-list class=" ">
-      <ion-item *ngFor="let result of lastMatches" (click)="openMatch(result)" href="#/tabs/matches/{{result.id}}">
+      <ion-item *ngFor="let result of lastMatches" (click)="openMatchDetails(result)">
         <table style="width:100%">
           <tr>
             <td align="left"> <font size="3"> {{result.teamType}} </font></td>
@@ -42,7 +42,7 @@
     <span class="input-label"> <b>Próximos Jogos </b> </span>
   </label>
   <ion-list>
-    <ion-item *ngFor="let nextMatch of nextMatches" (click)="openMatch(nextMatch)">
+    <ion-item *ngFor="let nextMatch of nextMatches" (click)="openMatchDetails(nextMatch)">
       <table style="width:100%">
         <tr>
           <td align="left"> <font size="3"> {{nextMatch.teamType}} </font></td>

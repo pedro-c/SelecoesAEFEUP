@@ -19,7 +19,7 @@ export class MatchesPage {
     this.getEntityById = entitiesFactory.getEntityById;
   }
 
-  openMatch(match : any) {
+  openMatchDetails(match : any) {
     this.navController.push(MatchDetailsPage, {
       matchId : match.id
     });

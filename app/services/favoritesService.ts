@@ -22,7 +22,7 @@ export class FavoritesService {
         this.loadFavorites();
     }
 
-    static getInstance(): FavoritesService {
+    public static getInstance(): FavoritesService {
         if (FavoritesService.instance == null) {
             FavoritesService.isCreating = true;
             //TODO: Not sure if this is the correct way to make this
@@ -33,11 +33,17 @@ export class FavoritesService {
         return FavoritesService.instance;
     }
 
-    getFavorites(): any[] {
+    public getFavorites(): any[] {
         return this.favorites;
     }
 
-    loadFavorites() {
+    /*public isTeamOnFavorites(id : number) {
+      for(var i = 0; i < this.favorites.length; i++) {
+        if(favorites[id])
+      }
+    }*/
+
+    private loadFavorites() {
         var filePath: string;
         this.recreateFavorites();
       /*  if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
@@ -64,13 +70,13 @@ export class FavoritesService {
         }, this.recreateFavorites);*/
     }
 
-    recreateFavorites(): void {
+    private recreateFavorites(): void {
         for (var modality of this.modalities) {
             this.favorites.push(false);
         }
     }
 
-    setFavorites(newFavorites : boolean[]) : void {
+    private setFavorites(newFavorites : boolean[]) : void {
       this.favorites = newFavorites;
     }
 }

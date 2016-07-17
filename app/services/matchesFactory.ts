@@ -1,4 +1,5 @@
 import {Injectable} from '@angular/core';
+import {FavoritesService} from './favoritesService';
 
 const matches : any[] = [
   {
@@ -41,6 +42,12 @@ const matches : any[] = [
 
 @Injectable()
 export class MatchesFactory {
+  private favoritesService;
+
+  constructor() {
+    this.favoritesService = FavoritesService.getInstance();
+  }
+
   getLastMatches(quantity) {
     //Gets the index of the last played game
     var i;
@@ -62,6 +69,7 @@ export class MatchesFactory {
   getNextMatches(quantity) {
     //Gets the index of the first match to be played
     var i;
+    var nextMatches : any[];
     for (i = matches.length - 1; i >= 0; i--) {
       if (matches[i].date.getTime() < Date.now()) {
         break;
@@ -69,6 +77,10 @@ export class MatchesFactory {
     }
 
     i++;
+
+    /*for(; i < matches.length; i++) {
+      if(this.FavoritesService.)
+    }*/
 
     return matches.slice(i, i + quantity);
   };

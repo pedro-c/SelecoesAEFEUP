@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {Platform, ionicBootstrap} from 'ionic-angular';
 import {StatusBar} from 'ionic-native';
 import {TabsPage} from './pages/tabs/tabs';
+import {FavoritesService} from './services/favoritesService';
 
 
 @Component({
@@ -22,6 +23,6 @@ export class MyApp {
   }
 }
 
-ionicBootstrap(MyApp, [], {
+ionicBootstrap(MyApp, [FavoritesService], {
   tabbarPlacement: 'bottom'
 });

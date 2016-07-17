@@ -20,4 +20,8 @@ export class TeamsPage {
       modalityId : modality.id
     });
   }
+
+  favorite(modality : any) {
+    console.log("Oi");
+  }
 }

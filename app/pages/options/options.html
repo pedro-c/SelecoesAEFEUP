@@ -14,14 +14,7 @@
 
     <button class="button button-assertive button-block">Liga AEFEUP</button>
 
-    <label class="item">
-        <span class="input-label">Equipas Favoritas</span>
-    </label>
-
-    <ion-list>
-        <ion-item *ngFor="let modality of modalities">
-            <ion-label>{{modality.name}}</ion-label>
-            <ion-toggle toggle-class="toggle-assertive"></ion-toggle>
-        </ion-item>
-    </ion-list>
+    <button class="button button-assertive button-block" (click)="openFavoritesPage()">
+        Equipas Favoritas
+    </button>
 </ion-content>

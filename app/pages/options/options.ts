@@ -1,16 +1,17 @@
 import {Component} from '@angular/core';
 import {NavController} from 'ionic-angular';
-import {ModalitiesFactory} from '../../services/modalitiesFactory';
+import {FavoritesPage} from '../favorites/favorites';
 
 @Component({
-  templateUrl: 'build/pages/options/options.html',
-  providers: [ModalitiesFactory]
+  templateUrl: 'build/pages/options/options.html'
 })
 
 export class OptionsPage {
-  private modalities : any[];
+  constructor(private navController: NavController) {
 
-  constructor(private navController: NavController, private modalitiesFactory : ModalitiesFactory) {
-    this.modalities = modalitiesFactory.getModalities();
+  }
+
+  openFavoritesPage() {
+    this.navController.push(FavoritesPage);
   }
 }

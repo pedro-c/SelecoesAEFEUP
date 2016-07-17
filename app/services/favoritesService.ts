@@ -1,6 +1,9 @@
 import {Injectable} from '@angular/core';
 import {ModalitiesFactory} from './modalitiesFactory';
+import {File} from 'ionic-native';
+import {Device} from 'ionic-native';
 
+const FAVORITES_FILENAME: string = "favorites.dat";
 
 @Injectable()
 export class FavoritesService {
@@ -9,30 +12,65 @@ export class FavoritesService {
     private static instance: FavoritesService;
     private static isCreating: boolean = false;
 
-    constructor(private modalitiesFactory: ModalitiesFactory) {
-        if(!FavoritesService.isCreating)
-          throw new Error("You cannot use new in singletons. Use getInstance() instead.");
+    constructor(private modalitiesFactory: ModalitiesFactory, private file: File, private device: Device) {
+        if (!FavoritesService.isCreating)
+            throw new Error("You cannot use new in singletons. Use getInstance() instead.");
 
         this.modalities = modalitiesFactory.getModalities();
         this.favorites = [];
 
-        for (var modality of this.modalities) {
-            this.favorites.push(false);
-        }
+        this.loadFavorites();
     }
 
-    static getInstance() {
+    static getInstance(): FavoritesService {
         if (FavoritesService.instance == null) {
             FavoritesService.isCreating = true;
             //TODO: Not sure if this is the correct way to make this
-            FavoritesService.instance = new FavoritesService(new ModalitiesFactory());
+            FavoritesService.instance = new FavoritesService(new ModalitiesFactory(), new File(), new Device());
             FavoritesService.isCreating = false;
         }
 
         return FavoritesService.instance;
     }
 
-    getFavorites() {
+    getFavorites(): any[] {
         return this.favorites;
+    }
+
+    loadFavorites() {
+        var filePath: string;
+        this.recreateFavorites();
+      /*  if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
+            filePath = cordova.file.dataDirectory.syncedDataDirectory;
+        } else {
+            filePath = cordova.file.dataDirectory;
+        }
+
+        filePath += FAVORITES_FILENAME;
+
+        window.resolveLocalFileSystemURL(filePath, function(fileEntry : any) {
+          fileEntry.file(function (file) {
+            var reader = new FileReader();
+
+            reader.onloadend = function (event) {
+              //FavoritesService.getInstance().setFavorites(new Uint8Array(event.target.result));
+              console.log(new Uint8Array(event.target.result));
+            }
+
+            reader.readAsArrayBuffer(file);
+          }, function() {
+            console.log("Error reading from file.");
+          });
+        }, this.recreateFavorites);*/
+    }
+
+    recreateFavorites(): void {
+        for (var modality of this.modalities) {
+            this.favorites.push(false);
+        }
+    }
+
+    setFavorites(newFavorites : boolean[]) : void {
+      this.favorites = newFavorites;
     }
 }

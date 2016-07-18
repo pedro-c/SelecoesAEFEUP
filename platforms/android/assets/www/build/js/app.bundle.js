@@ -36,7 +36,91 @@ exports.MyApp = MyApp;
 ionic_angular_1.ionicBootstrap(MyApp, [favoritesService_1.FavoritesService], {
     tabbarPlacement: 'bottom'
 });
-},{"./pages/tabs/tabs":7,"./services/favoritesService":11,"@angular/core":160,"ionic-angular":424,"ionic-native":451}],2:[function(require,module,exports){
+},{"./pages/tabs/tabs":9,"./services/favoritesService":13,"@angular/core":162,"ionic-angular":426,"ionic-native":453}],2:[function(require,module,exports){
+"use strict";
+var modalitiesFactory_1 = require('../services/modalitiesFactory');
+var entitiesFactory_1 = require('../services/entitiesFactory');
+(function (MatchStatus) {
+    MatchStatus[MatchStatus["FINISHED"] = 0] = "FINISHED";
+    MatchStatus[MatchStatus["UPCOMING"] = 1] = "UPCOMING";
+    MatchStatus[MatchStatus["ONGOING"] = 2] = "ONGOING";
+})(exports.MatchStatus || (exports.MatchStatus = {}));
+var MatchStatus = exports.MatchStatus;
+;
+var Match = (function () {
+    function Match(date, modalityId, teamId1, score1, teamId2, score2, local) {
+        this.date = date;
+        this.modalityId = modalityId;
+        this.teamId1 = teamId1;
+        this.score1 = score1;
+        this.teamId2 = teamId2;
+        this.score2 = score2;
+        this.local = local;
+        this.id = Match.nextId;
+        Match.nextId++;
+    }
+    Match.prototype.getModalityId = function () {
+        return this.modalityId;
+    };
+    Match.prototype.getModalityName = function () {
+        var modalitiesFactory = new modalitiesFactory_1.ModalitiesFactory();
+        return modalitiesFactory.getModalityById(this.modalityId).getName();
+    };
+    Match.prototype.getLocal = function () {
+        return this.local;
+    };
+    Match.prototype.getTeam1ShortName = function () {
+        var entitiesFactory = new entitiesFactory_1.EntitiesFactory();
+        return entitiesFactory.getEntityById(this.teamId1).shortName;
+    };
+    Match.prototype.getScore1 = function () {
+        return this.score1;
+    };
+    Match.prototype.getTeam2ShortName = function () {
+        var entitiesFactory = new entitiesFactory_1.EntitiesFactory();
+        return entitiesFactory.getEntityById(this.teamId2).shortName;
+    };
+    Match.prototype.getScore2 = function () {
+        return this.score2;
+    };
+    Match.prototype.getDate = function () {
+        return this.date;
+    };
+    Match.prototype.getStatus = function () {
+        //TODO: Use ONGOING status.
+        if (this.date.getTime() < Date.now()) {
+            return MatchStatus.FINISHED;
+        }
+        else {
+            return MatchStatus.UPCOMING;
+        }
+    };
+    Match.prototype.getId = function () {
+        return this.id;
+    };
+    Match.nextId = 0;
+    return Match;
+}());
+exports.Match = Match;
+},{"../services/entitiesFactory":12,"../services/modalitiesFactory":15}],3:[function(require,module,exports){
+"use strict";
+var Modality = (function () {
+    function Modality(name) {
+        this.name = name;
+        this.id = Modality.nextId;
+        Modality.nextId++;
+    }
+    Modality.prototype.getId = function () {
+        return this.id;
+    };
+    Modality.prototype.getName = function () {
+        return this.name;
+    };
+    Modality.nextId = 0;
+    return Modality;
+}());
+exports.Modality = Modality;
+},{}],4:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -62,7 +146,7 @@ var CalendarPage = (function () {
     return CalendarPage;
 }());
 exports.CalendarPage = CalendarPage;
-},{"@angular/core":160,"ionic-angular":424}],3:[function(require,module,exports){
+},{"@angular/core":162,"ionic-angular":426}],5:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -82,8 +166,26 @@ var FavoritesPage = (function () {
         this.navController = navController;
         this.modalitiesFactory = modalitiesFactory;
         this.modalities = modalitiesFactory.getModalities();
-        this.favorites = favoritesService_1.FavoritesService.getInstance().getFavorites();
+        this.favoritesService = favoritesService_1.FavoritesService.getInstance();
+        this.toggles = [];
+        for (var i = 0; i < this.modalities.length; i++) {
+            if (this.favoritesService.isModalityOnFavorites(i))
+                this.toggles.push(true);
+            else
+                this.toggles.push(false);
+        }
+        console.log(this.toggles);
     }
+    FavoritesPage.prototype.toggled = function (modalityId, event) {
+        if (event) {
+            this.favoritesService.addFavorite(modalityId);
+            this.toggles[modalityId] = true;
+        }
+        else {
+            this.favoritesService.removeFavorite(modalityId);
+            this.toggles[modalityId] = false;
+        }
+    };
     FavoritesPage = __decorate([
         core_1.Component({
             templateUrl: 'build/pages/favorites/favorites.html',
@@ -94,7 +196,7 @@ var FavoritesPage = (function () {
     return FavoritesPage;
 }());
 exports.FavoritesPage = FavoritesPage;
-},{"../../services/favoritesService":11,"../../services/modalitiesFactory":13,"@angular/core":160,"ionic-angular":424}],4:[function(require,module,exports){
+},{"../../services/favoritesService":13,"../../services/modalitiesFactory":15,"@angular/core":162,"ionic-angular":426}],6:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -128,7 +230,7 @@ var MatchDetailsPage = (function () {
     return MatchDetailsPage;
 }());
 exports.MatchDetailsPage = MatchDetailsPage;
-},{"../../services/entitiesFactory":10,"../../services/matchesFactory":12,"@angular/core":160,"ionic-angular":424}],5:[function(require,module,exports){
+},{"../../services/entitiesFactory":12,"../../services/matchesFactory":14,"@angular/core":162,"ionic-angular":426}],7:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -142,33 +244,33 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('@angular/core');
 var ionic_angular_1 = require('ionic-angular');
 var matchesFactory_1 = require('../../services/matchesFactory');
-var entitiesFactory_1 = require('../../services/entitiesFactory');
 var matchDetails_1 = require('../matchDetails/matchDetails');
 var MatchesPage = (function () {
-    function MatchesPage(navController, matchesFactory, entitiesFactory) {
+    function MatchesPage(navController, matchesFactory) {
         this.navController = navController;
         this.matchesFactory = matchesFactory;
-        this.entitiesFactory = entitiesFactory;
-        this.lastMatches = matchesFactory.getLastMatches(1);
-        this.nextMatches = matchesFactory.getNextMatches(1);
-        this.getEntityById = entitiesFactory.getEntityById;
     }
     MatchesPage.prototype.openMatchDetails = function (match) {
         this.navController.push(matchDetails_1.MatchDetailsPage, {
-            matchId: match.id
+            matchId: match.getId()
         });
+    };
+    //Updates favorites everytime the view is entered
+    MatchesPage.prototype.ionViewWillEnter = function () {
+        this.lastMatches = this.matchesFactory.getLastMatches();
+        this.nextMatches = this.matchesFactory.getNextMatches();
     };
     MatchesPage = __decorate([
         core_1.Component({
             templateUrl: 'build/pages/matches/matches.html',
-            providers: [matchesFactory_1.MatchesFactory, entitiesFactory_1.EntitiesFactory]
+            providers: [matchesFactory_1.MatchesFactory]
         }), 
-        __metadata('design:paramtypes', [ionic_angular_1.NavController, matchesFactory_1.MatchesFactory, entitiesFactory_1.EntitiesFactory])
+        __metadata('design:paramtypes', [ionic_angular_1.NavController, matchesFactory_1.MatchesFactory])
     ], MatchesPage);
     return MatchesPage;
 }());
 exports.MatchesPage = MatchesPage;
-},{"../../services/entitiesFactory":10,"../../services/matchesFactory":12,"../matchDetails/matchDetails":4,"@angular/core":160,"ionic-angular":424}],6:[function(require,module,exports){
+},{"../../services/matchesFactory":14,"../matchDetails/matchDetails":6,"@angular/core":162,"ionic-angular":426}],8:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -198,7 +300,7 @@ var OptionsPage = (function () {
     return OptionsPage;
 }());
 exports.OptionsPage = OptionsPage;
-},{"../favorites/favorites":3,"@angular/core":160,"ionic-angular":424}],7:[function(require,module,exports){
+},{"../favorites/favorites":5,"@angular/core":162,"ionic-angular":426}],9:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -232,7 +334,7 @@ var TabsPage = (function () {
     return TabsPage;
 }());
 exports.TabsPage = TabsPage;
-},{"../calendar/calendar":2,"../matches/matches":5,"../options/options":6,"../teams/teams":9,"@angular/core":160}],8:[function(require,module,exports){
+},{"../calendar/calendar":4,"../matches/matches":7,"../options/options":8,"../teams/teams":11,"@angular/core":162}],10:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -255,7 +357,7 @@ var TeamDetailsPage = (function () {
     }
     TeamDetailsPage = __decorate([
         core_1.Component({
-            templateUrl: 'build/pages/teamDetails/teamDetails.html',
+            templateUrl: 'build/pages/teams/teams.html',
             providers: [modalitiesFactory_1.ModalitiesFactory]
         }), 
         __metadata('design:paramtypes', [ionic_angular_1.NavController, ionic_angular_1.NavParams, modalitiesFactory_1.ModalitiesFactory])
@@ -263,7 +365,7 @@ var TeamDetailsPage = (function () {
     return TeamDetailsPage;
 }());
 exports.TeamDetailsPage = TeamDetailsPage;
-},{"../../services/modalitiesFactory":13,"@angular/core":160,"ionic-angular":424}],9:[function(require,module,exports){
+},{"../../services/modalitiesFactory":15,"@angular/core":162,"ionic-angular":426}],11:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -277,7 +379,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('@angular/core');
 var ionic_angular_1 = require('ionic-angular');
 var modalitiesFactory_1 = require('../../services/modalitiesFactory');
-var teamDetails_1 = require('../teamsDetails/teamDetails');
+var teamDetails_1 = require('../teamDetails/teamDetails');
 var TeamsPage = (function () {
     function TeamsPage(navController, modalitiesFactory) {
         this.navController = navController;
@@ -302,7 +404,7 @@ var TeamsPage = (function () {
     return TeamsPage;
 }());
 exports.TeamsPage = TeamsPage;
-},{"../../services/modalitiesFactory":13,"../teamsDetails/teamDetails":8,"@angular/core":160,"ionic-angular":424}],10:[function(require,module,exports){
+},{"../../services/modalitiesFactory":15,"../teamDetails/teamDetails":10,"@angular/core":162,"ionic-angular":426}],12:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -350,7 +452,7 @@ var EntitiesFactory = (function () {
     return EntitiesFactory;
 }());
 exports.EntitiesFactory = EntitiesFactory;
-},{"@angular/core":160}],11:[function(require,module,exports){
+},{"@angular/core":162}],13:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -364,39 +466,45 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var core_1 = require('@angular/core');
 var modalitiesFactory_1 = require('./modalitiesFactory');
 var ionic_native_1 = require('ionic-native');
-var ionic_native_2 = require('ionic-native');
+var typescript_collections_1 = require('../../node_modules/typescript-collections');
 var FAVORITES_FILENAME = "favorites.dat";
 var FavoritesService = (function () {
     function FavoritesService(modalitiesFactory, file, device) {
         this.modalitiesFactory = modalitiesFactory;
         this.file = file;
         this.device = device;
+        this.refreshResults = false;
         if (!FavoritesService.isCreating)
             throw new Error("You cannot use new in singletons. Use getInstance() instead.");
         this.modalities = modalitiesFactory.getModalities();
-        this.favorites = [];
-        this.loadFavorites();
+        this.favorites = new typescript_collections_1.Set();
+        //this.loadFavorites();
     }
     FavoritesService.getInstance = function () {
         if (FavoritesService.instance == null) {
             FavoritesService.isCreating = true;
             //TODO: Not sure if this is the correct way to make this
-            FavoritesService.instance = new FavoritesService(new modalitiesFactory_1.ModalitiesFactory(), new ionic_native_1.File(), new ionic_native_2.Device());
+            FavoritesService.instance = new FavoritesService(new modalitiesFactory_1.ModalitiesFactory(), new ionic_native_1.File(), new ionic_native_1.Device());
             FavoritesService.isCreating = false;
         }
         return FavoritesService.instance;
     };
-    FavoritesService.prototype.getFavorites = function () {
-        return this.favorites;
+    FavoritesService.prototype.isModalityOnFavorites = function (id) {
+        return this.favorites.contains(id);
     };
-    /*public isTeamOnFavorites(id : number) {
-      for(var i = 0; i < this.favorites.length; i++) {
-        if(favorites[id])
-      }
-    }*/
+    FavoritesService.prototype.addFavorite = function (modalityId) {
+        this.refreshResults = true;
+        this.favorites.add(modalityId);
+    };
+    FavoritesService.prototype.removeFavorite = function (modalityId) {
+        this.refreshResults = true;
+        this.favorites.add(modalityId);
+    };
+    FavoritesService.prototype.refreshMatches = function () {
+        return this.refreshResults;
+    };
     FavoritesService.prototype.loadFavorites = function () {
         var filePath;
-        this.recreateFavorites();
         /*if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
             filePath = cordova.file.dataDirectory.syncedDataDirectory;
         } else {
@@ -420,24 +528,15 @@ var FavoritesService = (function () {
           });
         }, this.recreateFavorites());*/
     };
-    FavoritesService.prototype.recreateFavorites = function () {
-        for (var _i = 0, _a = this.modalities; _i < _a.length; _i++) {
-            var modality = _a[_i];
-            this.favorites.push(false);
-        }
-    };
-    FavoritesService.prototype.setFavorites = function (newFavorites) {
-        this.favorites = newFavorites;
-    };
     FavoritesService.isCreating = false;
     FavoritesService = __decorate([
         core_1.Injectable(), 
-        __metadata('design:paramtypes', [modalitiesFactory_1.ModalitiesFactory, ionic_native_1.File, ionic_native_2.Device])
+        __metadata('design:paramtypes', [modalitiesFactory_1.ModalitiesFactory, ionic_native_1.File, ionic_native_1.Device])
     ], FavoritesService);
     return FavoritesService;
 }());
 exports.FavoritesService = FavoritesService;
-},{"./modalitiesFactory":13,"@angular/core":160,"ionic-native":451}],12:[function(require,module,exports){
+},{"../../node_modules/typescript-collections":552,"./modalitiesFactory":15,"@angular/core":162,"ionic-native":453}],14:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -450,78 +549,70 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require('@angular/core');
 var favoritesService_1 = require('./favoritesService');
+var match_1 = require('../classes/match');
 var matches = [
-    {
-        id: 0,
-        status: 'finished',
-        teamType: 'Andebol Masculino',
-        teamId1: 0, score1: 1,
-        teamId2: 1, score2: 0,
-        local: 'Pavilhão Desportivo Luís Falcão',
-        date: new Date(2016, 7, 12, 14, 0)
-    },
-    {
-        id: 1,
-        status: 'upcoming',
-        teamType: 'Futsal Feminino',
-        teamId1: 0, score1: null,
-        teamId2: 1, score2: null,
-        local: 'Pavilhão Desportivo Luís Falcão',
-        date: new Date(2016, 7, 14, 14, 0)
-    },
-    {
-        id: 2,
-        status: 'upcoming',
-        teamType: 'Futsal Feminino',
-        teamId1: 0, score1: null,
-        teamId2: 2, score2: null,
-        local: 'Campo FADEUP',
-        date: new Date(2016, 7, 15, 17, 0)
-    },
-    {
-        id: 3,
-        status: 'upcoming',
-        teamType: 'Futsal Feminino',
-        teamId1: 0, score1: null,
-        teamId2: 2, score2: null,
-        local: 'Pavilhão Desportivo Luís Falcão',
-        date: new Date(2016, 7, 14, 18, 30)
-    }
+    new match_1.Match(new Date(2016, 7, 12, 14, 0), 0, 0, 1, 1, 0, 'Pavilhão Desportivo Luís Falcão'),
+    new match_1.Match(new Date(2016, 7, 14, 14, 0), 7, 0, null, 1, null, 'Pavilhão Desportivo Luís Falcão'),
+    new match_1.Match(new Date(2016, 8, 20, 17, 0), 7, 0, null, 2, null, 'Campo FADEUP'),
+    new match_1.Match(new Date(2016, 9, 19, 18, 30), 7, 0, null, 2, null, 'Pavilhão Desportivo Luís Falcão')
 ];
+var LAST_MATCHES_LENGTH = 3;
+var NEXT_MATCHES_LENGTH = 3;
 var MatchesFactory = (function () {
     function MatchesFactory() {
         this.favoritesService = favoritesService_1.FavoritesService.getInstance();
     }
-    MatchesFactory.prototype.getLastMatches = function (quantity) {
+    MatchesFactory.prototype.refreshLastMatches = function () {
         //Gets the index of the last played game
         var i;
         for (i = matches.length - 1; i >= 0; i--) {
-            if (matches[i].date.getTime() < Date.now()) {
+            if (matches[i].getStatus() == match_1.MatchStatus.FINISHED) {
                 break;
             }
         }
         i++;
-        return matches.slice(i - quantity + 1, quantity);
+        this.lastMatches = [];
+        var quantity = LAST_MATCHES_LENGTH;
+        while (i > 0 && quantity > 0) {
+            if (this.favoritesService.isModalityOnFavorites(matches[i].getModalityId()))
+                this.lastMatches.unshift(matches[i]);
+            i--;
+            quantity--;
+        }
+    };
+    MatchesFactory.prototype.getLastMatches = function () {
+        if (favoritesService_1.FavoritesService.getInstance().refreshMatches())
+            this.refreshLastMatches();
+        return this.lastMatches;
     };
     ;
     MatchesFactory.prototype.getMatchById = function (id) {
         return matches[id];
     };
     ;
-    MatchesFactory.prototype.getNextMatches = function (quantity) {
+    MatchesFactory.prototype.refreshNextMatches = function () {
         //Gets the index of the first match to be played
         var i;
-        var nextMatches;
         for (i = matches.length - 1; i >= 0; i--) {
-            if (matches[i].date.getTime() < Date.now()) {
+            if (matches[i].getStatus() == match_1.MatchStatus.FINISHED) {
                 break;
             }
         }
         i++;
-        /*for(; i < matches.length; i++) {
-          if(this.FavoritesService.)
-        }*/
-        return matches.slice(i, i + quantity);
+        i++;
+        this.nextMatches = [];
+        var quantity = NEXT_MATCHES_LENGTH;
+        while (i < matches.length && quantity > 0) {
+            if (this.favoritesService.isModalityOnFavorites(matches[i].getModalityId()))
+                this.nextMatches.push(matches[i]);
+            i++;
+            quantity--;
+        }
+    };
+    MatchesFactory.prototype.getNextMatches = function () {
+        if (favoritesService_1.FavoritesService.getInstance().refreshMatches())
+            this.refreshNextMatches();
+        return this.nextMatches;
     };
     ;
     MatchesFactory = __decorate([
@@ -531,7 +622,7 @@ var MatchesFactory = (function () {
     return MatchesFactory;
 }());
 exports.MatchesFactory = MatchesFactory;
-},{"./favoritesService":11,"@angular/core":160}],13:[function(require,module,exports){
+},{"../classes/match":2,"./favoritesService":13,"@angular/core":162}],15:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -543,49 +634,28 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
-var modalities = [
-    {
-        id: 0, name: 'Andebol Masculino'
-    },
-    {
-        id: 1, name: 'Andebol Feminino'
-    },
-    {
-        id: 2, name: 'Basquetebol Masculino'
-    },
-    {
-        id: 3, name: 'Basquetebol Feminino'
-    },
-    {
-        id: 4, name: 'Futebol 11 Masculino'
-    },
-    {
-        id: 5, name: 'Futebol 11 Feminino'
-    },
-    {
-        id: 6, name: 'Futsal Masculino'
-    },
-    {
-        id: 7, name: 'Futsal Feminino'
-    },
-    {
-        id: 8, name: 'Voleibol Masculino'
-    },
-    {
-        id: 9, name: 'Voleibol Feminino'
-    },
-    {
-        id: 10, name: 'Rugby 7 Masculino'
-    }
+var modality_1 = require('../classes/modality');
+var MODALITIES = [
+    new modality_1.Modality('Andebol Masculino'),
+    new modality_1.Modality('Andebol Feminino'),
+    new modality_1.Modality('Basquetebol Masculino'),
+    new modality_1.Modality('Basquetebol Feminino'),
+    new modality_1.Modality('Futebol 11 Masculino'),
+    new modality_1.Modality('Futebol 11 Feminino'),
+    new modality_1.Modality('Futsal Masculino'),
+    new modality_1.Modality('Futsal Feminino'),
+    new modality_1.Modality('Voleibol Masculino'),
+    new modality_1.Modality('Voleibol Feminino'),
+    new modality_1.Modality('Rugby 7 Masculino')
 ];
 var ModalitiesFactory = (function () {
     function ModalitiesFactory() {
     }
     ModalitiesFactory.prototype.getModalities = function () {
-        return modalities;
+        return MODALITIES;
     };
     ModalitiesFactory.prototype.getModalityById = function (id) {
-        return modalities[id];
+        return MODALITIES[id];
     };
     ModalitiesFactory = __decorate([
         core_1.Injectable(), 
@@ -594,7 +664,7 @@ var ModalitiesFactory = (function () {
     return ModalitiesFactory;
 }());
 exports.ModalitiesFactory = ModalitiesFactory;
-},{"@angular/core":160}],14:[function(require,module,exports){
+},{"../classes/modality":3,"@angular/core":162}],16:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -605,7 +675,7 @@ __export(require('./src/forms-deprecated'));
 __export(require('./src/common_directives'));
 __export(require('./src/location'));
 
-},{"./src/common_directives":15,"./src/directives":16,"./src/forms-deprecated":33,"./src/location":58,"./src/pipes":64}],15:[function(require,module,exports){
+},{"./src/common_directives":17,"./src/directives":18,"./src/forms-deprecated":35,"./src/location":60,"./src/pipes":66}],17:[function(require,module,exports){
 "use strict";
 var directives_1 = require('./directives');
 var forms_deprecated_1 = require('./forms-deprecated');
@@ -656,7 +726,7 @@ var forms_deprecated_1 = require('./forms-deprecated');
  */
 exports.COMMON_DIRECTIVES = [directives_1.CORE_DIRECTIVES, forms_deprecated_1.FORM_DIRECTIVES];
 
-},{"./directives":16,"./forms-deprecated":33}],16:[function(require,module,exports){
+},{"./directives":18,"./forms-deprecated":35}],18:[function(require,module,exports){
 "use strict";
 /**
  * @module
@@ -684,7 +754,7 @@ exports.NgSwitchDefault = ng_switch_1.NgSwitchDefault;
 var ng_template_outlet_1 = require('./directives/ng_template_outlet');
 exports.NgTemplateOutlet = ng_template_outlet_1.NgTemplateOutlet;
 
-},{"./directives/core_directives":17,"./directives/ng_class":18,"./directives/ng_for":19,"./directives/ng_if":20,"./directives/ng_plural":21,"./directives/ng_style":22,"./directives/ng_switch":23,"./directives/ng_template_outlet":24}],17:[function(require,module,exports){
+},{"./directives/core_directives":19,"./directives/ng_class":20,"./directives/ng_for":21,"./directives/ng_if":22,"./directives/ng_plural":23,"./directives/ng_style":24,"./directives/ng_switch":25,"./directives/ng_template_outlet":26}],19:[function(require,module,exports){
 "use strict";
 var ng_class_1 = require('./ng_class');
 var ng_for_1 = require('./ng_for');
@@ -748,7 +818,7 @@ exports.CORE_DIRECTIVES = [
     ng_plural_1.NgPluralCase,
 ];
 
-},{"./ng_class":18,"./ng_for":19,"./ng_if":20,"./ng_plural":21,"./ng_style":22,"./ng_switch":23,"./ng_template_outlet":24}],18:[function(require,module,exports){
+},{"./ng_class":20,"./ng_for":21,"./ng_if":22,"./ng_plural":23,"./ng_style":24,"./ng_switch":25,"./ng_template_outlet":26}],20:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -876,7 +946,7 @@ var NgClass = (function () {
 }());
 exports.NgClass = NgClass;
 
-},{"../facade/collection":27,"../facade/lang":31,"@angular/core":160}],19:[function(require,module,exports){
+},{"../facade/collection":29,"../facade/lang":33,"@angular/core":162}],21:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var exceptions_1 = require('../facade/exceptions');
@@ -1039,7 +1109,7 @@ var RecordViewTuple = (function () {
     return RecordViewTuple;
 }());
 
-},{"../facade/exceptions":29,"../facade/lang":31,"@angular/core":160}],20:[function(require,module,exports){
+},{"../facade/exceptions":31,"../facade/lang":33,"@angular/core":162}],22:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -1076,7 +1146,7 @@ var NgIf = (function () {
 }());
 exports.NgIf = NgIf;
 
-},{"../facade/lang":31,"@angular/core":160}],21:[function(require,module,exports){
+},{"../facade/lang":33,"@angular/core":162}],23:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -1182,7 +1252,7 @@ var NgPlural = (function () {
 }());
 exports.NgPlural = NgPlural;
 
-},{"../facade/collection":27,"../facade/lang":31,"./ng_switch":23,"@angular/core":160}],22:[function(require,module,exports){
+},{"../facade/collection":29,"../facade/lang":33,"./ng_switch":25,"@angular/core":162}],24:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -1233,7 +1303,7 @@ var NgStyle = (function () {
 }());
 exports.NgStyle = NgStyle;
 
-},{"../facade/lang":31,"@angular/core":160}],23:[function(require,module,exports){
+},{"../facade/lang":33,"@angular/core":162}],25:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -1400,7 +1470,7 @@ var NgSwitchDefault = (function () {
 }());
 exports.NgSwitchDefault = NgSwitchDefault;
 
-},{"../facade/collection":27,"../facade/lang":31,"@angular/core":160}],24:[function(require,module,exports){
+},{"../facade/collection":29,"../facade/lang":33,"@angular/core":162}],26:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -1455,7 +1525,7 @@ var NgTemplateOutlet = (function () {
 }());
 exports.NgTemplateOutlet = NgTemplateOutlet;
 
-},{"../facade/lang":31,"@angular/core":160}],25:[function(require,module,exports){
+},{"../facade/lang":33,"@angular/core":162}],27:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -1616,7 +1686,7 @@ var EventEmitter = (function (_super) {
 }(Subject_1.Subject));
 exports.EventEmitter = EventEmitter;
 
-},{"./lang":31,"./promise":32,"rxjs/Observable":518,"rxjs/Subject":520,"rxjs/observable/PromiseObservable":524,"rxjs/operator/toPromise":525}],26:[function(require,module,exports){
+},{"./lang":33,"./promise":34,"rxjs/Observable":520,"rxjs/Subject":522,"rxjs/observable/PromiseObservable":526,"rxjs/operator/toPromise":527}],28:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -1667,7 +1737,7 @@ var BaseWrappedException = (function (_super) {
 }(Error));
 exports.BaseWrappedException = BaseWrappedException;
 
-},{}],27:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 "use strict";
 var lang_1 = require('./lang');
 exports.Map = lang_1.global.Map;
@@ -2036,7 +2106,7 @@ var SetWrapper = (function () {
 }());
 exports.SetWrapper = SetWrapper;
 
-},{"./lang":31}],28:[function(require,module,exports){
+},{"./lang":33}],30:[function(require,module,exports){
 "use strict";
 var base_wrapped_exception_1 = require('./base_wrapped_exception');
 var collection_1 = require('./collection');
@@ -2170,7 +2240,7 @@ var ExceptionHandler = (function () {
 }());
 exports.ExceptionHandler = ExceptionHandler;
 
-},{"./base_wrapped_exception":26,"./collection":27,"./lang":31}],29:[function(require,module,exports){
+},{"./base_wrapped_exception":28,"./collection":29,"./lang":33}],31:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -2253,7 +2323,7 @@ function unimplemented() {
 }
 exports.unimplemented = unimplemented;
 
-},{"./base_wrapped_exception":26,"./exception_handler":28}],30:[function(require,module,exports){
+},{"./base_wrapped_exception":28,"./exception_handler":30}],32:[function(require,module,exports){
 "use strict";
 (function (NumberFormatStyle) {
     NumberFormatStyle[NumberFormatStyle["Decimal"] = 0] = "Decimal";
@@ -2436,7 +2506,7 @@ var DateFormatter = (function () {
 }());
 exports.DateFormatter = DateFormatter;
 
-},{}],31:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 (function (global){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -2890,7 +2960,7 @@ exports.escapeRegExp = escapeRegExp;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],32:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 "use strict";
 var PromiseCompleter = (function () {
     function PromiseCompleter() {
@@ -2939,7 +3009,7 @@ var PromiseWrapper = (function () {
 }());
 exports.PromiseWrapper = PromiseWrapper;
 
-},{}],33:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 "use strict";
 var radio_control_value_accessor_1 = require('./forms-deprecated/directives/radio_control_value_accessor');
 var form_builder_1 = require('./forms-deprecated/form_builder');
@@ -3004,7 +3074,7 @@ exports.Validators = validators_2.Validators;
  */
 exports.FORM_PROVIDERS = [form_builder_1.FormBuilder, radio_control_value_accessor_1.RadioControlRegistry];
 
-},{"./forms-deprecated/directives":34,"./forms-deprecated/directives/abstract_control_directive":35,"./forms-deprecated/directives/checkbox_value_accessor":36,"./forms-deprecated/directives/control_container":37,"./forms-deprecated/directives/control_value_accessor":38,"./forms-deprecated/directives/default_value_accessor":39,"./forms-deprecated/directives/ng_control":40,"./forms-deprecated/directives/ng_control_group":41,"./forms-deprecated/directives/ng_control_name":42,"./forms-deprecated/directives/ng_control_status":43,"./forms-deprecated/directives/ng_form":44,"./forms-deprecated/directives/ng_form_control":45,"./forms-deprecated/directives/ng_form_model":46,"./forms-deprecated/directives/ng_model":47,"./forms-deprecated/directives/radio_control_value_accessor":50,"./forms-deprecated/directives/select_control_value_accessor":51,"./forms-deprecated/directives/validators":54,"./forms-deprecated/form_builder":55,"./forms-deprecated/model":56,"./forms-deprecated/validators":57}],34:[function(require,module,exports){
+},{"./forms-deprecated/directives":36,"./forms-deprecated/directives/abstract_control_directive":37,"./forms-deprecated/directives/checkbox_value_accessor":38,"./forms-deprecated/directives/control_container":39,"./forms-deprecated/directives/control_value_accessor":40,"./forms-deprecated/directives/default_value_accessor":41,"./forms-deprecated/directives/ng_control":42,"./forms-deprecated/directives/ng_control_group":43,"./forms-deprecated/directives/ng_control_name":44,"./forms-deprecated/directives/ng_control_status":45,"./forms-deprecated/directives/ng_form":46,"./forms-deprecated/directives/ng_form_control":47,"./forms-deprecated/directives/ng_form_model":48,"./forms-deprecated/directives/ng_model":49,"./forms-deprecated/directives/radio_control_value_accessor":52,"./forms-deprecated/directives/select_control_value_accessor":53,"./forms-deprecated/directives/validators":56,"./forms-deprecated/form_builder":57,"./forms-deprecated/model":58,"./forms-deprecated/validators":59}],36:[function(require,module,exports){
 "use strict";
 var checkbox_value_accessor_1 = require('./directives/checkbox_value_accessor');
 var default_value_accessor_1 = require('./directives/default_value_accessor');
@@ -3095,7 +3165,7 @@ exports.FORM_DIRECTIVES = [
     validators_1.PatternValidator,
 ];
 
-},{"./directives/checkbox_value_accessor":36,"./directives/default_value_accessor":39,"./directives/ng_control":40,"./directives/ng_control_group":41,"./directives/ng_control_name":42,"./directives/ng_control_status":43,"./directives/ng_form":44,"./directives/ng_form_control":45,"./directives/ng_form_model":46,"./directives/ng_model":47,"./directives/number_value_accessor":49,"./directives/radio_control_value_accessor":50,"./directives/select_control_value_accessor":51,"./directives/select_multiple_control_value_accessor":52,"./directives/validators":54}],35:[function(require,module,exports){
+},{"./directives/checkbox_value_accessor":38,"./directives/default_value_accessor":41,"./directives/ng_control":42,"./directives/ng_control_group":43,"./directives/ng_control_name":44,"./directives/ng_control_status":45,"./directives/ng_form":46,"./directives/ng_form_control":47,"./directives/ng_form_model":48,"./directives/ng_model":49,"./directives/number_value_accessor":51,"./directives/radio_control_value_accessor":52,"./directives/select_control_value_accessor":53,"./directives/select_multiple_control_value_accessor":54,"./directives/validators":56}],37:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../../facade/exceptions');
 var lang_1 = require('../../facade/lang');
@@ -3160,7 +3230,7 @@ var AbstractControlDirective = (function () {
 }());
 exports.AbstractControlDirective = AbstractControlDirective;
 
-},{"../../facade/exceptions":29,"../../facade/lang":31}],36:[function(require,module,exports){
+},{"../../facade/exceptions":31,"../../facade/lang":33}],38:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var control_value_accessor_1 = require('./control_value_accessor');
@@ -3198,7 +3268,7 @@ var CheckboxControlValueAccessor = (function () {
 }());
 exports.CheckboxControlValueAccessor = CheckboxControlValueAccessor;
 
-},{"./control_value_accessor":38,"@angular/core":160}],37:[function(require,module,exports){
+},{"./control_value_accessor":40,"@angular/core":162}],39:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3238,7 +3308,7 @@ var ControlContainer = (function (_super) {
 }(abstract_control_directive_1.AbstractControlDirective));
 exports.ControlContainer = ControlContainer;
 
-},{"./abstract_control_directive":35}],38:[function(require,module,exports){
+},{"./abstract_control_directive":37}],40:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 /**
@@ -3250,7 +3320,7 @@ var core_1 = require('@angular/core');
 exports.NG_VALUE_ACCESSOR = 
 /*@ts2dart_const*/ new core_1.OpaqueToken('NgValueAccessor');
 
-},{"@angular/core":160}],39:[function(require,module,exports){
+},{"@angular/core":162}],41:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../../facade/lang');
@@ -3294,7 +3364,7 @@ var DefaultValueAccessor = (function () {
 }());
 exports.DefaultValueAccessor = DefaultValueAccessor;
 
-},{"../../facade/lang":31,"./control_value_accessor":38,"@angular/core":160}],40:[function(require,module,exports){
+},{"../../facade/lang":33,"./control_value_accessor":40,"@angular/core":162}],42:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3332,7 +3402,7 @@ var NgControl = (function (_super) {
 }(abstract_control_directive_1.AbstractControlDirective));
 exports.NgControl = NgControl;
 
-},{"../../facade/exceptions":29,"./abstract_control_directive":35}],41:[function(require,module,exports){
+},{"../../facade/exceptions":31,"./abstract_control_directive":37}],43:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3411,7 +3481,7 @@ var NgControlGroup = (function (_super) {
 }(control_container_1.ControlContainer));
 exports.NgControlGroup = NgControlGroup;
 
-},{"../validators":57,"./control_container":37,"./shared":53,"@angular/core":160}],42:[function(require,module,exports){
+},{"../validators":59,"./control_container":39,"./shared":55,"@angular/core":162}],44:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3505,7 +3575,7 @@ var NgControlName = (function (_super) {
 }(ng_control_1.NgControl));
 exports.NgControlName = NgControlName;
 
-},{"../../facade/async":25,"../validators":57,"./control_container":37,"./control_value_accessor":38,"./ng_control":40,"./shared":53,"@angular/core":160}],43:[function(require,module,exports){
+},{"../../facade/async":27,"../validators":59,"./control_container":39,"./control_value_accessor":40,"./ng_control":42,"./shared":55,"@angular/core":162}],45:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../../facade/lang');
@@ -3578,7 +3648,7 @@ var NgControlStatus = (function () {
 }());
 exports.NgControlStatus = NgControlStatus;
 
-},{"../../facade/lang":31,"./ng_control":40,"@angular/core":160}],44:[function(require,module,exports){
+},{"../../facade/lang":33,"./ng_control":42,"@angular/core":162}],46:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3717,7 +3787,7 @@ var NgForm = (function (_super) {
 }(control_container_1.ControlContainer));
 exports.NgForm = NgForm;
 
-},{"../../facade/async":25,"../../facade/collection":27,"../../facade/lang":31,"../model":56,"../validators":57,"./control_container":37,"./shared":53,"@angular/core":160}],45:[function(require,module,exports){
+},{"../../facade/async":27,"../../facade/collection":29,"../../facade/lang":33,"../model":58,"../validators":59,"./control_container":39,"./shared":55,"@angular/core":162}],47:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3804,7 +3874,7 @@ var NgFormControl = (function (_super) {
 }(ng_control_1.NgControl));
 exports.NgFormControl = NgFormControl;
 
-},{"../../facade/async":25,"../../facade/collection":27,"../validators":57,"./control_value_accessor":38,"./ng_control":40,"./shared":53,"@angular/core":160}],46:[function(require,module,exports){
+},{"../../facade/async":27,"../../facade/collection":29,"../validators":59,"./control_value_accessor":40,"./ng_control":42,"./shared":55,"@angular/core":162}],48:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -3934,7 +4004,7 @@ var NgFormModel = (function (_super) {
 }(control_container_1.ControlContainer));
 exports.NgFormModel = NgFormModel;
 
-},{"../../facade/async":25,"../../facade/collection":27,"../../facade/exceptions":29,"../../facade/lang":31,"../validators":57,"./control_container":37,"./shared":53,"@angular/core":160}],47:[function(require,module,exports){
+},{"../../facade/async":27,"../../facade/collection":29,"../../facade/exceptions":31,"../../facade/lang":33,"../validators":59,"./control_container":39,"./shared":55,"@angular/core":162}],49:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -4023,7 +4093,7 @@ var NgModel = (function (_super) {
 }(ng_control_1.NgControl));
 exports.NgModel = NgModel;
 
-},{"../../facade/async":25,"../model":56,"../validators":57,"./control_value_accessor":38,"./ng_control":40,"./shared":53,"@angular/core":160}],48:[function(require,module,exports){
+},{"../../facade/async":27,"../model":58,"../validators":59,"./control_value_accessor":40,"./ng_control":42,"./shared":55,"@angular/core":162}],50:[function(require,module,exports){
 "use strict";
 function normalizeValidator(validator) {
     if (validator.validate !== undefined) {
@@ -4044,7 +4114,7 @@ function normalizeAsyncValidator(validator) {
 }
 exports.normalizeAsyncValidator = normalizeAsyncValidator;
 
-},{}],49:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../../facade/lang');
@@ -4089,7 +4159,7 @@ var NumberValueAccessor = (function () {
 }());
 exports.NumberValueAccessor = NumberValueAccessor;
 
-},{"../../facade/lang":31,"./control_value_accessor":38,"@angular/core":160}],50:[function(require,module,exports){
+},{"../../facade/lang":33,"./control_value_accessor":40,"@angular/core":162}],52:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../../facade/collection');
@@ -4202,7 +4272,7 @@ var RadioControlValueAccessor = (function () {
 }());
 exports.RadioControlValueAccessor = RadioControlValueAccessor;
 
-},{"../../facade/collection":27,"../../facade/lang":31,"./control_value_accessor":38,"./ng_control":40,"@angular/core":160}],51:[function(require,module,exports){
+},{"../../facade/collection":29,"../../facade/lang":33,"./control_value_accessor":40,"./ng_control":42,"@angular/core":162}],53:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../../facade/collection');
@@ -4336,7 +4406,7 @@ var NgSelectOption = (function () {
 }());
 exports.NgSelectOption = NgSelectOption;
 
-},{"../../facade/collection":27,"../../facade/lang":31,"./control_value_accessor":38,"@angular/core":160}],52:[function(require,module,exports){
+},{"../../facade/collection":29,"../../facade/lang":33,"./control_value_accessor":40,"@angular/core":162}],54:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../../facade/collection');
@@ -4511,7 +4581,7 @@ var NgSelectMultipleOption = (function () {
 exports.NgSelectMultipleOption = NgSelectMultipleOption;
 exports.SELECT_DIRECTIVES = [SelectMultipleControlValueAccessor, NgSelectMultipleOption];
 
-},{"../../facade/collection":27,"../../facade/lang":31,"./control_value_accessor":38,"@angular/core":160}],53:[function(require,module,exports){
+},{"../../facade/collection":29,"../../facade/lang":33,"./control_value_accessor":40,"@angular/core":162}],55:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../../facade/collection');
 var exceptions_1 = require('../../facade/exceptions');
@@ -4613,7 +4683,7 @@ function selectValueAccessor(dir, valueAccessors) {
 }
 exports.selectValueAccessor = selectValueAccessor;
 
-},{"../../facade/collection":27,"../../facade/exceptions":29,"../../facade/lang":31,"../validators":57,"./checkbox_value_accessor":36,"./default_value_accessor":39,"./normalize_validator":48,"./number_value_accessor":49,"./radio_control_value_accessor":50,"./select_control_value_accessor":51}],54:[function(require,module,exports){
+},{"../../facade/collection":29,"../../facade/exceptions":31,"../../facade/lang":33,"../validators":59,"./checkbox_value_accessor":38,"./default_value_accessor":41,"./normalize_validator":50,"./number_value_accessor":51,"./radio_control_value_accessor":52,"./select_control_value_accessor":53}],56:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../../facade/lang');
@@ -4724,7 +4794,7 @@ var PatternValidator = (function () {
 }());
 exports.PatternValidator = PatternValidator;
 
-},{"../../facade/lang":31,"../validators":57,"@angular/core":160}],55:[function(require,module,exports){
+},{"../../facade/lang":33,"../validators":59,"@angular/core":162}],57:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -4800,7 +4870,7 @@ var FormBuilder = (function () {
 }());
 exports.FormBuilder = FormBuilder;
 
-},{"../facade/collection":27,"../facade/lang":31,"./model":56,"@angular/core":160}],56:[function(require,module,exports){
+},{"../facade/collection":29,"../facade/lang":33,"./model":58,"@angular/core":162}],58:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -5319,7 +5389,7 @@ var ControlArray = (function (_super) {
 }(AbstractControl));
 exports.ControlArray = ControlArray;
 
-},{"../facade/async":25,"../facade/collection":27,"../facade/lang":31}],57:[function(require,module,exports){
+},{"../facade/async":27,"../facade/collection":29,"../facade/lang":33}],59:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var async_1 = require('../facade/async');
@@ -5461,7 +5531,7 @@ function _mergeErrors(arrayOfErrors) {
     return collection_1.StringMapWrapper.isEmpty(res) ? null : res;
 }
 
-},{"../facade/async":25,"../facade/collection":27,"../facade/lang":31,"../facade/promise":32,"@angular/core":160}],58:[function(require,module,exports){
+},{"../facade/async":27,"../facade/collection":29,"../facade/lang":33,"../facade/promise":34,"@angular/core":162}],60:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -5472,7 +5542,7 @@ __export(require('./location/hash_location_strategy'));
 __export(require('./location/path_location_strategy'));
 __export(require('./location/location'));
 
-},{"./location/hash_location_strategy":59,"./location/location":60,"./location/location_strategy":61,"./location/path_location_strategy":62,"./location/platform_location":63}],59:[function(require,module,exports){
+},{"./location/hash_location_strategy":61,"./location/location":62,"./location/location_strategy":63,"./location/path_location_strategy":64,"./location/platform_location":65}],61:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -5543,7 +5613,7 @@ var HashLocationStrategy = (function (_super) {
 }(location_strategy_1.LocationStrategy));
 exports.HashLocationStrategy = HashLocationStrategy;
 
-},{"../facade/lang":31,"./location":60,"./location_strategy":61,"./platform_location":63,"@angular/core":160}],60:[function(require,module,exports){
+},{"../facade/lang":33,"./location":62,"./location_strategy":63,"./platform_location":65,"@angular/core":162}],62:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var async_1 = require('../facade/async');
@@ -5689,7 +5759,7 @@ function _stripIndexHtml(url) {
     return url;
 }
 
-},{"../facade/async":25,"./location_strategy":61,"@angular/core":160}],61:[function(require,module,exports){
+},{"../facade/async":27,"./location_strategy":63,"@angular/core":162}],63:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 /**
@@ -5748,7 +5818,7 @@ exports.LocationStrategy = LocationStrategy;
  */
 exports.APP_BASE_HREF = new core_1.OpaqueToken('appBaseHref');
 
-},{"@angular/core":160}],62:[function(require,module,exports){
+},{"@angular/core":162}],64:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -5809,7 +5879,7 @@ var PathLocationStrategy = (function (_super) {
 }(location_strategy_1.LocationStrategy));
 exports.PathLocationStrategy = PathLocationStrategy;
 
-},{"../facade/exceptions":29,"../facade/lang":31,"./location":60,"./location_strategy":61,"./platform_location":63,"@angular/core":160}],63:[function(require,module,exports){
+},{"../facade/exceptions":31,"../facade/lang":33,"./location":62,"./location_strategy":63,"./platform_location":65,"@angular/core":162}],65:[function(require,module,exports){
 "use strict";
 /**
  * This class should not be used directly by an application developer. Instead, use
@@ -5859,7 +5929,7 @@ var PlatformLocation = (function () {
 }());
 exports.PlatformLocation = PlatformLocation;
 
-},{}],64:[function(require,module,exports){
+},{}],66:[function(require,module,exports){
 /**
  * @module
  * @description
@@ -5891,7 +5961,7 @@ exports.SlicePipe = slice_pipe_1.SlicePipe;
 var uppercase_pipe_1 = require('./pipes/uppercase_pipe');
 exports.UpperCasePipe = uppercase_pipe_1.UpperCasePipe;
 
-},{"./pipes/async_pipe":65,"./pipes/common_pipes":66,"./pipes/date_pipe":67,"./pipes/i18n_plural_pipe":68,"./pipes/i18n_select_pipe":69,"./pipes/json_pipe":71,"./pipes/lowercase_pipe":72,"./pipes/number_pipe":73,"./pipes/replace_pipe":74,"./pipes/slice_pipe":75,"./pipes/uppercase_pipe":76}],65:[function(require,module,exports){
+},{"./pipes/async_pipe":67,"./pipes/common_pipes":68,"./pipes/date_pipe":69,"./pipes/i18n_plural_pipe":70,"./pipes/i18n_select_pipe":71,"./pipes/json_pipe":73,"./pipes/lowercase_pipe":74,"./pipes/number_pipe":75,"./pipes/replace_pipe":76,"./pipes/slice_pipe":77,"./pipes/uppercase_pipe":78}],67:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var async_1 = require('../facade/async');
@@ -6004,7 +6074,7 @@ var AsyncPipe = (function () {
 }());
 exports.AsyncPipe = AsyncPipe;
 
-},{"../facade/async":25,"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],66:[function(require,module,exports){
+},{"../facade/async":27,"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],68:[function(require,module,exports){
 "use strict";
 /**
  * @module
@@ -6045,7 +6115,7 @@ exports.COMMON_PIPES = [
     i18n_select_pipe_1.I18nSelectPipe,
 ];
 
-},{"./async_pipe":65,"./date_pipe":67,"./i18n_plural_pipe":68,"./i18n_select_pipe":69,"./json_pipe":71,"./lowercase_pipe":72,"./number_pipe":73,"./replace_pipe":74,"./slice_pipe":75,"./uppercase_pipe":76}],67:[function(require,module,exports){
+},{"./async_pipe":67,"./date_pipe":69,"./i18n_plural_pipe":70,"./i18n_select_pipe":71,"./json_pipe":73,"./lowercase_pipe":74,"./number_pipe":75,"./replace_pipe":76,"./slice_pipe":77,"./uppercase_pipe":78}],69:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -6103,7 +6173,7 @@ var DatePipe = (function () {
 }());
 exports.DatePipe = DatePipe;
 
-},{"../facade/collection":27,"../facade/intl":30,"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],68:[function(require,module,exports){
+},{"../facade/collection":29,"../facade/intl":32,"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],70:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -6130,7 +6200,7 @@ var I18nPluralPipe = (function () {
 }());
 exports.I18nPluralPipe = I18nPluralPipe;
 
-},{"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],69:[function(require,module,exports){
+},{"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],71:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -6153,7 +6223,7 @@ var I18nSelectPipe = (function () {
 }());
 exports.I18nSelectPipe = I18nSelectPipe;
 
-},{"../facade/collection":27,"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],70:[function(require,module,exports){
+},{"../facade/collection":29,"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],72:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -6171,7 +6241,7 @@ var InvalidPipeArgumentException = (function (_super) {
 }(exceptions_1.BaseException));
 exports.InvalidPipeArgumentException = InvalidPipeArgumentException;
 
-},{"../facade/exceptions":29,"../facade/lang":31}],71:[function(require,module,exports){
+},{"../facade/exceptions":31,"../facade/lang":33}],73:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -6187,7 +6257,7 @@ var JsonPipe = (function () {
 }());
 exports.JsonPipe = JsonPipe;
 
-},{"../facade/lang":31,"@angular/core":160}],72:[function(require,module,exports){
+},{"../facade/lang":33,"@angular/core":162}],74:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -6211,7 +6281,7 @@ var LowerCasePipe = (function () {
 }());
 exports.LowerCasePipe = LowerCasePipe;
 
-},{"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],73:[function(require,module,exports){
+},{"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],75:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var exceptions_1 = require('../facade/exceptions');
@@ -6300,7 +6370,7 @@ var CurrencyPipe = (function () {
 }());
 exports.CurrencyPipe = CurrencyPipe;
 
-},{"../facade/exceptions":29,"../facade/intl":30,"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],74:[function(require,module,exports){
+},{"../facade/exceptions":31,"../facade/intl":32,"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],76:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -6347,7 +6417,7 @@ var ReplacePipe = (function () {
 }());
 exports.ReplacePipe = ReplacePipe;
 
-},{"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],75:[function(require,module,exports){
+},{"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],77:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -6377,7 +6447,7 @@ var SlicePipe = (function () {
 }());
 exports.SlicePipe = SlicePipe;
 
-},{"../facade/collection":27,"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],76:[function(require,module,exports){
+},{"../facade/collection":29,"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],78:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -6401,7 +6471,7 @@ var UpperCasePipe = (function () {
 }());
 exports.UpperCasePipe = UpperCasePipe;
 
-},{"../facade/lang":31,"./invalid_pipe_argument_exception":70,"@angular/core":160}],77:[function(require,module,exports){
+},{"../facade/lang":33,"./invalid_pipe_argument_exception":72,"@angular/core":162}],79:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -6444,7 +6514,7 @@ exports.ElementSchemaRegistry = element_schema_registry_1.ElementSchemaRegistry;
 __export(require('./src/template_ast'));
 __export(require('./private_export'));
 
-},{"./private_export":80,"./src/compiler":88,"./src/schema/element_schema_registry":133,"./src/template_ast":138}],78:[function(require,module,exports){
+},{"./private_export":82,"./src/compiler":90,"./src/schema/element_schema_registry":135,"./src/template_ast":140}],80:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 exports.isDefaultChangeDetectionStrategy = core_1.__core_private__.isDefaultChangeDetectionStrategy;
@@ -6510,14 +6580,14 @@ exports.clearStyles = core_1.__core_private__.clearStyles;
 exports.collectAndResolveStyles = core_1.__core_private__.collectAndResolveStyles;
 exports.renderStyles = core_1.__core_private__.renderStyles;
 
-},{"@angular/core":160}],79:[function(require,module,exports){
+},{"@angular/core":162}],81:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 __export(require('./compiler'));
 
-},{"./compiler":77}],80:[function(require,module,exports){
+},{"./compiler":79}],82:[function(require,module,exports){
 "use strict";
 var directive_normalizer = require('./src/directive_normalizer');
 var lexer = require('./src/expression_parser/lexer');
@@ -6566,7 +6636,7 @@ var __compiler_private__;
     __compiler_private__.TypeScriptEmitter = ts_emitter.TypeScriptEmitter;
 })(__compiler_private__ = exports.__compiler_private__ || (exports.__compiler_private__ = {}));
 
-},{"./src/directive_normalizer":91,"./src/expression_parser/lexer":94,"./src/expression_parser/parser":95,"./src/html_parser":106,"./src/i18n/i18n_html_parser":109,"./src/i18n/message":110,"./src/i18n/message_extractor":111,"./src/i18n/xmb_serializer":113,"./src/metadata_resolver":116,"./src/output/path_util":125,"./src/output/ts_emitter":126,"./src/parse_util":127,"./src/schema/dom_element_schema_registry":131,"./src/selector":134,"./src/style_compiler":136,"./src/template_parser":139,"./src/view_compiler/view_compiler":157}],81:[function(require,module,exports){
+},{"./src/directive_normalizer":93,"./src/expression_parser/lexer":96,"./src/expression_parser/parser":97,"./src/html_parser":108,"./src/i18n/i18n_html_parser":111,"./src/i18n/message":112,"./src/i18n/message_extractor":113,"./src/i18n/xmb_serializer":115,"./src/metadata_resolver":118,"./src/output/path_util":127,"./src/output/ts_emitter":128,"./src/parse_util":129,"./src/schema/dom_element_schema_registry":133,"./src/selector":136,"./src/style_compiler":138,"./src/template_parser":141,"./src/view_compiler/view_compiler":159}],83:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -6710,7 +6780,7 @@ var AnimationSequenceAst = (function (_super) {
 }(AnimationWithStepsAst));
 exports.AnimationSequenceAst = AnimationSequenceAst;
 
-},{}],82:[function(require,module,exports){
+},{}],84:[function(require,module,exports){
 "use strict";
 var core_private_1 = require('../../core_private');
 var collection_1 = require('../facade/collection');
@@ -6997,7 +7067,7 @@ function _getStylesArray(obj) {
     return obj.styles.styles;
 }
 
-},{"../../core_private":78,"../facade/collection":98,"../facade/exceptions":100,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"./animation_ast":81,"./animation_parser":83}],83:[function(require,module,exports){
+},{"../../core_private":80,"../facade/collection":100,"../facade/exceptions":102,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"./animation_ast":83,"./animation_parser":85}],85:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -7466,7 +7536,7 @@ function _createStartKeyframeFromEndKeyframe(endKeyframe, startTime, duration, c
     return new animation_ast_1.AnimationKeyframeAst(_INITIAL_KEYFRAME, new animation_ast_1.AnimationStylesAst([values]));
 }
 
-},{"../../core_private":78,"../compile_metadata":87,"../facade/collection":98,"../facade/lang":101,"../facade/math":102,"../parse_util":127,"./animation_ast":81,"./styles_collection":84}],84:[function(require,module,exports){
+},{"../../core_private":80,"../compile_metadata":89,"../facade/collection":100,"../facade/lang":103,"../facade/math":104,"../parse_util":129,"./animation_ast":83,"./styles_collection":86}],86:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -7523,7 +7593,7 @@ var StylesCollection = (function () {
 }());
 exports.StylesCollection = StylesCollection;
 
-},{"../facade/collection":98,"../facade/lang":101}],85:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/lang":103}],87:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var exceptions_1 = require('../src/facade/exceptions');
@@ -7564,7 +7634,7 @@ function assertInterpolationSymbols(identifier, value) {
 }
 exports.assertInterpolationSymbols = assertInterpolationSymbols;
 
-},{"../src/facade/exceptions":100,"../src/facade/lang":101,"@angular/core":160}],86:[function(require,module,exports){
+},{"../src/facade/exceptions":102,"../src/facade/lang":103,"@angular/core":162}],88:[function(require,module,exports){
 "use strict";
 exports.$EOF = 0;
 exports.$TAB = 9;
@@ -7628,7 +7698,7 @@ function isWhitespace(code) {
 }
 exports.isWhitespace = isWhitespace;
 
-},{}],87:[function(require,module,exports){
+},{}],89:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -8492,7 +8562,7 @@ function _normalizeArray(obj) {
     return lang_1.isPresent(obj) ? obj : [];
 }
 
-},{"../core_private":78,"../src/facade/collection":98,"../src/facade/exceptions":100,"../src/facade/lang":101,"./selector":134,"./url_resolver":141,"./util":142,"@angular/core":160}],88:[function(require,module,exports){
+},{"../core_private":80,"../src/facade/collection":100,"../src/facade/exceptions":102,"../src/facade/lang":103,"./selector":136,"./url_resolver":143,"./util":144,"@angular/core":162}],90:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -8548,7 +8618,7 @@ exports.COMPILER_PROVIDERS =
     url_resolver_2.UrlResolver, view_resolver_2.ViewResolver, directive_resolver_2.DirectiveResolver, pipe_resolver_2.PipeResolver
 ];
 
-},{"./compile_metadata":87,"./config":89,"./directive_normalizer":91,"./directive_resolver":92,"./expression_parser/lexer":94,"./expression_parser/parser":95,"./html_parser":106,"./metadata_resolver":116,"./offline_compiler":117,"./pipe_resolver":128,"./runtime_compiler":130,"./schema/dom_element_schema_registry":131,"./schema/element_schema_registry":133,"./style_compiler":136,"./template_ast":138,"./template_parser":139,"./url_resolver":141,"./view_compiler/view_compiler":157,"./view_resolver":158,"./xhr":159,"@angular/core":160}],89:[function(require,module,exports){
+},{"./compile_metadata":89,"./config":91,"./directive_normalizer":93,"./directive_resolver":94,"./expression_parser/lexer":96,"./expression_parser/parser":97,"./html_parser":108,"./metadata_resolver":118,"./offline_compiler":119,"./pipe_resolver":130,"./runtime_compiler":132,"./schema/dom_element_schema_registry":133,"./schema/element_schema_registry":135,"./style_compiler":138,"./template_ast":140,"./template_parser":141,"./url_resolver":143,"./view_compiler/view_compiler":159,"./view_resolver":160,"./xhr":161,"@angular/core":162}],91:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var exceptions_1 = require('../src/facade/exceptions');
@@ -8635,7 +8705,7 @@ var DefaultRenderTypes = (function () {
 }());
 exports.DefaultRenderTypes = DefaultRenderTypes;
 
-},{"../src/facade/exceptions":100,"./identifiers":114,"@angular/core":160}],90:[function(require,module,exports){
+},{"../src/facade/exceptions":102,"./identifiers":116,"@angular/core":162}],92:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../core_private');
@@ -8667,7 +8737,7 @@ function hasLifecycleHook(hook, token /** TODO #9100 */) {
 }
 exports.hasLifecycleHook = hasLifecycleHook;
 
-},{"../core_private":78,"../src/facade/collection":98,"@angular/core":160}],91:[function(require,module,exports){
+},{"../core_private":80,"../src/facade/collection":100,"@angular/core":162}],93:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var async_1 = require('../src/facade/async');
@@ -8828,7 +8898,7 @@ var TemplatePreparseVisitor = (function () {
     return TemplatePreparseVisitor;
 }());
 
-},{"../src/facade/async":96,"../src/facade/exceptions":100,"../src/facade/lang":101,"./compile_metadata":87,"./config":89,"./html_ast":104,"./html_parser":106,"./style_url_resolver":137,"./template_preparser":140,"./url_resolver":141,"./xhr":159,"@angular/core":160}],92:[function(require,module,exports){
+},{"../src/facade/async":98,"../src/facade/exceptions":102,"../src/facade/lang":103,"./compile_metadata":89,"./config":91,"./html_ast":106,"./html_parser":108,"./style_url_resolver":139,"./template_preparser":142,"./url_resolver":143,"./xhr":161,"@angular/core":162}],94:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../core_private');
@@ -8954,7 +9024,7 @@ var DirectiveResolver = (function () {
 exports.DirectiveResolver = DirectiveResolver;
 exports.CODEGEN_DIRECTIVE_RESOLVER = new DirectiveResolver(core_private_1.reflector);
 
-},{"../core_private":78,"../src/facade/collection":98,"../src/facade/exceptions":100,"../src/facade/lang":101,"@angular/core":160}],93:[function(require,module,exports){
+},{"../core_private":80,"../src/facade/collection":100,"../src/facade/exceptions":102,"../src/facade/lang":103,"@angular/core":162}],95:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -9442,7 +9512,7 @@ var AstTransformer = (function () {
 }());
 exports.AstTransformer = AstTransformer;
 
-},{"../facade/collection":98}],94:[function(require,module,exports){
+},{"../facade/collection":100}],96:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -9871,7 +9941,7 @@ var OPERATORS = collection_1.SetWrapper.createFromList([
 ]);
 var KEYWORDS = collection_1.SetWrapper.createFromList(['var', 'let', 'null', 'undefined', 'true', 'false', 'if', 'else']);
 
-},{"../facade/collection":98,"../facade/exceptions":100,"../facade/lang":101,"@angular/core":160}],95:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/exceptions":102,"../facade/lang":103,"@angular/core":162}],97:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -10543,17 +10613,17 @@ var SimpleExpressionChecker = (function () {
     return SimpleExpressionChecker;
 }());
 
-},{"../facade/collection":98,"../facade/exceptions":100,"../facade/lang":101,"../interpolation_config":115,"./ast":93,"./lexer":94,"@angular/core":160}],96:[function(require,module,exports){
-arguments[4][25][0].apply(exports,arguments)
-},{"./lang":101,"./promise":103,"dup":25,"rxjs/Observable":518,"rxjs/Subject":520,"rxjs/observable/PromiseObservable":524,"rxjs/operator/toPromise":525}],97:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],98:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/exceptions":102,"../facade/lang":103,"../interpolation_config":117,"./ast":95,"./lexer":96,"@angular/core":162}],98:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"./lang":101,"dup":27}],99:[function(require,module,exports){
+},{"./lang":103,"./promise":105,"dup":27,"rxjs/Observable":520,"rxjs/Subject":522,"rxjs/observable/PromiseObservable":526,"rxjs/operator/toPromise":527}],99:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./base_wrapped_exception":97,"./collection":98,"./lang":101,"dup":28}],100:[function(require,module,exports){
+},{"dup":28}],100:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"./base_wrapped_exception":97,"./exception_handler":99,"dup":29}],101:[function(require,module,exports){
+},{"./lang":103,"dup":29}],101:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./base_wrapped_exception":99,"./collection":100,"./lang":103,"dup":30}],102:[function(require,module,exports){
+arguments[4][31][0].apply(exports,arguments)
+},{"./base_wrapped_exception":99,"./exception_handler":101,"dup":31}],103:[function(require,module,exports){
 (function (global){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -11007,15 +11077,15 @@ exports.escapeRegExp = escapeRegExp;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],102:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 "use strict";
 var lang_1 = require('./lang');
 exports.Math = lang_1.global.Math;
 exports.NaN = typeof exports.NaN;
 
-},{"./lang":101}],103:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],104:[function(require,module,exports){
+},{"./lang":103}],105:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"dup":34}],106:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../src/facade/lang');
 var HtmlTextAst = (function () {
@@ -11100,7 +11170,7 @@ function htmlVisitAll(visitor, asts, context) {
 }
 exports.htmlVisitAll = htmlVisitAll;
 
-},{"../src/facade/lang":101}],105:[function(require,module,exports){
+},{"../src/facade/lang":103}],107:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11770,7 +11840,7 @@ function mergeTextTokens(srcTokens) {
     return dstTokens;
 }
 
-},{"./chars":86,"./facade/collection":98,"./facade/lang":101,"./html_tags":107,"./interpolation_config":115,"./parse_util":127}],106:[function(require,module,exports){
+},{"./chars":88,"./facade/collection":100,"./facade/lang":103,"./html_tags":109,"./interpolation_config":117,"./parse_util":129}],108:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12135,7 +12205,7 @@ function lastOnStack(stack, element) {
     return stack.length > 0 && stack[stack.length - 1] === element;
 }
 
-},{"../src/facade/collection":98,"../src/facade/lang":101,"./html_ast":104,"./html_lexer":105,"./html_tags":107,"./parse_util":127,"@angular/core":160}],107:[function(require,module,exports){
+},{"../src/facade/collection":100,"../src/facade/lang":103,"./html_ast":106,"./html_lexer":107,"./html_tags":109,"./parse_util":129,"@angular/core":162}],109:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../src/facade/lang');
 // see http://www.w3.org/TR/html51/syntax.html#named-character-references
@@ -12515,7 +12585,7 @@ function mergeNsAndName(prefix, localName) {
 }
 exports.mergeNsAndName = mergeNsAndName;
 
-},{"../src/facade/lang":101}],108:[function(require,module,exports){
+},{"../src/facade/lang":103}],110:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var html_ast_1 = require('../html_ast');
@@ -12607,7 +12677,7 @@ function _expandDefaultForm(ast, errors) {
     return new html_ast_1.HtmlElementAst('ng-container', [switchAttr], children, ast.sourceSpan, ast.sourceSpan, ast.sourceSpan);
 }
 
-},{"../facade/exceptions":100,"../html_ast":104,"./shared":112}],109:[function(require,module,exports){
+},{"../facade/exceptions":102,"../html_ast":106,"./shared":114}],111:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var exceptions_1 = require('../facade/exceptions');
@@ -12880,7 +12950,7 @@ var _CreateNodeMapping = (function () {
     return _CreateNodeMapping;
 }());
 
-},{"../facade/collection":98,"../facade/exceptions":100,"../facade/lang":101,"../html_ast":104,"../html_parser":106,"../interpolation_config":115,"./expander":108,"./message":110,"./shared":112}],110:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/exceptions":102,"../facade/lang":103,"../html_ast":106,"../html_parser":108,"../interpolation_config":117,"./expander":110,"./message":112,"./shared":114}],112:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 /**
@@ -12910,7 +12980,7 @@ function id(m) {
 }
 exports.id = id;
 
-},{"../facade/lang":101}],111:[function(require,module,exports){
+},{"../facade/lang":103}],113:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -13077,7 +13147,7 @@ var MessageExtractor = (function () {
 }());
 exports.MessageExtractor = MessageExtractor;
 
-},{"../facade/collection":98,"../facade/lang":101,"../html_ast":104,"../interpolation_config":115,"./message":110,"./shared":112}],112:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/lang":103,"../html_ast":106,"../interpolation_config":117,"./message":112,"./shared":114}],114:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -13284,7 +13354,7 @@ var _StringifyVisitor = (function () {
     return _StringifyVisitor;
 }());
 
-},{"../facade/lang":101,"../html_ast":104,"../parse_util":127,"./message":110}],113:[function(require,module,exports){
+},{"../facade/lang":103,"../html_ast":106,"../parse_util":129,"./message":112}],115:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -13388,7 +13458,7 @@ function _escapeXml(value) {
     return _XML_ESCAPED_CHARS.reduce(function (value, escape) { return value.replace(escape[0], escape[1]); }, value);
 }
 
-},{"../facade/lang":101,"../html_ast":104,"../html_parser":106,"../parse_util":127,"./message":110}],114:[function(require,module,exports){
+},{"../facade/lang":103,"../html_ast":106,"../html_parser":108,"../parse_util":129,"./message":112}],116:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../core_private');
@@ -13579,14 +13649,14 @@ function identifierToken(identifier) {
 }
 exports.identifierToken = identifierToken;
 
-},{"../core_private":78,"./compile_metadata":87,"./util":142,"@angular/core":160}],115:[function(require,module,exports){
+},{"../core_private":80,"./compile_metadata":89,"./util":144,"@angular/core":162}],117:[function(require,module,exports){
 "use strict";
 exports.DEFAULT_INTERPOLATION_CONFIG = {
     start: '{{',
     end: '}}'
 };
 
-},{}],116:[function(require,module,exports){
+},{}],118:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -14057,7 +14127,7 @@ var _CompileValueConverter = (function (_super) {
     return _CompileValueConverter;
 }(util_1.ValueTransformer));
 
-},{"../core_private":78,"../src/facade/collection":98,"../src/facade/exceptions":100,"../src/facade/lang":101,"./assertions":85,"./compile_metadata":87,"./config":89,"./directive_lifecycle_reflector":90,"./directive_resolver":92,"./pipe_resolver":128,"./url_resolver":141,"./util":142,"./view_resolver":158,"@angular/core":160}],117:[function(require,module,exports){
+},{"../core_private":80,"../src/facade/collection":100,"../src/facade/exceptions":102,"../src/facade/lang":103,"./assertions":87,"./compile_metadata":89,"./config":91,"./directive_lifecycle_reflector":92,"./directive_resolver":94,"./pipe_resolver":130,"./url_resolver":143,"./util":144,"./view_resolver":160,"@angular/core":162}],119:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var compile_metadata_1 = require('./compile_metadata');
@@ -14197,7 +14267,7 @@ function _splitSuffix(path) {
     }
 }
 
-},{"./compile_metadata":87,"./facade/collection":98,"./facade/exceptions":100,"./output/output_ast":122,"./util":142,"@angular/core":160}],118:[function(require,module,exports){
+},{"./compile_metadata":89,"./facade/collection":100,"./facade/exceptions":102,"./output/output_ast":124,"./util":144,"@angular/core":162}],120:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var lang_1 = require('../facade/lang');
@@ -14609,7 +14679,7 @@ function _createIndent(count) {
     return res;
 }
 
-},{"../facade/exceptions":100,"../facade/lang":101,"./output_ast":122}],119:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103,"./output_ast":124}],121:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -14774,7 +14844,7 @@ var AbstractJsEmitterVisitor = (function (_super) {
 }(abstract_emitter_1.AbstractEmitterVisitor));
 exports.AbstractJsEmitterVisitor = AbstractJsEmitterVisitor;
 
-},{"../facade/exceptions":100,"../facade/lang":101,"./abstract_emitter":118,"./output_ast":122}],120:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103,"./abstract_emitter":120,"./output_ast":124}],122:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -15156,7 +15226,7 @@ function isConstType(type) {
     return lang_1.isPresent(type) && type.hasModifier(o.TypeModifier.Const);
 }
 
-},{"../facade/exceptions":100,"../facade/lang":101,"./abstract_emitter":118,"./output_ast":122}],121:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103,"./abstract_emitter":120,"./output_ast":124}],123:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -15250,7 +15320,7 @@ var _InterpretiveAppView = (function (_super) {
     return _InterpretiveAppView;
 }(core_private_1.DebugAppView));
 
-},{"../../core_private":78,"../facade/exceptions":100,"../facade/lang":101}],122:[function(require,module,exports){
+},{"../../core_private":80,"../facade/exceptions":102,"../facade/lang":103}],124:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -16230,7 +16300,7 @@ function fn(params, body, type) {
 }
 exports.fn = fn;
 
-},{"../facade/lang":101}],123:[function(require,module,exports){
+},{"../facade/lang":103}],125:[function(require,module,exports){
 "use strict";
 var core_private_1 = require('../../core_private');
 var async_1 = require('../facade/async');
@@ -16681,7 +16751,7 @@ function _declareFn(varNames, statements, ctx, visitor) {
 var CATCH_ERROR_VAR = 'error';
 var CATCH_STACK_VAR = 'stack';
 
-},{"../../core_private":78,"../facade/async":96,"../facade/collection":98,"../facade/exceptions":100,"../facade/lang":101,"./dart_emitter":120,"./output_ast":122,"./ts_emitter":126}],124:[function(require,module,exports){
+},{"../../core_private":80,"../facade/async":98,"../facade/collection":100,"../facade/exceptions":102,"../facade/lang":103,"./dart_emitter":122,"./output_ast":124,"./ts_emitter":128}],126:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -16728,7 +16798,7 @@ var JitEmitterVisitor = (function (_super) {
     return JitEmitterVisitor;
 }(abstract_js_emitter_1.AbstractJsEmitterVisitor));
 
-},{"../facade/lang":101,"../util":142,"./abstract_emitter":118,"./abstract_js_emitter":119}],125:[function(require,module,exports){
+},{"../facade/lang":103,"../util":144,"./abstract_emitter":120,"./abstract_js_emitter":121}],127:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var lang_1 = require('../facade/lang');
@@ -16765,7 +16835,7 @@ var AssetUrl = (function () {
 }());
 exports.AssetUrl = AssetUrl;
 
-},{"../facade/exceptions":100,"../facade/lang":101}],126:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103}],128:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -17071,7 +17141,7 @@ var _TsEmitterVisitor = (function (_super) {
     return _TsEmitterVisitor;
 }(abstract_emitter_1.AbstractEmitterVisitor));
 
-},{"../facade/exceptions":100,"../facade/lang":101,"./abstract_emitter":118,"./output_ast":122}],127:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103,"./abstract_emitter":120,"./output_ast":124}],129:[function(require,module,exports){
 "use strict";
 var ParseLocation = (function () {
     function ParseLocation(file, offset, line, col) {
@@ -17152,7 +17222,7 @@ var ParseError = (function () {
 }());
 exports.ParseError = ParseError;
 
-},{}],128:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../core_private');
@@ -17191,7 +17261,7 @@ var PipeResolver = (function () {
 }());
 exports.PipeResolver = PipeResolver;
 
-},{"../core_private":78,"../src/facade/exceptions":100,"../src/facade/lang":101,"@angular/core":160}],129:[function(require,module,exports){
+},{"../core_private":80,"../src/facade/exceptions":102,"../src/facade/lang":103,"@angular/core":162}],131:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -17568,7 +17638,7 @@ function _addQueryToTokenMap(map, query) {
     });
 }
 
-},{"../src/facade/collection":98,"../src/facade/lang":101,"./compile_metadata":87,"./identifiers":114,"./parse_util":127,"./template_ast":138}],130:[function(require,module,exports){
+},{"../src/facade/collection":100,"../src/facade/lang":103,"./compile_metadata":89,"./identifiers":116,"./parse_util":129,"./template_ast":140}],132:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var exceptions_1 = require('../src/facade/exceptions');
@@ -17749,7 +17819,7 @@ function assertComponent(meta) {
     }
 }
 
-},{"../src/facade/async":96,"../src/facade/collection":98,"../src/facade/exceptions":100,"../src/facade/lang":101,"./compile_metadata":87,"./config":89,"./directive_normalizer":91,"./metadata_resolver":116,"./output/interpretive_view":121,"./output/output_ast":122,"./output/output_interpreter":123,"./output/output_jit":124,"./style_compiler":136,"./template_parser":139,"./view_compiler/view_compiler":157,"./xhr":159,"@angular/core":160}],131:[function(require,module,exports){
+},{"../src/facade/async":98,"../src/facade/collection":100,"../src/facade/exceptions":102,"../src/facade/lang":103,"./compile_metadata":89,"./config":91,"./directive_normalizer":93,"./metadata_resolver":118,"./output/interpretive_view":123,"./output/output_ast":124,"./output/output_interpreter":125,"./output/output_jit":126,"./style_compiler":138,"./template_parser":141,"./view_compiler/view_compiler":159,"./xhr":161,"@angular/core":162}],133:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -18064,7 +18134,7 @@ var DomElementSchemaRegistry = (function (_super) {
 }(element_schema_registry_1.ElementSchemaRegistry));
 exports.DomElementSchemaRegistry = DomElementSchemaRegistry;
 
-},{"../../core_private":78,"../facade/collection":98,"../facade/lang":101,"./dom_security_schema":132,"./element_schema_registry":133,"@angular/core":160}],132:[function(require,module,exports){
+},{"../../core_private":80,"../facade/collection":100,"../facade/lang":103,"./dom_security_schema":134,"./element_schema_registry":135,"@angular/core":162}],134:[function(require,module,exports){
 "use strict";
 var core_private_1 = require('../../core_private');
 // =================================================================================================
@@ -18116,7 +18186,7 @@ registerContext(core_private_1.SecurityContext.RESOURCE_URL, [
     'track|src',
 ]);
 
-},{"../../core_private":78}],133:[function(require,module,exports){
+},{"../../core_private":80}],135:[function(require,module,exports){
 "use strict";
 var ElementSchemaRegistry = (function () {
     function ElementSchemaRegistry() {
@@ -18125,7 +18195,7 @@ var ElementSchemaRegistry = (function () {
 }());
 exports.ElementSchemaRegistry = ElementSchemaRegistry;
 
-},{}],134:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../src/facade/collection');
 var exceptions_1 = require('../src/facade/exceptions');
@@ -18484,7 +18554,7 @@ var SelectorContext = (function () {
 }());
 exports.SelectorContext = SelectorContext;
 
-},{"../src/facade/collection":98,"../src/facade/exceptions":100,"../src/facade/lang":101}],135:[function(require,module,exports){
+},{"../src/facade/collection":100,"../src/facade/exceptions":102,"../src/facade/lang":103}],137:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../src/facade/collection');
 var lang_1 = require('../src/facade/lang');
@@ -18985,7 +19055,7 @@ function escapeBlocks(input) {
     return new StringWithEscapedBlocks(resultParts.join(''), escapedBlocks);
 }
 
-},{"../src/facade/collection":98,"../src/facade/lang":101}],136:[function(require,module,exports){
+},{"../src/facade/collection":100,"../src/facade/lang":103}],138:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../src/facade/lang');
@@ -19066,7 +19136,7 @@ function getStylesVarName(component) {
     return result;
 }
 
-},{"../src/facade/lang":101,"./compile_metadata":87,"./output/output_ast":122,"./shadow_css":135,"./style_url_resolver":137,"./url_resolver":141,"@angular/core":160}],137:[function(require,module,exports){
+},{"../src/facade/lang":103,"./compile_metadata":89,"./output/output_ast":124,"./shadow_css":137,"./style_url_resolver":139,"./url_resolver":143,"@angular/core":162}],139:[function(require,module,exports){
 // Some of the code comes from WebComponents.JS
 // https://github.com/webcomponents/webcomponentsjs/blob/master/src/HTMLImports/path.js
 "use strict";
@@ -19109,7 +19179,7 @@ var _cssImportRe = /@import\s+(?:url\()?\s*(?:(?:['"]([^'"]*))|([^;\)\s]*))[^;]*
 //       https://github.com/angular/angular/issues/4596
 var _urlWithSchemaRe = /^([a-zA-Z\-\+\.]+):/g;
 
-},{"../src/facade/lang":101}],138:[function(require,module,exports){
+},{"../src/facade/lang":103}],140:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../src/facade/lang');
 /**
@@ -19391,7 +19461,7 @@ function templateVisitAll(visitor, asts, context) {
 }
 exports.templateVisitAll = templateVisitAll;
 
-},{"../src/facade/lang":101}],139:[function(require,module,exports){
+},{"../src/facade/lang":103}],141:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -20208,7 +20278,7 @@ function removeDuplicates(items) {
     return res;
 }
 
-},{"../core_private":78,"../src/facade/collection":98,"../src/facade/exceptions":100,"../src/facade/lang":101,"./expression_parser/ast":93,"./expression_parser/parser":95,"./html_ast":104,"./html_parser":106,"./html_tags":107,"./identifiers":114,"./parse_util":127,"./provider_parser":129,"./schema/element_schema_registry":133,"./selector":134,"./style_url_resolver":137,"./template_ast":138,"./template_preparser":140,"./util":142,"@angular/core":160}],140:[function(require,module,exports){
+},{"../core_private":80,"../src/facade/collection":100,"../src/facade/exceptions":102,"../src/facade/lang":103,"./expression_parser/ast":95,"./expression_parser/parser":97,"./html_ast":106,"./html_parser":108,"./html_tags":109,"./identifiers":116,"./parse_util":129,"./provider_parser":131,"./schema/element_schema_registry":135,"./selector":136,"./style_url_resolver":139,"./template_ast":140,"./template_preparser":142,"./util":144,"@angular/core":162}],142:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../src/facade/lang');
 var html_tags_1 = require('./html_tags');
@@ -20292,7 +20362,7 @@ function normalizeNgContentSelect(selectAttr) {
     return selectAttr;
 }
 
-},{"../src/facade/lang":101,"./html_tags":107}],141:[function(require,module,exports){
+},{"../src/facade/lang":103,"./html_tags":109}],143:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../src/facade/lang');
@@ -20608,7 +20678,7 @@ function _resolveUrl(base, url) {
     return _joinAndCanonicalizePath(parts);
 }
 
-},{"../src/facade/lang":101,"@angular/core":160}],142:[function(require,module,exports){
+},{"../src/facade/lang":103,"@angular/core":162}],144:[function(require,module,exports){
 "use strict";
 var collection_1 = require('./facade/collection');
 var lang_1 = require('./facade/lang');
@@ -20689,7 +20759,7 @@ function assetUrl(pkg, path, type) {
 }
 exports.assetUrl = assetUrl;
 
-},{"./facade/collection":98,"./facade/lang":101}],143:[function(require,module,exports){
+},{"./facade/collection":100,"./facade/lang":103}],145:[function(require,module,exports){
 "use strict";
 var CompileBinding = (function () {
     function CompileBinding(node, sourceAst) {
@@ -20700,7 +20770,7 @@ var CompileBinding = (function () {
 }());
 exports.CompileBinding = CompileBinding;
 
-},{}],144:[function(require,module,exports){
+},{}],146:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -21079,7 +21149,7 @@ var _ValueOutputAstTransformer = (function (_super) {
     return _ValueOutputAstTransformer;
 }(util_2.ValueTransformer));
 
-},{"../compile_metadata":87,"../facade/collection":98,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"../template_ast":138,"../util":142,"./compile_method":145,"./compile_query":147,"./constants":149,"./util":154,"@angular/core":160}],145:[function(require,module,exports){
+},{"../compile_metadata":89,"../facade/collection":100,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"../template_ast":140,"../util":144,"./compile_method":147,"./compile_query":149,"./constants":151,"./util":156,"@angular/core":162}],147:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -21144,7 +21214,7 @@ var CompileMethod = (function () {
 }());
 exports.CompileMethod = CompileMethod;
 
-},{"../facade/collection":98,"../facade/lang":101,"../output/output_ast":122}],146:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/lang":103,"../output/output_ast":124}],148:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var lang_1 = require('../facade/lang');
@@ -21244,7 +21314,7 @@ function _findPipeMeta(view, name) {
     return pipeMeta;
 }
 
-},{"../facade/exceptions":100,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"./util":154}],147:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"./util":156}],149:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -21358,7 +21428,7 @@ function addQueryToTokenMap(map, query) {
 }
 exports.addQueryToTokenMap = addQueryToTokenMap;
 
-},{"../facade/collection":98,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"./util":154}],148:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"./util":156}],150:[function(require,module,exports){
 "use strict";
 var core_private_1 = require('../../core_private');
 var compile_metadata_1 = require('../compile_metadata');
@@ -21520,7 +21590,7 @@ function getViewType(component, embeddedTemplateIndex) {
     }
 }
 
-},{"../../core_private":78,"../compile_metadata":87,"../facade/collection":98,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"./compile_method":145,"./compile_pipe":146,"./compile_query":147,"./constants":149,"./util":154}],149:[function(require,module,exports){
+},{"../../core_private":80,"../compile_metadata":89,"../facade/collection":100,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"./compile_method":147,"./compile_pipe":148,"./compile_query":149,"./constants":151,"./util":156}],151:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../../core_private');
@@ -21634,7 +21704,7 @@ var DetectChangesVars = (function () {
 }());
 exports.DetectChangesVars = DetectChangesVars;
 
-},{"../../core_private":78,"../compile_metadata":87,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"@angular/core":160}],150:[function(require,module,exports){
+},{"../../core_private":80,"../compile_metadata":89,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"@angular/core":162}],152:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -21769,7 +21839,7 @@ function santitizeEventName(name) {
     return lang_1.StringWrapper.replaceAll(name, /[^a-zA-Z_]/g, '_');
 }
 
-},{"../facade/collection":98,"../facade/lang":101,"../output/output_ast":122,"./compile_binding":143,"./compile_method":145,"./constants":149,"./expression_converter":151}],151:[function(require,module,exports){
+},{"../facade/collection":100,"../facade/lang":103,"../output/output_ast":124,"./compile_binding":145,"./compile_method":147,"./constants":151,"./expression_converter":153}],153:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var lang_1 = require('../facade/lang');
@@ -22007,7 +22077,7 @@ function flattenStatements(arg, output) {
     }
 }
 
-},{"../facade/exceptions":100,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122}],152:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124}],154:[function(require,module,exports){
 "use strict";
 var core_private_1 = require('../../core_private');
 var o = require('../output/output_ast');
@@ -22071,7 +22141,7 @@ function bindPipeDestroyLifecycleCallbacks(pipeMeta, pipeInstance, view) {
 }
 exports.bindPipeDestroyLifecycleCallbacks = bindPipeDestroyLifecycleCallbacks;
 
-},{"../../core_private":78,"../output/output_ast":122,"./constants":149}],153:[function(require,module,exports){
+},{"../../core_private":80,"../output/output_ast":124,"./constants":151}],155:[function(require,module,exports){
 "use strict";
 var core_private_1 = require('../../core_private');
 var lang_1 = require('../facade/lang');
@@ -22283,7 +22353,7 @@ function logBindingUpdateStmt(renderNode, propName, value) {
         .toStmt();
 }
 
-},{"../../core_private":78,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"../template_ast":138,"../util":142,"./compile_binding":143,"./constants":149,"./expression_converter":151,"@angular/core":160}],154:[function(require,module,exports){
+},{"../../core_private":80,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"../template_ast":140,"../util":144,"./compile_binding":145,"./constants":151,"./expression_converter":153,"@angular/core":162}],156:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var lang_1 = require('../facade/lang');
@@ -22374,7 +22444,7 @@ function createPureProxy(fn, argCount, pureProxyProp, view) {
 }
 exports.createPureProxy = createPureProxy;
 
-},{"../facade/exceptions":100,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122}],155:[function(require,module,exports){
+},{"../facade/exceptions":102,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124}],157:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var template_ast_1 = require('../template_ast');
@@ -22452,7 +22522,7 @@ var ViewBinderVisitor = (function () {
     return ViewBinderVisitor;
 }());
 
-},{"../facade/collection":98,"../template_ast":138,"./event_binder":150,"./lifecycle_binder":152,"./property_binder":153}],156:[function(require,module,exports){
+},{"../facade/collection":100,"../template_ast":140,"./event_binder":152,"./lifecycle_binder":154,"./property_binder":155}],158:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../../core_private');
@@ -22943,7 +23013,7 @@ function getChangeDetectionMode(view) {
     return mode;
 }
 
-},{"../../core_private":78,"../animation/animation_compiler":82,"../compile_metadata":87,"../facade/collection":98,"../facade/lang":101,"../identifiers":114,"../output/output_ast":122,"../template_ast":138,"./compile_element":144,"./compile_view":148,"./constants":149,"./util":154,"@angular/core":160}],157:[function(require,module,exports){
+},{"../../core_private":80,"../animation/animation_compiler":84,"../compile_metadata":89,"../facade/collection":100,"../facade/lang":103,"../identifiers":116,"../output/output_ast":124,"../template_ast":140,"./compile_element":146,"./compile_view":150,"./constants":151,"./util":156,"@angular/core":162}],159:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var animation_compiler_1 = require('../animation/animation_compiler');
@@ -22994,7 +23064,7 @@ var ViewCompiler = (function () {
 }());
 exports.ViewCompiler = ViewCompiler;
 
-},{"../animation/animation_compiler":82,"../config":89,"./compile_element":144,"./compile_view":148,"./view_binder":155,"./view_builder":156,"@angular/core":160}],158:[function(require,module,exports){
+},{"../animation/animation_compiler":84,"../config":91,"./compile_element":146,"./compile_view":150,"./view_binder":157,"./view_builder":158,"@angular/core":162}],160:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../core_private');
@@ -23058,7 +23128,7 @@ var ViewResolver = (function () {
 }());
 exports.ViewResolver = ViewResolver;
 
-},{"../core_private":78,"../src/facade/collection":98,"../src/facade/exceptions":100,"../src/facade/lang":101,"@angular/core":160}],159:[function(require,module,exports){
+},{"../core_private":80,"../src/facade/collection":100,"../src/facade/exceptions":102,"../src/facade/lang":103,"@angular/core":162}],161:[function(require,module,exports){
 "use strict";
 // TODO: vsavkin rename it into TemplateLoader
 /**
@@ -23073,7 +23143,7 @@ var XHR = (function () {
 }());
 exports.XHR = XHR;
 
-},{}],160:[function(require,module,exports){
+},{}],162:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -23135,7 +23205,7 @@ __export(require('./src/animation/metadata'));
 var animation_player_1 = require('./src/animation/animation_player');
 exports.AnimationPlayer = animation_player_1.AnimationPlayer;
 
-},{"./private_export":161,"./src/animation/animation_player":167,"./src/animation/metadata":171,"./src/application_common_providers":172,"./src/application_ref":173,"./src/application_tokens":174,"./src/change_detection":175,"./src/debug/debug_node":185,"./src/di":187,"./src/facade/async":199,"./src/facade/exceptions":203,"./src/facade/lang":204,"./src/linker":207,"./src/metadata":224,"./src/platform_common_providers":229,"./src/platform_directives_and_pipes":230,"./src/profile/profile":231,"./src/render":238,"./src/testability/testability":241,"./src/util":242,"./src/zone":244}],161:[function(require,module,exports){
+},{"./private_export":163,"./src/animation/animation_player":169,"./src/animation/metadata":173,"./src/application_common_providers":174,"./src/application_ref":175,"./src/application_tokens":176,"./src/change_detection":177,"./src/debug/debug_node":187,"./src/di":189,"./src/facade/async":201,"./src/facade/exceptions":205,"./src/facade/lang":206,"./src/linker":209,"./src/metadata":226,"./src/platform_common_providers":231,"./src/platform_directives_and_pipes":232,"./src/profile/profile":233,"./src/render":240,"./src/testability/testability":243,"./src/util":244,"./src/zone":246}],163:[function(require,module,exports){
 "use strict";
 var animation_constants_1 = require('./src/animation/animation_constants');
 var animation_driver_1 = require('./src/animation/animation_driver');
@@ -23237,7 +23307,7 @@ exports.__core_private__ = {
     FILL_STYLE_FLAG: animation_constants_1.FILL_STYLE_FLAG
 };
 
-},{"./src/animation/animation_constants":163,"./src/animation/animation_driver":164,"./src/animation/animation_group_player":165,"./src/animation/animation_keyframe":166,"./src/animation/animation_player":167,"./src/animation/animation_sequence_player":168,"./src/animation/animation_style_util":169,"./src/animation/animation_styles":170,"./src/change_detection/change_detection_util":177,"./src/change_detection/constants":179,"./src/console":184,"./src/debug/debug_renderer":186,"./src/di/provider_util":194,"./src/di/reflective_provider":198,"./src/linker/component_resolver":209,"./src/linker/debug_context":210,"./src/linker/element":212,"./src/linker/template_ref":218,"./src/linker/view":219,"./src/linker/view_type":222,"./src/linker/view_utils":223,"./src/metadata/lifecycle_hooks":227,"./src/metadata/view":228,"./src/profile/wtf_init":233,"./src/reflection/reflection":234,"./src/reflection/reflection_capabilities":235,"./src/reflection/reflector_reader":237,"./src/render/api":239,"./src/security":240,"./src/util/decorators":243}],162:[function(require,module,exports){
+},{"./src/animation/animation_constants":165,"./src/animation/animation_driver":166,"./src/animation/animation_group_player":167,"./src/animation/animation_keyframe":168,"./src/animation/animation_player":169,"./src/animation/animation_sequence_player":170,"./src/animation/animation_style_util":171,"./src/animation/animation_styles":172,"./src/change_detection/change_detection_util":179,"./src/change_detection/constants":181,"./src/console":186,"./src/debug/debug_renderer":188,"./src/di/provider_util":196,"./src/di/reflective_provider":200,"./src/linker/component_resolver":211,"./src/linker/debug_context":212,"./src/linker/element":214,"./src/linker/template_ref":220,"./src/linker/view":221,"./src/linker/view_type":224,"./src/linker/view_utils":225,"./src/metadata/lifecycle_hooks":229,"./src/metadata/view":230,"./src/profile/wtf_init":235,"./src/reflection/reflection":236,"./src/reflection/reflection_capabilities":237,"./src/reflection/reflector_reader":239,"./src/render/api":241,"./src/security":242,"./src/util/decorators":245}],164:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -23292,14 +23362,14 @@ var ActiveAnimationPlayersMap = (function () {
 }());
 exports.ActiveAnimationPlayersMap = ActiveAnimationPlayersMap;
 
-},{"../facade/collection":201,"../facade/lang":204}],163:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/lang":206}],165:[function(require,module,exports){
 "use strict";
 exports.FILL_STYLE_FLAG = 'true'; // TODO (matsko): change to boolean
 exports.ANY_STATE = '*';
 exports.DEFAULT_STATE = '*';
 exports.EMPTY_STATE = 'void';
 
-},{}],164:[function(require,module,exports){
+},{}],166:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -23325,7 +23395,7 @@ var NoOpAnimationDriver = (function (_super) {
 }(AnimationDriver));
 exports.NoOpAnimationDriver = NoOpAnimationDriver;
 
-},{"./animation_player":167}],165:[function(require,module,exports){
+},{"./animation_player":169}],167:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var math_1 = require('../facade/math');
@@ -23390,7 +23460,7 @@ var AnimationGroupPlayer = (function () {
 }());
 exports.AnimationGroupPlayer = AnimationGroupPlayer;
 
-},{"../facade/lang":204,"../facade/math":205}],166:[function(require,module,exports){
+},{"../facade/lang":206,"../facade/math":207}],168:[function(require,module,exports){
 "use strict";
 var AnimationKeyframe = (function () {
     function AnimationKeyframe(offset, styles) {
@@ -23401,7 +23471,7 @@ var AnimationKeyframe = (function () {
 }());
 exports.AnimationKeyframe = AnimationKeyframe;
 
-},{}],167:[function(require,module,exports){
+},{}],169:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var lang_1 = require('../facade/lang');
@@ -23444,7 +23514,7 @@ var NoOpAnimationPlayer = (function () {
 }());
 exports.NoOpAnimationPlayer = NoOpAnimationPlayer;
 
-},{"../facade/exceptions":203,"../facade/lang":204}],168:[function(require,module,exports){
+},{"../facade/exceptions":205,"../facade/lang":206}],170:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var animation_player_1 = require('./animation_player');
@@ -23514,7 +23584,7 @@ var AnimationSequencePlayer = (function () {
 }());
 exports.AnimationSequencePlayer = AnimationSequencePlayer;
 
-},{"../facade/lang":204,"./animation_player":167}],169:[function(require,module,exports){
+},{"../facade/lang":206,"./animation_player":169}],171:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -23614,7 +23684,7 @@ function flattenStyles(styles) {
 }
 exports.flattenStyles = flattenStyles;
 
-},{"../facade/collection":201,"../facade/lang":204,"./animation_constants":163,"./metadata":171}],170:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/lang":206,"./animation_constants":165,"./metadata":173}],172:[function(require,module,exports){
 "use strict";
 var AnimationStyles = (function () {
     function AnimationStyles(styles) {
@@ -23624,7 +23694,7 @@ var AnimationStyles = (function () {
 }());
 exports.AnimationStyles = AnimationStyles;
 
-},{}],171:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -24252,7 +24322,7 @@ function trigger(name, animation) {
 }
 exports.trigger = trigger;
 
-},{"../facade/exceptions":203,"../facade/lang":204}],172:[function(require,module,exports){
+},{"../facade/exceptions":205,"../facade/lang":206}],174:[function(require,module,exports){
 "use strict";
 var application_ref_1 = require('./application_ref');
 var application_tokens_1 = require('./application_tokens');
@@ -24277,7 +24347,7 @@ exports.APPLICATION_COMMON_PROVIDERS =
     /* @ts2dart_Provider */ { provide: dynamic_component_loader_1.DynamicComponentLoader, useClass: dynamic_component_loader_1.DynamicComponentLoader_ },
 ];
 
-},{"./application_ref":173,"./application_tokens":174,"./change_detection/change_detection":176,"./linker/component_resolver":209,"./linker/dynamic_component_loader":211,"./linker/view_utils":223}],173:[function(require,module,exports){
+},{"./application_ref":175,"./application_tokens":176,"./change_detection/change_detection":178,"./linker/component_resolver":211,"./linker/dynamic_component_loader":213,"./linker/view_utils":225}],175:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -24740,7 +24810,7 @@ exports.APPLICATION_CORE_PROVIDERS = [
     /* @ts2dart_Provider */ { provide: ApplicationRef, useExisting: ApplicationRef_ },
 ];
 
-},{"../src/facade/async":199,"../src/facade/collection":201,"../src/facade/exceptions":203,"../src/facade/lang":204,"./application_tokens":174,"./console":184,"./di":187,"./linker/component_resolver":209,"./profile/profile":231,"./testability/testability":241,"./zone/ng_zone":245}],174:[function(require,module,exports){
+},{"../src/facade/async":201,"../src/facade/collection":203,"../src/facade/exceptions":205,"../src/facade/lang":206,"./application_tokens":176,"./console":186,"./di":189,"./linker/component_resolver":211,"./profile/profile":233,"./testability/testability":243,"./zone/ng_zone":247}],176:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../src/facade/lang');
 var di_1 = require('./di');
@@ -24790,7 +24860,7 @@ exports.APP_INITIALIZER =
 exports.PACKAGE_ROOT_URL = 
 /*@ts2dart_const*/ new di_1.OpaqueToken('Application Packages Root URL');
 
-},{"../src/facade/lang":204,"./di":187}],175:[function(require,module,exports){
+},{"../src/facade/lang":206,"./di":189}],177:[function(require,module,exports){
 /**
  * @module
  * @description
@@ -24808,7 +24878,7 @@ exports.KeyValueDiffers = change_detection_1.KeyValueDiffers;
 exports.SimpleChange = change_detection_1.SimpleChange;
 exports.WrappedValue = change_detection_1.WrappedValue;
 
-},{"./change_detection/change_detection":176}],176:[function(require,module,exports){
+},{"./change_detection/change_detection":178}],178:[function(require,module,exports){
 "use strict";
 var default_iterable_differ_1 = require('./differs/default_iterable_differ');
 var default_keyvalue_differ_1 = require('./differs/default_keyvalue_differ');
@@ -24854,7 +24924,7 @@ exports.iterableDiff =
 exports.defaultIterableDiffers = new iterable_differs_1.IterableDiffers(exports.iterableDiff);
 exports.defaultKeyValueDiffers = new keyvalue_differs_1.KeyValueDiffers(exports.keyValDiff);
 
-},{"./change_detection_util":177,"./change_detector_ref":178,"./constants":179,"./differs/default_iterable_differ":180,"./differs/default_keyvalue_differ":181,"./differs/iterable_differs":182,"./differs/keyvalue_differs":183}],177:[function(require,module,exports){
+},{"./change_detection_util":179,"./change_detector_ref":180,"./constants":181,"./differs/default_iterable_differ":182,"./differs/default_keyvalue_differ":183,"./differs/iterable_differs":184,"./differs/keyvalue_differs":185}],179:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -24935,7 +25005,7 @@ var SimpleChange = (function () {
 }());
 exports.SimpleChange = SimpleChange;
 
-},{"../facade/collection":201,"../facade/lang":204}],178:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/lang":206}],180:[function(require,module,exports){
 "use strict";
 /**
  * @stable
@@ -24947,7 +25017,7 @@ var ChangeDetectorRef = (function () {
 }());
 exports.ChangeDetectorRef = ChangeDetectorRef;
 
-},{}],179:[function(require,module,exports){
+},{}],181:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 /**
@@ -25033,7 +25103,7 @@ function isDefaultChangeDetectionStrategy(changeDetectionStrategy) {
 }
 exports.isDefaultChangeDetectionStrategy = isDefaultChangeDetectionStrategy;
 
-},{"../facade/lang":204}],180:[function(require,module,exports){
+},{"../facade/lang":206}],182:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../../facade/collection');
 var exceptions_1 = require('../../facade/exceptions');
@@ -25694,7 +25764,7 @@ var _DuplicateMap = (function () {
     return _DuplicateMap;
 }());
 
-},{"../../facade/collection":201,"../../facade/exceptions":203,"../../facade/lang":204}],181:[function(require,module,exports){
+},{"../../facade/collection":203,"../../facade/exceptions":205,"../../facade/lang":206}],183:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../../facade/collection');
 var exceptions_1 = require('../../facade/exceptions');
@@ -26055,7 +26125,7 @@ var KeyValueChangeRecord = (function () {
 }());
 exports.KeyValueChangeRecord = KeyValueChangeRecord;
 
-},{"../../facade/collection":201,"../../facade/exceptions":203,"../../facade/lang":204}],182:[function(require,module,exports){
+},{"../../facade/collection":203,"../../facade/exceptions":205,"../../facade/lang":206}],184:[function(require,module,exports){
 "use strict";
 var di_1 = require('../../di');
 var collection_1 = require('../../facade/collection');
@@ -26128,7 +26198,7 @@ var IterableDiffers = (function () {
 }());
 exports.IterableDiffers = IterableDiffers;
 
-},{"../../di":187,"../../facade/collection":201,"../../facade/exceptions":203,"../../facade/lang":204}],183:[function(require,module,exports){
+},{"../../di":189,"../../facade/collection":203,"../../facade/exceptions":205,"../../facade/lang":206}],185:[function(require,module,exports){
 "use strict";
 var di_1 = require('../../di');
 var collection_1 = require('../../facade/collection');
@@ -26201,7 +26271,7 @@ var KeyValueDiffers = (function () {
 }());
 exports.KeyValueDiffers = KeyValueDiffers;
 
-},{"../../di":187,"../../facade/collection":201,"../../facade/exceptions":203,"../../facade/lang":204}],184:[function(require,module,exports){
+},{"../../di":189,"../../facade/collection":203,"../../facade/exceptions":205,"../../facade/lang":206}],186:[function(require,module,exports){
 "use strict";
 var decorators_1 = require('./di/decorators');
 var lang_1 = require('./facade/lang');
@@ -26222,7 +26292,7 @@ var Console = (function () {
 }());
 exports.Console = Console;
 
-},{"./di/decorators":188,"./facade/lang":204}],185:[function(require,module,exports){
+},{"./di/decorators":190,"./facade/lang":206}],187:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -26431,7 +26501,7 @@ function removeDebugNodeFromIndex(node) {
 }
 exports.removeDebugNodeFromIndex = removeDebugNodeFromIndex;
 
-},{"../facade/collection":201,"../facade/lang":204}],186:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/lang":206}],188:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var debug_node_1 = require('./debug_node');
@@ -26560,7 +26630,7 @@ var DebugDomRenderer = (function () {
 }());
 exports.DebugDomRenderer = DebugDomRenderer;
 
-},{"../facade/lang":204,"./debug_node":185}],187:[function(require,module,exports){
+},{"../facade/lang":206,"./debug_node":187}],189:[function(require,module,exports){
 /**
  * @module
  * @description
@@ -26607,7 +26677,7 @@ exports.OutOfBoundsError = reflective_exceptions_1.OutOfBoundsError;
 var opaque_token_1 = require('./di/opaque_token');
 exports.OpaqueToken = opaque_token_1.OpaqueToken;
 
-},{"./di/decorators":188,"./di/forward_ref":189,"./di/injector":190,"./di/metadata":191,"./di/opaque_token":192,"./di/provider":193,"./di/reflective_exceptions":195,"./di/reflective_injector":196,"./di/reflective_key":197,"./di/reflective_provider":198}],188:[function(require,module,exports){
+},{"./di/decorators":190,"./di/forward_ref":191,"./di/injector":192,"./di/metadata":193,"./di/opaque_token":194,"./di/provider":195,"./di/reflective_exceptions":197,"./di/reflective_injector":198,"./di/reflective_key":199,"./di/reflective_provider":200}],190:[function(require,module,exports){
 "use strict";
 var decorators_1 = require('../util/decorators');
 var metadata_1 = require('./metadata');
@@ -26648,7 +26718,7 @@ exports.Host = decorators_1.makeParamDecorator(metadata_1.HostMetadata);
  */
 exports.SkipSelf = decorators_1.makeParamDecorator(metadata_1.SkipSelfMetadata);
 
-},{"../util/decorators":243,"./metadata":191}],189:[function(require,module,exports){
+},{"../util/decorators":245,"./metadata":193}],191:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 /**
@@ -26696,7 +26766,7 @@ function resolveForwardRef(type) {
 }
 exports.resolveForwardRef = resolveForwardRef;
 
-},{"../facade/lang":204}],190:[function(require,module,exports){
+},{"../facade/lang":206}],192:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var _THROW_IF_NOT_FOUND = new Object();
@@ -26737,7 +26807,7 @@ var Injector = (function () {
 }());
 exports.Injector = Injector;
 
-},{"../facade/exceptions":203}],191:[function(require,module,exports){
+},{"../facade/exceptions":205}],193:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 /**
@@ -27010,7 +27080,7 @@ var HostMetadata = (function () {
 }());
 exports.HostMetadata = HostMetadata;
 
-},{"../facade/lang":204}],192:[function(require,module,exports){
+},{"../facade/lang":206}],194:[function(require,module,exports){
 "use strict";
 /**
  * Creates a token that can be used in a DI Provider.
@@ -27044,7 +27114,7 @@ var OpaqueToken = (function () {
 }());
 exports.OpaqueToken = OpaqueToken;
 
-},{}],193:[function(require,module,exports){
+},{}],195:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -27329,7 +27399,7 @@ function provide(token /** TODO #9100 */, _a) {
 }
 exports.provide = provide;
 
-},{"../facade/exceptions":203,"../facade/lang":204}],194:[function(require,module,exports){
+},{"../facade/exceptions":205,"../facade/lang":206}],196:[function(require,module,exports){
 "use strict";
 var provider_1 = require('./provider');
 function isProviderLiteral(obj) {
@@ -27341,7 +27411,7 @@ function createProvider(obj) {
 }
 exports.createProvider = createProvider;
 
-},{"./provider":193}],195:[function(require,module,exports){
+},{"./provider":195}],197:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -27629,7 +27699,7 @@ var MixingMultiProvidersWithRegularProvidersError = (function (_super) {
 }(exceptions_1.BaseException));
 exports.MixingMultiProvidersWithRegularProvidersError = MixingMultiProvidersWithRegularProvidersError;
 
-},{"../facade/collection":201,"../facade/exceptions":203,"../facade/lang":204}],196:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/exceptions":205,"../facade/lang":206}],198:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var exceptions_1 = require('../facade/exceptions');
@@ -28459,7 +28529,7 @@ function _mapProviders(injector, fn) {
     return res;
 }
 
-},{"../facade/collection":201,"../facade/exceptions":203,"./injector":190,"./metadata":191,"./reflective_exceptions":195,"./reflective_key":197,"./reflective_provider":198}],197:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/exceptions":205,"./injector":192,"./metadata":193,"./reflective_exceptions":197,"./reflective_key":199,"./reflective_provider":200}],199:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 var lang_1 = require('../facade/lang');
@@ -28543,7 +28613,7 @@ var KeyRegistry = (function () {
 exports.KeyRegistry = KeyRegistry;
 var _globalKeyRegistry = new KeyRegistry();
 
-},{"../facade/exceptions":203,"../facade/lang":204,"./forward_ref":189}],198:[function(require,module,exports){
+},{"../facade/exceptions":205,"../facade/lang":206,"./forward_ref":191}],200:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var collection_1 = require('../facade/collection');
@@ -28783,17 +28853,17 @@ function _createDependency(token /** TODO #9100 */, optional /** TODO #9100 */, 
     return new ReflectiveDependency(reflective_key_1.ReflectiveKey.get(token), optional, lowerBoundVisibility, upperBoundVisibility, depProps);
 }
 
-},{"../facade/collection":201,"../facade/lang":204,"../reflection/reflection":234,"./forward_ref":189,"./metadata":191,"./provider":193,"./provider_util":194,"./reflective_exceptions":195,"./reflective_key":197}],199:[function(require,module,exports){
-arguments[4][25][0].apply(exports,arguments)
-},{"./lang":204,"./promise":206,"dup":25,"rxjs/Observable":518,"rxjs/Subject":520,"rxjs/observable/PromiseObservable":524,"rxjs/operator/toPromise":525}],200:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],201:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/lang":206,"../reflection/reflection":236,"./forward_ref":191,"./metadata":193,"./provider":195,"./provider_util":196,"./reflective_exceptions":197,"./reflective_key":199}],201:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"./lang":204,"dup":27}],202:[function(require,module,exports){
+},{"./lang":206,"./promise":208,"dup":27,"rxjs/Observable":520,"rxjs/Subject":522,"rxjs/observable/PromiseObservable":526,"rxjs/operator/toPromise":527}],202:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./base_wrapped_exception":200,"./collection":201,"./lang":204,"dup":28}],203:[function(require,module,exports){
+},{"dup":28}],203:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"./base_wrapped_exception":200,"./exception_handler":202,"dup":29}],204:[function(require,module,exports){
+},{"./lang":206,"dup":29}],204:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./base_wrapped_exception":202,"./collection":203,"./lang":206,"dup":30}],205:[function(require,module,exports){
+arguments[4][31][0].apply(exports,arguments)
+},{"./base_wrapped_exception":202,"./exception_handler":204,"dup":31}],206:[function(require,module,exports){
 (function (global){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -29247,11 +29317,11 @@ exports.escapeRegExp = escapeRegExp;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],205:[function(require,module,exports){
-arguments[4][102][0].apply(exports,arguments)
-},{"./lang":204,"dup":102}],206:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],207:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
+arguments[4][104][0].apply(exports,arguments)
+},{"./lang":206,"dup":104}],208:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"dup":34}],209:[function(require,module,exports){
 "use strict";
 // Public API for compiler
 var component_factory_1 = require('./linker/component_factory');
@@ -29278,7 +29348,7 @@ var view_ref_1 = require('./linker/view_ref');
 exports.EmbeddedViewRef = view_ref_1.EmbeddedViewRef;
 exports.ViewRef = view_ref_1.ViewRef;
 
-},{"./linker/component_factory":208,"./linker/component_resolver":209,"./linker/dynamic_component_loader":211,"./linker/element_ref":214,"./linker/exceptions":215,"./linker/query_list":216,"./linker/systemjs_component_resolver":217,"./linker/template_ref":218,"./linker/view_container_ref":220,"./linker/view_ref":221}],208:[function(require,module,exports){
+},{"./linker/component_factory":210,"./linker/component_resolver":211,"./linker/dynamic_component_loader":213,"./linker/element_ref":216,"./linker/exceptions":217,"./linker/query_list":218,"./linker/systemjs_component_resolver":219,"./linker/template_ref":220,"./linker/view_container_ref":222,"./linker/view_ref":223}],210:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -29432,7 +29502,7 @@ var ComponentFactory = (function () {
 }());
 exports.ComponentFactory = ComponentFactory;
 
-},{"../facade/exceptions":203,"../facade/lang":204,"./view_utils":223}],209:[function(require,module,exports){
+},{"../facade/exceptions":205,"../facade/lang":206,"./view_utils":225}],211:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -29484,7 +29554,7 @@ var ReflectorComponentResolver = (function (_super) {
 }(ComponentResolver));
 exports.ReflectorComponentResolver = ReflectorComponentResolver;
 
-},{"../di/decorators":188,"../facade/async":199,"../facade/exceptions":203,"../facade/lang":204,"../reflection/reflection":234,"./component_factory":208}],210:[function(require,module,exports){
+},{"../di/decorators":190,"../facade/async":201,"../facade/exceptions":205,"../facade/lang":206,"../reflection/reflection":236,"./component_factory":210}],212:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var lang_1 = require('../facade/lang');
@@ -29603,7 +29673,7 @@ var DebugContext = (function () {
 }());
 exports.DebugContext = DebugContext;
 
-},{"../facade/collection":201,"../facade/lang":204,"./view_type":222}],211:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/lang":206,"./view_type":224}],213:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -29663,7 +29733,7 @@ var DynamicComponentLoader_ = (function (_super) {
 }(DynamicComponentLoader));
 exports.DynamicComponentLoader_ = DynamicComponentLoader_;
 
-},{"../di/decorators":188,"../di/reflective_injector":196,"../facade/lang":204,"./component_resolver":209}],212:[function(require,module,exports){
+},{"../di/decorators":190,"../di/reflective_injector":198,"../facade/lang":206,"./component_resolver":211}],214:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var exceptions_1 = require('../facade/exceptions');
@@ -29757,7 +29827,7 @@ var AppElement = (function () {
 }());
 exports.AppElement = AppElement;
 
-},{"../facade/collection":201,"../facade/exceptions":203,"../facade/lang":204,"./element_ref":214,"./view_container_ref":220,"./view_type":222}],213:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/exceptions":205,"../facade/lang":206,"./element_ref":216,"./view_container_ref":222,"./view_type":224}],215:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -29788,7 +29858,7 @@ var ElementInjector = (function (_super) {
 }(injector_1.Injector));
 exports.ElementInjector = ElementInjector;
 
-},{"../di/injector":190}],214:[function(require,module,exports){
+},{"../di/injector":192}],216:[function(require,module,exports){
 "use strict";
 /**
  * A wrapper around a native element inside of a View.
@@ -29807,7 +29877,7 @@ var ElementRef = (function () {
 }());
 exports.ElementRef = ElementRef;
 
-},{}],215:[function(require,module,exports){
+},{}],217:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -29890,7 +29960,7 @@ var ViewDestroyedException = (function (_super) {
 }(exceptions_1.BaseException));
 exports.ViewDestroyedException = ViewDestroyedException;
 
-},{"../facade/exceptions":203}],216:[function(require,module,exports){
+},{"../facade/exceptions":205}],218:[function(require,module,exports){
 "use strict";
 var async_1 = require('../facade/async');
 var collection_1 = require('../facade/collection');
@@ -29987,7 +30057,7 @@ var QueryList = (function () {
 }());
 exports.QueryList = QueryList;
 
-},{"../facade/async":199,"../facade/collection":201,"../facade/lang":204}],217:[function(require,module,exports){
+},{"../facade/async":201,"../facade/collection":203,"../facade/lang":206}],219:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var _SEPARATOR = '#';
@@ -30040,7 +30110,7 @@ var SystemJsCmpFactoryResolver = (function () {
 }());
 exports.SystemJsCmpFactoryResolver = SystemJsCmpFactoryResolver;
 
-},{"../facade/lang":204}],218:[function(require,module,exports){
+},{"../facade/lang":206}],220:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -30109,7 +30179,7 @@ var TemplateRef_ = (function (_super) {
 }(TemplateRef));
 exports.TemplateRef_ = TemplateRef_;
 
-},{"../facade/lang":204}],219:[function(require,module,exports){
+},{"../facade/lang":206}],221:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -30507,7 +30577,7 @@ function _findLastRenderNode(node) {
     return lastNode;
 }
 
-},{"../animation/active_animation_players_map":162,"../animation/animation_group_player":165,"../change_detection/change_detection":176,"../facade/async":199,"../facade/collection":201,"../facade/lang":204,"../profile/profile":231,"./debug_context":210,"./element":212,"./element_injector":213,"./exceptions":215,"./view_ref":221,"./view_type":222,"./view_utils":223}],220:[function(require,module,exports){
+},{"../animation/active_animation_players_map":164,"../animation/animation_group_player":167,"../change_detection/change_detection":178,"../facade/async":201,"../facade/collection":203,"../facade/lang":206,"../profile/profile":233,"./debug_context":212,"./element":214,"./element_injector":215,"./exceptions":217,"./view_ref":223,"./view_type":224,"./view_utils":225}],222:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../facade/collection');
 var exceptions_1 = require('../facade/exceptions');
@@ -30662,7 +30732,7 @@ var ViewContainerRef_ = (function () {
 }());
 exports.ViewContainerRef_ = ViewContainerRef_;
 
-},{"../facade/collection":201,"../facade/exceptions":203,"../facade/lang":204,"../profile/profile":231}],221:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/exceptions":205,"../facade/lang":206,"../profile/profile":233}],223:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -30798,7 +30868,7 @@ var ViewRef_ = (function () {
 }());
 exports.ViewRef_ = ViewRef_;
 
-},{"../change_detection/constants":179,"../facade/exceptions":203}],222:[function(require,module,exports){
+},{"../change_detection/constants":181,"../facade/exceptions":205}],224:[function(require,module,exports){
 "use strict";
 (function (ViewType) {
     // A view that contains the host element with bound component directive.
@@ -30813,7 +30883,7 @@ exports.ViewRef_ = ViewRef_;
 })(exports.ViewType || (exports.ViewType = {}));
 var ViewType = exports.ViewType;
 
-},{}],223:[function(require,module,exports){
+},{}],225:[function(require,module,exports){
 "use strict";
 var application_tokens_1 = require('../application_tokens');
 var change_detection_1 = require('../change_detection/change_detection');
@@ -31168,7 +31238,7 @@ function pureProxy10(fn) {
 }
 exports.pureProxy10 = pureProxy10;
 
-},{"../application_tokens":174,"../change_detection/change_detection":176,"../change_detection/change_detection_util":177,"../di/decorators":188,"../facade/collection":201,"../facade/exceptions":203,"../facade/lang":204,"../render/api":239,"../security":240,"./element":212,"./exceptions":215}],224:[function(require,module,exports){
+},{"../application_tokens":176,"../change_detection/change_detection":178,"../change_detection/change_detection_util":179,"../di/decorators":190,"../facade/collection":203,"../facade/exceptions":205,"../facade/lang":206,"../render/api":241,"../security":242,"./element":214,"./exceptions":217}],226:[function(require,module,exports){
 /**
  * This indirection is needed to free up Component, etc symbols in the public API
  * to be used by the decorator versions of these annotations.
@@ -32211,7 +32281,7 @@ exports.HostBinding = decorators_1.makePropDecorator(directives_1.HostBindingMet
  */
 exports.HostListener = decorators_1.makePropDecorator(directives_1.HostListenerMetadata);
 
-},{"./metadata/di":225,"./metadata/directives":226,"./metadata/lifecycle_hooks":227,"./metadata/view":228,"./util/decorators":243}],225:[function(require,module,exports){
+},{"./metadata/di":227,"./metadata/directives":228,"./metadata/lifecycle_hooks":229,"./metadata/view":230,"./util/decorators":245}],227:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -32707,7 +32777,7 @@ var ViewChildMetadata = (function (_super) {
 }(ViewQueryMetadata));
 exports.ViewChildMetadata = ViewChildMetadata;
 
-},{"../di/forward_ref":189,"../di/metadata":191,"../facade/lang":204}],226:[function(require,module,exports){
+},{"../di/forward_ref":191,"../di/metadata":193,"../facade/lang":206}],228:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -33601,7 +33671,7 @@ var HostListenerMetadata = (function () {
 }());
 exports.HostListenerMetadata = HostListenerMetadata;
 
-},{"../change_detection/constants":179,"../di/metadata":191,"../facade/lang":204}],227:[function(require,module,exports){
+},{"../change_detection/constants":181,"../di/metadata":193,"../facade/lang":206}],229:[function(require,module,exports){
 "use strict";
 /**
  * @stable
@@ -34114,7 +34184,7 @@ var AfterViewChecked = (function () {
 }());
 exports.AfterViewChecked = AfterViewChecked;
 
-},{}],228:[function(require,module,exports){
+},{}],230:[function(require,module,exports){
 "use strict";
 /**
  * Defines template and style encapsulation options available for Component's {@link View}.
@@ -34193,7 +34263,7 @@ var ViewMetadata = (function () {
 }());
 exports.ViewMetadata = ViewMetadata;
 
-},{}],229:[function(require,module,exports){
+},{}],231:[function(require,module,exports){
 "use strict";
 var application_ref_1 = require('./application_ref');
 var console_1 = require('./console');
@@ -34215,7 +34285,7 @@ exports.PLATFORM_COMMON_PROVIDERS = [
     console_1.Console
 ];
 
-},{"./application_ref":173,"./console":184,"./reflection/reflection":234,"./reflection/reflector_reader":237,"./testability/testability":241}],230:[function(require,module,exports){
+},{"./application_ref":175,"./console":186,"./reflection/reflection":236,"./reflection/reflector_reader":239,"./testability/testability":243}],232:[function(require,module,exports){
 "use strict";
 var di_1 = require('./di');
 /**
@@ -34272,7 +34342,7 @@ exports.PLATFORM_DIRECTIVES =
   */
 exports.PLATFORM_PIPES = new di_1.OpaqueToken('Platform Pipes');
 
-},{"./di":187}],231:[function(require,module,exports){
+},{"./di":189}],233:[function(require,module,exports){
 "use strict";
 var impl = require('./wtf_impl');
 // Change exports to const once https://github.com/angular/ts2dart/issues/150
@@ -34346,7 +34416,7 @@ exports.wtfStartTimeRange = exports.wtfEnabled ? impl.startTimeRange : function 
  */
 exports.wtfEndTimeRange = exports.wtfEnabled ? impl.endTimeRange : function (r) { return null; };
 
-},{"./wtf_impl":232}],232:[function(require,module,exports){
+},{"./wtf_impl":234}],234:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var trace;
@@ -34382,7 +34452,7 @@ function endTimeRange(range) {
 }
 exports.endTimeRange = endTimeRange;
 
-},{"../facade/lang":204}],233:[function(require,module,exports){
+},{"../facade/lang":206}],235:[function(require,module,exports){
 "use strict";
 /**
  * This is here because DART requires it. It is noop in JS.
@@ -34390,7 +34460,7 @@ exports.endTimeRange = endTimeRange;
 function wtfInit() { }
 exports.wtfInit = wtfInit;
 
-},{}],234:[function(require,module,exports){
+},{}],236:[function(require,module,exports){
 "use strict";
 var reflection_capabilities_1 = require('./reflection_capabilities');
 var reflector_1 = require('./reflector');
@@ -34403,7 +34473,7 @@ exports.Reflector = reflector_2.Reflector;
  */
 exports.reflector = new reflector_1.Reflector(new reflection_capabilities_1.ReflectionCapabilities());
 
-},{"./reflection_capabilities":235,"./reflector":236}],235:[function(require,module,exports){
+},{"./reflection_capabilities":237,"./reflector":238}],237:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var ReflectionCapabilities = (function () {
@@ -34635,7 +34705,7 @@ function convertTsickleDecoratorIntoMetadata(decoratorInvocations) {
     });
 }
 
-},{"../facade/lang":204}],236:[function(require,module,exports){
+},{"../facade/lang":206}],238:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -34803,7 +34873,7 @@ function _mergeMaps(target, config) {
     collection_1.StringMapWrapper.forEach(config, function (v, k) { return target.set(k, v); });
 }
 
-},{"../facade/collection":201,"../facade/exceptions":203,"../facade/lang":204,"./reflector_reader":237}],237:[function(require,module,exports){
+},{"../facade/collection":203,"../facade/exceptions":205,"../facade/lang":206,"./reflector_reader":239}],239:[function(require,module,exports){
 "use strict";
 /**
  * Provides read-only access to reflection data about symbols. Used internally by Angular
@@ -34816,7 +34886,7 @@ var ReflectorReader = (function () {
 }());
 exports.ReflectorReader = ReflectorReader;
 
-},{}],238:[function(require,module,exports){
+},{}],240:[function(require,module,exports){
 "use strict";
 // Public API for render
 var api_1 = require('./render/api');
@@ -34824,7 +34894,7 @@ exports.RenderComponentType = api_1.RenderComponentType;
 exports.Renderer = api_1.Renderer;
 exports.RootRenderer = api_1.RootRenderer;
 
-},{"./render/api":239}],239:[function(require,module,exports){
+},{"./render/api":241}],241:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../facade/exceptions');
 /**
@@ -34906,7 +34976,7 @@ var RootRenderer = (function () {
 }());
 exports.RootRenderer = RootRenderer;
 
-},{"../facade/exceptions":203}],240:[function(require,module,exports){
+},{"../facade/exceptions":205}],242:[function(require,module,exports){
 "use strict";
 /**
  * A SecurityContext marks a location that has dangerous security implications, e.g. a DOM property
@@ -34935,7 +35005,7 @@ var SanitizationService = (function () {
 }());
 exports.SanitizationService = SanitizationService;
 
-},{}],241:[function(require,module,exports){
+},{}],243:[function(require,module,exports){
 "use strict";
 var decorators_1 = require('../di/decorators');
 var async_1 = require('../facade/async');
@@ -35080,13 +35150,13 @@ function setTestabilityGetter(getter) {
 exports.setTestabilityGetter = setTestabilityGetter;
 var _testabilityGetter = new _NoopGetTestability();
 
-},{"../di/decorators":188,"../facade/async":199,"../facade/collection":201,"../facade/exceptions":203,"../facade/lang":204,"../zone/ng_zone":245}],242:[function(require,module,exports){
+},{"../di/decorators":190,"../facade/async":201,"../facade/collection":203,"../facade/exceptions":205,"../facade/lang":206,"../zone/ng_zone":247}],244:[function(require,module,exports){
 "use strict";
 // Public API for util
 var decorators_1 = require('./util/decorators');
 exports.Class = decorators_1.Class;
 
-},{"./util/decorators":243}],243:[function(require,module,exports){
+},{"./util/decorators":245}],245:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var _nextClassId = 0;
@@ -35346,14 +35416,14 @@ function makePropDecorator(annotationCls /** TODO #9100 */) {
 }
 exports.makePropDecorator = makePropDecorator;
 
-},{"../facade/lang":204}],244:[function(require,module,exports){
+},{"../facade/lang":206}],246:[function(require,module,exports){
 "use strict";
 // Public API for Zone
 var ng_zone_1 = require('./zone/ng_zone');
 exports.NgZone = ng_zone_1.NgZone;
 exports.NgZoneError = ng_zone_1.NgZoneError;
 
-},{"./zone/ng_zone":245}],245:[function(require,module,exports){
+},{"./zone/ng_zone":247}],247:[function(require,module,exports){
 "use strict";
 var async_1 = require('../facade/async');
 var exceptions_1 = require('../facade/exceptions');
@@ -35604,7 +35674,7 @@ var NgZone = (function () {
 }());
 exports.NgZone = NgZone;
 
-},{"../facade/async":199,"../facade/exceptions":203,"./ng_zone_impl":246}],246:[function(require,module,exports){
+},{"../facade/async":201,"../facade/exceptions":205,"./ng_zone_impl":248}],248:[function(require,module,exports){
 "use strict";
 /**
  * Stores error information; delivered via [NgZone.onError] stream.
@@ -35691,7 +35761,7 @@ var NgZoneImpl = (function () {
 }());
 exports.NgZoneImpl = NgZoneImpl;
 
-},{}],247:[function(require,module,exports){
+},{}],249:[function(require,module,exports){
 "use strict";
 var browser_jsonp_1 = require('./src/backends/browser_jsonp');
 var browser_xhr_1 = require('./src/backends/browser_xhr');
@@ -36024,14 +36094,14 @@ function jsonpFactory(jsonpBackend, requestOptions) {
  */
 exports.JSON_BINDINGS = exports.JSONP_PROVIDERS;
 
-},{"./src/backends/browser_jsonp":249,"./src/backends/browser_xhr":250,"./src/backends/jsonp_backend":251,"./src/backends/xhr_backend":252,"./src/base_request_options":253,"./src/base_response_options":254,"./src/enums":255,"./src/headers":261,"./src/http":262,"./src/interfaces":264,"./src/static_request":265,"./src/static_response":266,"./src/url_search_params":267}],248:[function(require,module,exports){
+},{"./src/backends/browser_jsonp":251,"./src/backends/browser_xhr":252,"./src/backends/jsonp_backend":253,"./src/backends/xhr_backend":254,"./src/base_request_options":255,"./src/base_response_options":256,"./src/enums":257,"./src/headers":263,"./src/http":264,"./src/interfaces":266,"./src/static_request":267,"./src/static_response":268,"./src/url_search_params":269}],250:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
 }
 __export(require('./http'));
 
-},{"./http":247}],249:[function(require,module,exports){
+},{"./http":249}],251:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../facade/lang');
@@ -36079,7 +36149,7 @@ var BrowserJsonp = (function () {
 }());
 exports.BrowserJsonp = BrowserJsonp;
 
-},{"../facade/lang":260,"@angular/core":160}],250:[function(require,module,exports){
+},{"../facade/lang":262,"@angular/core":162}],252:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var BrowserXhr = (function () {
@@ -36096,7 +36166,7 @@ var BrowserXhr = (function () {
 }());
 exports.BrowserXhr = BrowserXhr;
 
-},{"@angular/core":160}],251:[function(require,module,exports){
+},{"@angular/core":162}],253:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -36239,7 +36309,7 @@ var JSONPBackend_ = (function (_super) {
 }(JSONPBackend));
 exports.JSONPBackend_ = JSONPBackend_;
 
-},{"../base_response_options":254,"../enums":255,"../facade/exceptions":259,"../facade/lang":260,"../interfaces":264,"../static_response":266,"./browser_jsonp":249,"@angular/core":160,"rxjs/Observable":518}],252:[function(require,module,exports){
+},{"../base_response_options":256,"../enums":257,"../facade/exceptions":261,"../facade/lang":262,"../interfaces":266,"../static_response":268,"./browser_jsonp":251,"@angular/core":162,"rxjs/Observable":520}],254:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var platform_browser_1 = require('@angular/platform-browser');
@@ -36410,7 +36480,7 @@ var XHRBackend = (function () {
 }());
 exports.XHRBackend = XHRBackend;
 
-},{"../base_response_options":254,"../enums":255,"../facade/lang":260,"../headers":261,"../http_utils":263,"../interfaces":264,"../static_response":266,"./browser_xhr":250,"@angular/core":160,"@angular/platform-browser":280,"rxjs/Observable":518}],253:[function(require,module,exports){
+},{"../base_response_options":256,"../enums":257,"../facade/lang":262,"../headers":263,"../http_utils":265,"../interfaces":266,"../static_response":268,"./browser_xhr":252,"@angular/core":162,"@angular/platform-browser":282,"rxjs/Observable":520}],255:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -36517,7 +36587,7 @@ var BaseRequestOptions = (function (_super) {
 }(RequestOptions));
 exports.BaseRequestOptions = BaseRequestOptions;
 
-},{"../src/facade/lang":260,"./enums":255,"./headers":261,"./http_utils":263,"./url_search_params":267,"@angular/core":160}],254:[function(require,module,exports){
+},{"../src/facade/lang":262,"./enums":257,"./headers":263,"./http_utils":265,"./url_search_params":269,"@angular/core":162}],256:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -36618,7 +36688,7 @@ var BaseResponseOptions = (function (_super) {
 }(ResponseOptions));
 exports.BaseResponseOptions = BaseResponseOptions;
 
-},{"../src/facade/lang":260,"./enums":255,"./headers":261,"@angular/core":160}],255:[function(require,module,exports){
+},{"../src/facade/lang":262,"./enums":257,"./headers":263,"@angular/core":162}],257:[function(require,module,exports){
 "use strict";
 /**
  * Supported http methods.
@@ -36673,15 +36743,15 @@ var ResponseType = exports.ResponseType;
 })(exports.ContentType || (exports.ContentType = {}));
 var ContentType = exports.ContentType;
 
-},{}],256:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],257:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"./lang":260,"dup":27}],258:[function(require,module,exports){
+},{}],258:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./base_wrapped_exception":256,"./collection":257,"./lang":260,"dup":28}],259:[function(require,module,exports){
+},{"dup":28}],259:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"./base_wrapped_exception":256,"./exception_handler":258,"dup":29}],260:[function(require,module,exports){
+},{"./lang":262,"dup":29}],260:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./base_wrapped_exception":258,"./collection":259,"./lang":262,"dup":30}],261:[function(require,module,exports){
+arguments[4][31][0].apply(exports,arguments)
+},{"./base_wrapped_exception":258,"./exception_handler":260,"dup":31}],262:[function(require,module,exports){
 (function (global){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -37135,7 +37205,7 @@ exports.escapeRegExp = escapeRegExp;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],261:[function(require,module,exports){
+},{}],263:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../src/facade/exceptions');
 var lang_1 = require('../src/facade/lang');
@@ -37271,7 +37341,7 @@ var Headers = (function () {
 }());
 exports.Headers = Headers;
 
-},{"../src/facade/collection":257,"../src/facade/exceptions":259,"../src/facade/lang":260}],262:[function(require,module,exports){
+},{"../src/facade/collection":259,"../src/facade/exceptions":261,"../src/facade/lang":262}],264:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -37421,7 +37491,7 @@ var Jsonp = (function (_super) {
 }(Http));
 exports.Jsonp = Jsonp;
 
-},{"../src/facade/exceptions":259,"../src/facade/lang":260,"./base_request_options":253,"./enums":255,"./interfaces":264,"./static_request":265,"@angular/core":160}],263:[function(require,module,exports){
+},{"../src/facade/exceptions":261,"../src/facade/lang":262,"./base_request_options":255,"./enums":257,"./interfaces":266,"./static_request":267,"@angular/core":162}],265:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../src/facade/exceptions');
 var lang_1 = require('../src/facade/lang');
@@ -37452,7 +37522,7 @@ exports.getResponseURL = getResponseURL;
 var lang_2 = require('../src/facade/lang');
 exports.isJsObject = lang_2.isJsObject;
 
-},{"../src/facade/exceptions":259,"../src/facade/lang":260,"./enums":255}],264:[function(require,module,exports){
+},{"../src/facade/exceptions":261,"../src/facade/lang":262,"./enums":257}],266:[function(require,module,exports){
 "use strict";
 /**
  * Abstract class from which real backends are derived.
@@ -37483,7 +37553,7 @@ var XSRFStrategy = (function () {
 }());
 exports.XSRFStrategy = XSRFStrategy;
 
-},{}],265:[function(require,module,exports){
+},{}],267:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../src/facade/lang');
 var enums_1 = require('./enums');
@@ -37644,7 +37714,7 @@ var FormData = w['FormData'] || noop;
 var Blob = w['Blob'] || noop;
 var ArrayBuffer = w['ArrayBuffer'] || noop;
 
-},{"../src/facade/lang":260,"./enums":255,"./headers":261,"./http_utils":263,"./url_search_params":267}],266:[function(require,module,exports){
+},{"../src/facade/lang":262,"./enums":257,"./headers":263,"./http_utils":265,"./url_search_params":269}],268:[function(require,module,exports){
 "use strict";
 var exceptions_1 = require('../src/facade/exceptions');
 var lang_1 = require('../src/facade/lang');
@@ -37713,7 +37783,7 @@ var Response = (function () {
 }());
 exports.Response = Response;
 
-},{"../src/facade/exceptions":259,"../src/facade/lang":260,"./http_utils":263}],267:[function(require,module,exports){
+},{"../src/facade/exceptions":261,"../src/facade/lang":262,"./http_utils":265}],269:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../src/facade/collection');
 var lang_1 = require('../src/facade/lang');
@@ -37842,13 +37912,13 @@ var URLSearchParams = (function () {
 }());
 exports.URLSearchParams = URLSearchParams;
 
-},{"../src/facade/collection":257,"../src/facade/lang":260}],268:[function(require,module,exports){
+},{"../src/facade/collection":259,"../src/facade/lang":262}],270:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 exports.ReflectionCapabilities = core_1.__core_private__.ReflectionCapabilities;
 exports.reflector = core_1.__core_private__.reflector;
 
-},{"@angular/core":160}],269:[function(require,module,exports){
+},{"@angular/core":162}],271:[function(require,module,exports){
 "use strict";
 var common_1 = require('@angular/common');
 var compiler_1 = require('@angular/compiler');
@@ -37992,17 +38062,17 @@ function bootstrapWorkerApp(appComponentType, customProviders) {
 }
 exports.bootstrapWorkerApp = bootstrapWorkerApp;
 
-},{"./core_private":268,"./src/facade/async":270,"./src/facade/lang":275,"./src/xhr/xhr_cache":277,"./src/xhr/xhr_impl":278,"@angular/common":14,"@angular/compiler":79,"@angular/core":160,"@angular/platform-browser":280}],270:[function(require,module,exports){
-arguments[4][25][0].apply(exports,arguments)
-},{"./lang":275,"./promise":276,"dup":25,"rxjs/Observable":518,"rxjs/Subject":520,"rxjs/observable/PromiseObservable":524,"rxjs/operator/toPromise":525}],271:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],272:[function(require,module,exports){
+},{"./core_private":270,"./src/facade/async":272,"./src/facade/lang":277,"./src/xhr/xhr_cache":279,"./src/xhr/xhr_impl":280,"@angular/common":16,"@angular/compiler":81,"@angular/core":162,"@angular/platform-browser":282}],272:[function(require,module,exports){
 arguments[4][27][0].apply(exports,arguments)
-},{"./lang":275,"dup":27}],273:[function(require,module,exports){
+},{"./lang":277,"./promise":278,"dup":27,"rxjs/Observable":520,"rxjs/Subject":522,"rxjs/observable/PromiseObservable":526,"rxjs/operator/toPromise":527}],273:[function(require,module,exports){
 arguments[4][28][0].apply(exports,arguments)
-},{"./base_wrapped_exception":271,"./collection":272,"./lang":275,"dup":28}],274:[function(require,module,exports){
+},{"dup":28}],274:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"./base_wrapped_exception":271,"./exception_handler":273,"dup":29}],275:[function(require,module,exports){
+},{"./lang":277,"dup":29}],275:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./base_wrapped_exception":273,"./collection":274,"./lang":277,"dup":30}],276:[function(require,module,exports){
+arguments[4][31][0].apply(exports,arguments)
+},{"./base_wrapped_exception":273,"./exception_handler":275,"dup":31}],277:[function(require,module,exports){
 (function (global){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -38456,9 +38526,9 @@ exports.escapeRegExp = escapeRegExp;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],276:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],277:[function(require,module,exports){
+},{}],278:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"dup":34}],279:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -38497,7 +38567,7 @@ var CachedXHR = (function (_super) {
 }(compiler_1.XHR));
 exports.CachedXHR = CachedXHR;
 
-},{"../facade/exceptions":274,"../facade/lang":275,"../facade/promise":276,"@angular/compiler":79}],278:[function(require,module,exports){
+},{"../facade/exceptions":276,"../facade/lang":277,"../facade/promise":278,"@angular/compiler":81}],280:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -38544,7 +38614,7 @@ var XHRImpl = (function (_super) {
 }(compiler_1.XHR));
 exports.XHRImpl = XHRImpl;
 
-},{"../facade/lang":275,"../facade/promise":276,"@angular/compiler":79}],279:[function(require,module,exports){
+},{"../facade/lang":277,"../facade/promise":278,"@angular/compiler":81}],281:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 exports.RenderDebugInfo = core_1.__core_private__.RenderDebugInfo;
@@ -38569,7 +38639,7 @@ exports.flattenStyles = core_1.__core_private__.flattenStyles;
 exports.clearStyles = core_1.__core_private__.clearStyles;
 exports.collectAndResolveStyles = core_1.__core_private__.collectAndResolveStyles;
 
-},{"@angular/core":160}],280:[function(require,module,exports){
+},{"@angular/core":162}],282:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -38625,7 +38695,7 @@ var browser_2 = require('./src/browser');
 /* @deprecated use BROWSER_PLATFORM_PROVIDERS */
 exports.BROWSER_PROVIDERS = browser_2.BROWSER_PLATFORM_PROVIDERS;
 
-},{"./private_export":281,"./src/browser":282,"./src/browser/location/browser_platform_location":285,"./src/browser/title":288,"./src/browser/tools/tools":290,"./src/dom/debug/by":291,"./src/dom/debug/ng_probe":292,"./src/dom/dom_tokens":295,"./src/dom/events/dom_events":296,"./src/dom/events/event_manager":297,"./src/dom/events/hammer_gestures":299,"./src/dom/events/key_events":300,"./src/security/dom_sanitization_service":313,"./src/web_workers/shared/client_message_broker":318,"./src/web_workers/shared/message_bus":319,"./src/web_workers/shared/serializer":324,"./src/web_workers/shared/service_message_broker":325,"./src/web_workers/ui/location_providers":328,"./src/web_workers/worker/location_providers":332,"./src/worker_app":336,"./src/worker_render":337}],281:[function(require,module,exports){
+},{"./private_export":283,"./src/browser":284,"./src/browser/location/browser_platform_location":287,"./src/browser/title":290,"./src/browser/tools/tools":292,"./src/dom/debug/by":293,"./src/dom/debug/ng_probe":294,"./src/dom/dom_tokens":297,"./src/dom/events/dom_events":298,"./src/dom/events/event_manager":299,"./src/dom/events/hammer_gestures":301,"./src/dom/events/key_events":302,"./src/security/dom_sanitization_service":315,"./src/web_workers/shared/client_message_broker":320,"./src/web_workers/shared/message_bus":321,"./src/web_workers/shared/serializer":326,"./src/web_workers/shared/service_message_broker":327,"./src/web_workers/ui/location_providers":330,"./src/web_workers/worker/location_providers":334,"./src/worker_app":338,"./src/worker_render":339}],283:[function(require,module,exports){
 "use strict";
 var dom_adapter = require('./src/dom/dom_adapter');
 var dom_renderer = require('./src/dom/dom_renderer');
@@ -38640,7 +38710,7 @@ exports.__platform_browser_private__ = {
     SharedStylesHost: shared_styles_host.SharedStylesHost
 };
 
-},{"./src/dom/dom_adapter":293,"./src/dom/dom_renderer":294,"./src/dom/shared_styles_host":301}],282:[function(require,module,exports){
+},{"./src/dom/dom_adapter":295,"./src/dom/dom_renderer":296,"./src/dom/shared_styles_host":303}],284:[function(require,module,exports){
 "use strict";
 var common_1 = require('@angular/common');
 var core_1 = require('@angular/core');
@@ -38719,7 +38789,7 @@ function _resolveDefaultAnimationDriver() {
     return new core_private_1.NoOpAnimationDriver();
 }
 
-},{"../core_private":279,"../src/dom/web_animations_driver":303,"./browser/browser_adapter":283,"./browser/location/browser_platform_location":285,"./browser/testability":287,"./dom/debug/ng_probe":292,"./dom/dom_adapter":293,"./dom/dom_renderer":294,"./dom/dom_tokens":295,"./dom/events/dom_events":296,"./dom/events/event_manager":297,"./dom/events/hammer_gestures":299,"./dom/events/key_events":300,"./dom/shared_styles_host":301,"./facade/lang":311,"./security/dom_sanitization_service":313,"@angular/common":14,"@angular/core":160}],283:[function(require,module,exports){
+},{"../core_private":281,"../src/dom/web_animations_driver":305,"./browser/browser_adapter":285,"./browser/location/browser_platform_location":287,"./browser/testability":289,"./dom/debug/ng_probe":294,"./dom/dom_adapter":295,"./dom/dom_renderer":296,"./dom/dom_tokens":297,"./dom/events/dom_events":298,"./dom/events/event_manager":299,"./dom/events/hammer_gestures":301,"./dom/events/key_events":302,"./dom/shared_styles_host":303,"./facade/lang":313,"./security/dom_sanitization_service":315,"@angular/common":16,"@angular/core":162}],285:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -39184,7 +39254,7 @@ function parseCookieValue(cookie, name) {
 }
 exports.parseCookieValue = parseCookieValue;
 
-},{"../dom/dom_adapter":293,"../facade/collection":308,"../facade/lang":311,"./generic_browser_adapter":284}],284:[function(require,module,exports){
+},{"../dom/dom_adapter":295,"../facade/collection":310,"../facade/lang":313,"./generic_browser_adapter":286}],286:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -39254,7 +39324,7 @@ var GenericBrowserDomAdapter = (function (_super) {
 }(dom_adapter_1.DomAdapter));
 exports.GenericBrowserDomAdapter = GenericBrowserDomAdapter;
 
-},{"../dom/dom_adapter":293,"../facade/collection":308,"../facade/lang":311}],285:[function(require,module,exports){
+},{"../dom/dom_adapter":295,"../facade/collection":310,"../facade/lang":313}],287:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -39334,14 +39404,14 @@ var BrowserPlatformLocation = (function (_super) {
 }(common_1.PlatformLocation));
 exports.BrowserPlatformLocation = BrowserPlatformLocation;
 
-},{"../../dom/dom_adapter":293,"./history":286,"@angular/common":14,"@angular/core":160}],286:[function(require,module,exports){
+},{"../../dom/dom_adapter":295,"./history":288,"@angular/common":16,"@angular/core":162}],288:[function(require,module,exports){
 "use strict";
 function supportsState() {
     return !!window.history.pushState;
 }
 exports.supportsState = supportsState;
 
-},{}],287:[function(require,module,exports){
+},{}],289:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var dom_adapter_1 = require('../dom/dom_adapter');
@@ -39419,7 +39489,7 @@ var BrowserGetTestability = (function () {
 }());
 exports.BrowserGetTestability = BrowserGetTestability;
 
-},{"../dom/dom_adapter":293,"../facade/collection":308,"../facade/lang":311,"@angular/core":160}],288:[function(require,module,exports){
+},{"../dom/dom_adapter":295,"../facade/collection":310,"../facade/lang":313,"@angular/core":162}],290:[function(require,module,exports){
 "use strict";
 var dom_adapter_1 = require('../dom/dom_adapter');
 /**
@@ -39449,7 +39519,7 @@ var Title = (function () {
 }());
 exports.Title = Title;
 
-},{"../dom/dom_adapter":293}],289:[function(require,module,exports){
+},{"../dom/dom_adapter":295}],291:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var dom_adapter_1 = require('../../dom/dom_adapter');
@@ -39529,7 +39599,7 @@ var AngularProfiler = (function () {
 }());
 exports.AngularProfiler = AngularProfiler;
 
-},{"../../dom/dom_adapter":293,"../../facade/browser":307,"../../facade/lang":311,"@angular/core":160}],290:[function(require,module,exports){
+},{"../../dom/dom_adapter":295,"../../facade/browser":309,"../../facade/lang":313,"@angular/core":162}],292:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../../facade/lang');
 var common_tools_1 = require('./common_tools');
@@ -39558,7 +39628,7 @@ function disableDebugTools() {
 }
 exports.disableDebugTools = disableDebugTools;
 
-},{"../../facade/lang":311,"./common_tools":289}],291:[function(require,module,exports){
+},{"../../facade/lang":313,"./common_tools":291}],293:[function(require,module,exports){
 "use strict";
 var dom_adapter_1 = require('../../dom/dom_adapter');
 var lang_1 = require('../../facade/lang');
@@ -39604,7 +39674,7 @@ var By = (function () {
 }());
 exports.By = By;
 
-},{"../../dom/dom_adapter":293,"../../facade/lang":311}],292:[function(require,module,exports){
+},{"../../dom/dom_adapter":295,"../../facade/lang":313}],294:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../../../core_private');
@@ -39642,7 +39712,7 @@ function _createRootRenderer(rootRenderer /** TODO #9100 */) {
 exports.ELEMENT_PROBE_PROVIDERS = [{ provide: core_1.RootRenderer, useFactory: _createConditionalRootRenderer, deps: [dom_renderer_1.DomRootRenderer] }];
 exports.ELEMENT_PROBE_PROVIDERS_PROD_MODE = [{ provide: core_1.RootRenderer, useFactory: _createRootRenderer, deps: [dom_renderer_1.DomRootRenderer] }];
 
-},{"../../../core_private":279,"../dom_adapter":293,"../dom_renderer":294,"@angular/core":160}],293:[function(require,module,exports){
+},{"../../../core_private":281,"../dom_adapter":295,"../dom_renderer":296,"@angular/core":162}],295:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var _DOM = null;
@@ -39686,7 +39756,7 @@ var DomAdapter = (function () {
 }());
 exports.DomAdapter = DomAdapter;
 
-},{"../facade/lang":311}],294:[function(require,module,exports){
+},{"../facade/lang":313}],296:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -39971,7 +40041,7 @@ function splitNamespace(name) {
     return [match[1], match[2]];
 }
 
-},{"../../core_private":279,"../facade/exceptions":310,"../facade/lang":311,"./dom_adapter":293,"./dom_tokens":295,"./events/event_manager":297,"./shared_styles_host":301,"./util":302,"@angular/core":160}],295:[function(require,module,exports){
+},{"../../core_private":281,"../facade/exceptions":312,"../facade/lang":313,"./dom_adapter":295,"./dom_tokens":297,"./events/event_manager":299,"./shared_styles_host":303,"./util":304,"@angular/core":162}],297:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 /**
@@ -39982,7 +40052,7 @@ var core_1 = require('@angular/core');
  */
 exports.DOCUMENT = new core_1.OpaqueToken('DocumentToken');
 
-},{"@angular/core":160}],296:[function(require,module,exports){
+},{"@angular/core":162}],298:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -40019,7 +40089,7 @@ var DomEventsPlugin = (function (_super) {
 }(event_manager_1.EventManagerPlugin));
 exports.DomEventsPlugin = DomEventsPlugin;
 
-},{"../dom_adapter":293,"./event_manager":297,"@angular/core":160}],297:[function(require,module,exports){
+},{"../dom_adapter":295,"./event_manager":299,"@angular/core":162}],299:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../../facade/collection');
@@ -40079,7 +40149,7 @@ var EventManagerPlugin = (function () {
 }());
 exports.EventManagerPlugin = EventManagerPlugin;
 
-},{"../../facade/collection":308,"../../facade/exceptions":310,"@angular/core":160}],298:[function(require,module,exports){
+},{"../../facade/collection":310,"../../facade/exceptions":312,"@angular/core":162}],300:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -40138,7 +40208,7 @@ var HammerGesturesPluginCommon = (function (_super) {
 }(event_manager_1.EventManagerPlugin));
 exports.HammerGesturesPluginCommon = HammerGesturesPluginCommon;
 
-},{"../../facade/collection":308,"./event_manager":297}],299:[function(require,module,exports){
+},{"../../facade/collection":310,"./event_manager":299}],301:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -40212,7 +40282,7 @@ var HammerGesturesPlugin = (function (_super) {
 }(hammer_common_1.HammerGesturesPluginCommon));
 exports.HammerGesturesPlugin = HammerGesturesPlugin;
 
-},{"../../facade/exceptions":310,"../../facade/lang":311,"./hammer_common":298,"@angular/core":160}],300:[function(require,module,exports){
+},{"../../facade/exceptions":312,"../../facade/lang":313,"./hammer_common":300,"@angular/core":162}],302:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -40320,7 +40390,7 @@ var KeyEventsPlugin = (function (_super) {
 }(event_manager_1.EventManagerPlugin));
 exports.KeyEventsPlugin = KeyEventsPlugin;
 
-},{"../../facade/collection":308,"../../facade/lang":311,"../dom_adapter":293,"./event_manager":297,"@angular/core":160}],301:[function(require,module,exports){
+},{"../../facade/collection":310,"../../facade/lang":313,"../dom_adapter":295,"./event_manager":299,"@angular/core":162}],303:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -40396,7 +40466,7 @@ var DomSharedStylesHost = (function (_super) {
 }(SharedStylesHost));
 exports.DomSharedStylesHost = DomSharedStylesHost;
 
-},{"../facade/collection":308,"./dom_adapter":293,"./dom_tokens":295,"@angular/core":160}],302:[function(require,module,exports){
+},{"../facade/collection":310,"./dom_adapter":295,"./dom_tokens":297,"@angular/core":162}],304:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var CAMEL_CASE_REGEXP = /([A-Z])/g;
@@ -40410,7 +40480,7 @@ function dashCaseToCamelCase(input) {
 }
 exports.dashCaseToCamelCase = dashCaseToCamelCase;
 
-},{"../facade/lang":311}],303:[function(require,module,exports){
+},{"../facade/lang":313}],305:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var collection_1 = require('../facade/collection');
@@ -40539,7 +40609,7 @@ function _computeStyle(element, prop) {
     return dom_adapter_1.getDOM().getComputedStyle(element)[prop];
 }
 
-},{"../facade/collection":308,"../facade/lang":311,"./dom_adapter":293,"./util":302,"./web_animations_player":304,"@angular/core":160}],304:[function(require,module,exports){
+},{"../facade/collection":310,"../facade/lang":313,"./dom_adapter":295,"./util":304,"./web_animations_player":306,"@angular/core":162}],306:[function(require,module,exports){
 "use strict";
 var lang_1 = require('../facade/lang');
 var WebAnimationsPlayer = (function () {
@@ -40586,11 +40656,11 @@ var WebAnimationsPlayer = (function () {
 }());
 exports.WebAnimationsPlayer = WebAnimationsPlayer;
 
-},{"../facade/lang":311}],305:[function(require,module,exports){
-arguments[4][25][0].apply(exports,arguments)
-},{"./lang":311,"./promise":312,"dup":25,"rxjs/Observable":518,"rxjs/Subject":520,"rxjs/observable/PromiseObservable":524,"rxjs/operator/toPromise":525}],306:[function(require,module,exports){
-arguments[4][26][0].apply(exports,arguments)
-},{"dup":26}],307:[function(require,module,exports){
+},{"../facade/lang":313}],307:[function(require,module,exports){
+arguments[4][27][0].apply(exports,arguments)
+},{"./lang":313,"./promise":314,"dup":27,"rxjs/Observable":520,"rxjs/Subject":522,"rxjs/observable/PromiseObservable":526,"rxjs/operator/toPromise":527}],308:[function(require,module,exports){
+arguments[4][28][0].apply(exports,arguments)
+},{"dup":28}],309:[function(require,module,exports){
 "use strict";
 /**
  * JS version of browser APIs. This library can only run in the browser.
@@ -40609,13 +40679,13 @@ exports.History = win['History'];
 exports.Location = win['Location'];
 exports.EventListener = win['EventListener'];
 
-},{}],308:[function(require,module,exports){
-arguments[4][27][0].apply(exports,arguments)
-},{"./lang":311,"dup":27}],309:[function(require,module,exports){
-arguments[4][28][0].apply(exports,arguments)
-},{"./base_wrapped_exception":306,"./collection":308,"./lang":311,"dup":28}],310:[function(require,module,exports){
+},{}],310:[function(require,module,exports){
 arguments[4][29][0].apply(exports,arguments)
-},{"./base_wrapped_exception":306,"./exception_handler":309,"dup":29}],311:[function(require,module,exports){
+},{"./lang":313,"dup":29}],311:[function(require,module,exports){
+arguments[4][30][0].apply(exports,arguments)
+},{"./base_wrapped_exception":308,"./collection":310,"./lang":313,"dup":30}],312:[function(require,module,exports){
+arguments[4][31][0].apply(exports,arguments)
+},{"./base_wrapped_exception":308,"./exception_handler":311,"dup":31}],313:[function(require,module,exports){
 (function (global){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -41069,9 +41139,9 @@ exports.escapeRegExp = escapeRegExp;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],312:[function(require,module,exports){
-arguments[4][32][0].apply(exports,arguments)
-},{"dup":32}],313:[function(require,module,exports){
+},{}],314:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"dup":34}],315:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -41225,7 +41295,7 @@ var SafeResourceUrlImpl = (function (_super) {
     return SafeResourceUrlImpl;
 }(SafeValueImpl));
 
-},{"../../core_private":279,"./html_sanitizer":314,"./style_sanitizer":315,"./url_sanitizer":316,"@angular/core":160}],314:[function(require,module,exports){
+},{"../../core_private":281,"./html_sanitizer":316,"./style_sanitizer":317,"./url_sanitizer":318,"@angular/core":162}],316:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var dom_adapter_1 = require('../dom/dom_adapter');
@@ -41472,7 +41542,7 @@ function sanitizeHtml(unsafeHtml) {
 }
 exports.sanitizeHtml = sanitizeHtml;
 
-},{"../dom/dom_adapter":293,"./url_sanitizer":316,"@angular/core":160}],315:[function(require,module,exports){
+},{"../dom/dom_adapter":295,"./url_sanitizer":318,"@angular/core":162}],317:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var dom_adapter_1 = require('../dom/dom_adapter');
@@ -41556,7 +41626,7 @@ function sanitizeStyle(value) {
 }
 exports.sanitizeStyle = sanitizeStyle;
 
-},{"../dom/dom_adapter":293,"./url_sanitizer":316,"@angular/core":160}],316:[function(require,module,exports){
+},{"../dom/dom_adapter":295,"./url_sanitizer":318,"@angular/core":162}],318:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var dom_adapter_1 = require('../dom/dom_adapter');
@@ -41599,12 +41669,12 @@ function sanitizeUrl(url) {
 }
 exports.sanitizeUrl = sanitizeUrl;
 
-},{"../dom/dom_adapter":293,"@angular/core":160}],317:[function(require,module,exports){
+},{"../dom/dom_adapter":295,"@angular/core":162}],319:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 exports.ON_WEB_WORKER = new core_1.OpaqueToken('WebWorker.onWebWorker');
 
-},{"@angular/core":160}],318:[function(require,module,exports){
+},{"@angular/core":162}],320:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -41789,7 +41859,7 @@ var UiArguments = (function () {
 }());
 exports.UiArguments = UiArguments;
 
-},{"../../facade/async":305,"../../facade/collection":308,"../../facade/lang":311,"./message_bus":319,"./serializer":324,"@angular/core":160}],319:[function(require,module,exports){
+},{"../../facade/async":307,"../../facade/collection":310,"../../facade/lang":313,"./message_bus":321,"./serializer":326,"@angular/core":162}],321:[function(require,module,exports){
 "use strict";
 /**
  * Message Bus is a low level API used to communicate between the UI and the background.
@@ -41805,7 +41875,7 @@ var MessageBus = (function () {
 }());
 exports.MessageBus = MessageBus;
 
-},{}],320:[function(require,module,exports){
+},{}],322:[function(require,module,exports){
 "use strict";
 /**
  * All channels used by angular's WebWorker components are listed here.
@@ -41815,7 +41885,7 @@ exports.RENDERER_CHANNEL = 'ng-Renderer';
 exports.EVENT_CHANNEL = 'ng-Events';
 exports.ROUTER_CHANNEL = 'ng-Router';
 
-},{}],321:[function(require,module,exports){
+},{}],323:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var async_1 = require('../../facade/async');
@@ -41963,7 +42033,7 @@ var _Channel = (function () {
     return _Channel;
 }());
 
-},{"../../facade/async":305,"../../facade/collection":308,"../../facade/exceptions":310,"@angular/core":160}],322:[function(require,module,exports){
+},{"../../facade/async":307,"../../facade/collection":310,"../../facade/exceptions":312,"@angular/core":162}],324:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var RenderStore = (function () {
@@ -42007,7 +42077,7 @@ var RenderStore = (function () {
 }());
 exports.RenderStore = RenderStore;
 
-},{"@angular/core":160}],323:[function(require,module,exports){
+},{"@angular/core":162}],325:[function(require,module,exports){
 "use strict";
 // This file contains interface versions of browser types that can be serialized to Plain Old
 // JavaScript Objects
@@ -42027,7 +42097,7 @@ var LocationType = (function () {
 }());
 exports.LocationType = LocationType;
 
-},{}],324:[function(require,module,exports){
+},{}],326:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../../../core_private');
@@ -42147,7 +42217,7 @@ var RenderStoreObject = (function () {
 }());
 exports.RenderStoreObject = RenderStoreObject;
 
-},{"../../../core_private":279,"../../facade/exceptions":310,"../../facade/lang":311,"./render_store":322,"./serialized_types":323,"@angular/core":160}],325:[function(require,module,exports){
+},{"../../../core_private":281,"../../facade/exceptions":312,"../../facade/lang":313,"./render_store":324,"./serialized_types":325,"@angular/core":162}],327:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -42262,7 +42332,7 @@ var ReceivedMessage = (function () {
 }());
 exports.ReceivedMessage = ReceivedMessage;
 
-},{"../../facade/async":305,"../../facade/collection":308,"../../facade/lang":311,"../shared/message_bus":319,"../shared/serializer":324,"@angular/core":160}],326:[function(require,module,exports){
+},{"../../facade/async":307,"../../facade/collection":310,"../../facade/lang":313,"../shared/message_bus":321,"../shared/serializer":326,"@angular/core":162}],328:[function(require,module,exports){
 "use strict";
 var async_1 = require('../../facade/async');
 var exceptions_1 = require('../../facade/exceptions');
@@ -42370,7 +42440,7 @@ var EventDispatcher = (function () {
 }());
 exports.EventDispatcher = EventDispatcher;
 
-},{"../../facade/async":305,"../../facade/exceptions":310,"../shared/serializer":324,"./event_serializer":327}],327:[function(require,module,exports){
+},{"../../facade/async":307,"../../facade/exceptions":312,"../shared/serializer":326,"./event_serializer":329}],329:[function(require,module,exports){
 "use strict";
 var collection_1 = require('../../facade/collection');
 var lang_1 = require('../../facade/lang');
@@ -42430,7 +42500,7 @@ function serializeEvent(e, properties) {
     return serialized;
 }
 
-},{"../../facade/collection":308,"../../facade/lang":311}],328:[function(require,module,exports){
+},{"../../facade/collection":310,"../../facade/lang":313}],330:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var browser_platform_location_1 = require('../../browser/location/browser_platform_location');
@@ -42451,7 +42521,7 @@ function initUiLocation(injector) {
     };
 }
 
-},{"../../browser/location/browser_platform_location":285,"./platform_location":329,"@angular/core":160}],329:[function(require,module,exports){
+},{"../../browser/location/browser_platform_location":287,"./platform_location":331,"@angular/core":162}],331:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var browser_platform_location_1 = require('../../browser/location/browser_platform_location');
@@ -42504,7 +42574,7 @@ var MessageBasedPlatformLocation = (function () {
 }());
 exports.MessageBasedPlatformLocation = MessageBasedPlatformLocation;
 
-},{"../../browser/location/browser_platform_location":285,"../../facade/async":305,"../../facade/lang":311,"../shared/message_bus":319,"../shared/messaging_api":320,"../shared/serialized_types":323,"../shared/serializer":324,"../shared/service_message_broker":325,"@angular/core":160}],330:[function(require,module,exports){
+},{"../../browser/location/browser_platform_location":287,"../../facade/async":307,"../../facade/lang":313,"../shared/message_bus":321,"../shared/messaging_api":322,"../shared/serialized_types":325,"../shared/serializer":326,"../shared/service_message_broker":327,"@angular/core":162}],332:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var lang_1 = require('../../facade/lang');
@@ -42636,7 +42706,7 @@ var MessageBasedRenderer = (function () {
 }());
 exports.MessageBasedRenderer = MessageBasedRenderer;
 
-},{"../../facade/lang":311,"../shared/message_bus":319,"../shared/messaging_api":320,"../shared/render_store":322,"../shared/serializer":324,"../shared/service_message_broker":325,"../ui/event_dispatcher":326,"@angular/core":160}],331:[function(require,module,exports){
+},{"../../facade/lang":313,"../shared/message_bus":321,"../shared/messaging_api":322,"../shared/render_store":324,"../shared/serializer":326,"../shared/service_message_broker":327,"../ui/event_dispatcher":328,"@angular/core":162}],333:[function(require,module,exports){
 "use strict";
 // no deserialization is necessary in TS.
 // This is only here to match dart interface
@@ -42645,7 +42715,7 @@ function deserializeGenericEvent(serializedEvent) {
 }
 exports.deserializeGenericEvent = deserializeGenericEvent;
 
-},{}],332:[function(require,module,exports){
+},{}],334:[function(require,module,exports){
 "use strict";
 var common_1 = require('@angular/common');
 var core_1 = require('@angular/core');
@@ -42667,7 +42737,7 @@ function appInitFnFactory(platformLocation, zone) {
     return function () { return zone.runGuarded(function () { return platformLocation.init(); }); };
 }
 
-},{"./platform_location":333,"@angular/common":14,"@angular/core":160}],333:[function(require,module,exports){
+},{"./platform_location":335,"@angular/common":16,"@angular/core":162}],335:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -42802,7 +42872,7 @@ var WebWorkerPlatformLocation = (function (_super) {
 }(common_1.PlatformLocation));
 exports.WebWorkerPlatformLocation = WebWorkerPlatformLocation;
 
-},{"../../facade/async":305,"../../facade/collection":308,"../../facade/exceptions":310,"../../facade/lang":311,"../shared/client_message_broker":318,"../shared/message_bus":319,"../shared/messaging_api":320,"../shared/serialized_types":323,"../shared/serializer":324,"./event_deserializer":331,"@angular/common":14,"@angular/core":160}],334:[function(require,module,exports){
+},{"../../facade/async":307,"../../facade/collection":310,"../../facade/exceptions":312,"../../facade/lang":313,"../shared/client_message_broker":320,"../shared/message_bus":321,"../shared/messaging_api":322,"../shared/serialized_types":325,"../shared/serializer":326,"./event_deserializer":333,"@angular/common":16,"@angular/core":162}],336:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var async_1 = require('../../facade/async');
@@ -43044,7 +43114,7 @@ var WebWorkerRenderNode = (function () {
 }());
 exports.WebWorkerRenderNode = WebWorkerRenderNode;
 
-},{"../../facade/async":305,"../../facade/collection":308,"../../facade/lang":311,"../shared/client_message_broker":318,"../shared/message_bus":319,"../shared/messaging_api":320,"../shared/render_store":322,"../shared/serializer":324,"./event_deserializer":331,"@angular/core":160}],335:[function(require,module,exports){
+},{"../../facade/async":307,"../../facade/collection":310,"../../facade/lang":313,"../shared/client_message_broker":320,"../shared/message_bus":321,"../shared/messaging_api":322,"../shared/render_store":324,"../shared/serializer":326,"./event_deserializer":333,"@angular/core":162}],337:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -43253,7 +43323,7 @@ var WorkerDomAdapter = (function (_super) {
 }(dom_adapter_1.DomAdapter));
 exports.WorkerDomAdapter = WorkerDomAdapter;
 
-},{"../../dom/dom_adapter":293}],336:[function(require,module,exports){
+},{"../../dom/dom_adapter":295}],338:[function(require,module,exports){
 "use strict";
 var common_1 = require('@angular/common');
 var core_1 = require('@angular/core');
@@ -43325,7 +43395,7 @@ function setupWebWorker() {
     worker_adapter_1.WorkerDomAdapter.makeCurrent();
 }
 
-},{"./browser":282,"./facade/lang":311,"./web_workers/shared/api":317,"./web_workers/shared/client_message_broker":318,"./web_workers/shared/message_bus":319,"./web_workers/shared/post_message_bus":321,"./web_workers/shared/render_store":322,"./web_workers/shared/serializer":324,"./web_workers/shared/service_message_broker":325,"./web_workers/worker/renderer":334,"./web_workers/worker/worker_adapter":335,"@angular/common":14,"@angular/core":160}],337:[function(require,module,exports){
+},{"./browser":284,"./facade/lang":313,"./web_workers/shared/api":319,"./web_workers/shared/client_message_broker":320,"./web_workers/shared/message_bus":321,"./web_workers/shared/post_message_bus":323,"./web_workers/shared/render_store":324,"./web_workers/shared/serializer":326,"./web_workers/shared/service_message_broker":327,"./web_workers/worker/renderer":336,"./web_workers/worker/worker_adapter":337,"@angular/common":16,"@angular/core":162}],339:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var core_private_1 = require('../core_private');
@@ -43479,7 +43549,7 @@ function _resolveDefaultAnimationDriver() {
     return new core_private_1.NoOpAnimationDriver();
 }
 
-},{"../core_private":279,"./browser":282,"./browser/browser_adapter":283,"./browser/testability":287,"./dom/dom_adapter":293,"./dom/dom_renderer":294,"./dom/dom_tokens":295,"./dom/events/dom_events":296,"./dom/events/event_manager":297,"./dom/events/hammer_gestures":299,"./dom/events/key_events":300,"./dom/shared_styles_host":301,"./facade/exceptions":310,"./facade/lang":311,"./web_workers/shared/api":317,"./web_workers/shared/client_message_broker":318,"./web_workers/shared/message_bus":319,"./web_workers/shared/post_message_bus":321,"./web_workers/shared/render_store":322,"./web_workers/shared/serializer":324,"./web_workers/shared/service_message_broker":325,"./web_workers/ui/renderer":330,"@angular/core":160}],338:[function(require,module,exports){
+},{"../core_private":281,"./browser":284,"./browser/browser_adapter":285,"./browser/testability":289,"./dom/dom_adapter":295,"./dom/dom_renderer":296,"./dom/dom_tokens":297,"./dom/events/dom_events":298,"./dom/events/event_manager":299,"./dom/events/hammer_gestures":301,"./dom/events/key_events":302,"./dom/shared_styles_host":303,"./facade/exceptions":312,"./facade/lang":313,"./web_workers/shared/api":319,"./web_workers/shared/client_message_broker":320,"./web_workers/shared/message_bus":321,"./web_workers/shared/post_message_bus":323,"./web_workers/shared/render_store":324,"./web_workers/shared/serializer":326,"./web_workers/shared/service_message_broker":327,"./web_workers/ui/renderer":332,"@angular/core":162}],340:[function(require,module,exports){
 "use strict";
 var dom_1 = require('../util/dom');
 var util_1 = require('../util/util');
@@ -44352,7 +44422,7 @@ var CSS_VALUE_REGEX = /(^-?\d*\.?\d*)(.*)/;
 var SUPPORTS_WILL_CHANGE = (typeof document.documentElement.style['willChange'] !== 'undefined');
 var AnimationRegistry = {};
 
-},{"../util/dom":442,"../util/util":450}],339:[function(require,module,exports){
+},{"../util/dom":444,"../util/util":452}],341:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -44409,7 +44479,7 @@ var FadeOut = (function (_super) {
 }(animation_1.Animation));
 animation_1.Animation.register('fade-out', FadeOut);
 
-},{"./animation":338}],340:[function(require,module,exports){
+},{"./animation":340}],342:[function(require,module,exports){
 "use strict";
 var action_sheet_1 = require('./components/action-sheet/action-sheet');
 exports.ActionSheet = action_sheet_1.ActionSheet;
@@ -44536,7 +44606,7 @@ exports.Footer = toolbar_1.Footer;
 var virtual_scroll_1 = require('./components/virtual-scroll/virtual-scroll');
 exports.VirtualScroll = virtual_scroll_1.VirtualScroll;
 
-},{"./components/action-sheet/action-sheet":341,"./components/alert/alert":342,"./components/app/app":343,"./components/backdrop/backdrop":344,"./components/badge/badge":345,"./components/button/button":346,"./components/checkbox/checkbox":347,"./components/content/content":348,"./components/datetime/datetime":349,"./components/icon/icon":350,"./components/img/img":351,"./components/infinite-scroll/infinite-scroll":353,"./components/infinite-scroll/infinite-scroll-content":352,"./components/input/input":355,"./components/item/item":362,"./components/item/item-reorder":359,"./components/item/item-sliding":361,"./components/label/label":363,"./components/list/list":364,"./components/loading/loading":365,"./components/menu/menu":371,"./components/menu/menu-close":366,"./components/menu/menu-controller":367,"./components/menu/menu-toggle":369,"./components/menu/menu-types":370,"./components/modal/modal":372,"./components/nav/nav":379,"./components/nav/nav-controller":373,"./components/nav/nav-params":374,"./components/nav/nav-pop":375,"./components/nav/nav-push":377,"./components/nav/view-controller":381,"./components/navbar/navbar":382,"./components/option/option":383,"./components/picker/picker":384,"./components/popover/popover":385,"./components/radio/radio-button":386,"./components/radio/radio-group":387,"./components/range/range":388,"./components/refresher/refresher":390,"./components/refresher/refresher-content":389,"./components/scroll/scroll":391,"./components/searchbar/searchbar":392,"./components/segment/segment":393,"./components/select/select":394,"./components/show-hide-when/show-hide-when":395,"./components/slides/slides":396,"./components/spinner/spinner":398,"./components/tabs/tab":401,"./components/tabs/tabs":402,"./components/tap-click/tap-click":405,"./components/toast/toast":406,"./components/toggle/toggle":407,"./components/toolbar/toolbar":410,"./components/virtual-scroll/virtual-scroll":412}],341:[function(require,module,exports){
+},{"./components/action-sheet/action-sheet":343,"./components/alert/alert":344,"./components/app/app":345,"./components/backdrop/backdrop":346,"./components/badge/badge":347,"./components/button/button":348,"./components/checkbox/checkbox":349,"./components/content/content":350,"./components/datetime/datetime":351,"./components/icon/icon":352,"./components/img/img":353,"./components/infinite-scroll/infinite-scroll":355,"./components/infinite-scroll/infinite-scroll-content":354,"./components/input/input":357,"./components/item/item":364,"./components/item/item-reorder":361,"./components/item/item-sliding":363,"./components/label/label":365,"./components/list/list":366,"./components/loading/loading":367,"./components/menu/menu":373,"./components/menu/menu-close":368,"./components/menu/menu-controller":369,"./components/menu/menu-toggle":371,"./components/menu/menu-types":372,"./components/modal/modal":374,"./components/nav/nav":381,"./components/nav/nav-controller":375,"./components/nav/nav-params":376,"./components/nav/nav-pop":377,"./components/nav/nav-push":379,"./components/nav/view-controller":383,"./components/navbar/navbar":384,"./components/option/option":385,"./components/picker/picker":386,"./components/popover/popover":387,"./components/radio/radio-button":388,"./components/radio/radio-group":389,"./components/range/range":390,"./components/refresher/refresher":392,"./components/refresher/refresher-content":391,"./components/scroll/scroll":393,"./components/searchbar/searchbar":394,"./components/segment/segment":395,"./components/select/select":396,"./components/show-hide-when/show-hide-when":397,"./components/slides/slides":398,"./components/spinner/spinner":400,"./components/tabs/tab":403,"./components/tabs/tabs":404,"./components/tap-click/tap-click":407,"./components/toast/toast":408,"./components/toggle/toggle":409,"./components/toolbar/toolbar":412,"./components/virtual-scroll/virtual-scroll":414}],343:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -44981,7 +45051,7 @@ var ActionSheetWpSlideOut = (function (_super) {
 transition_1.Transition.register('action-sheet-wp-slide-out', ActionSheetWpSlideOut);
 var actionSheetIds = -1;
 
-},{"../../animations/animation":338,"../../config/config":415,"../../transitions/transition":435,"../../util/key":446,"../../util/util":450,"../nav/nav-params":374,"../nav/view-controller":381,"@angular/core":160}],342:[function(require,module,exports){
+},{"../../animations/animation":340,"../../config/config":417,"../../transitions/transition":437,"../../util/key":448,"../../util/util":452,"../nav/nav-params":376,"../nav/view-controller":383,"@angular/core":162}],344:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -45635,7 +45705,7 @@ var AlertWpPopOut = (function (_super) {
 transition_1.Transition.register('alert-wp-pop-out', AlertWpPopOut);
 var alertIds = -1;
 
-},{"../../animations/animation":338,"../../config/config":415,"../../transitions/transition":435,"../../util/key":446,"../../util/util":450,"../nav/nav-params":374,"../nav/view-controller":381,"@angular/core":160}],343:[function(require,module,exports){
+},{"../../animations/animation":340,"../../config/config":417,"../../transitions/transition":437,"../../util/key":448,"../../util/util":452,"../nav/nav-params":376,"../nav/view-controller":383,"@angular/core":162}],345:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -45848,7 +45918,7 @@ var App = (function () {
 }());
 exports.App = App;
 
-},{"../../config/config":415,"../../platform/platform":425,"../../util/click-block":439,"@angular/core":160,"@angular/platform-browser":280}],344:[function(require,module,exports){
+},{"../../config/config":417,"../../platform/platform":427,"../../util/click-block":441,"@angular/core":162,"@angular/platform-browser":282}],346:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -45924,7 +45994,7 @@ var Backdrop = (function () {
 }());
 exports.Backdrop = Backdrop;
 
-},{"../../util/util":450,"@angular/core":160}],345:[function(require,module,exports){
+},{"../../util/util":452,"@angular/core":162}],347:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -45984,7 +46054,7 @@ var Badge = (function () {
 }());
 exports.Badge = Badge;
 
-},{"../../config/config":415,"@angular/core":160}],346:[function(require,module,exports){
+},{"../../config/config":417,"@angular/core":162}],348:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -46410,7 +46480,7 @@ var IGNORE_ATTRS = /_ng|button|left|right/;
 var TEXT = 1;
 var ICON = 2;
 
-},{"../../config/config":415,"../../util/util":450,"@angular/core":160}],347:[function(require,module,exports){
+},{"../../config/config":417,"../../util/util":452,"@angular/core":162}],349:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -46628,7 +46698,7 @@ var Checkbox = (function () {
 }());
 exports.Checkbox = Checkbox;
 
-},{"../../util/form":445,"../../util/util":450,"../item/item":362,"@angular/common":14,"@angular/core":160}],348:[function(require,module,exports){
+},{"../../util/form":447,"../../util/util":452,"../item/item":364,"@angular/common":16,"@angular/core":162}],350:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -47159,7 +47229,7 @@ function parsePxUnit(val) {
     return (val.indexOf('px') > 0) ? parseInt(val, 10) : 0;
 }
 
-},{"../../config/config":415,"../../util/dom":442,"../../util/keyboard":447,"../../util/scroll-view":448,"../../util/util":450,"../app/app":343,"../ion":357,"../nav/view-controller":381,"../tabs/tabs":402,"@angular/core":160}],349:[function(require,module,exports){
+},{"../../config/config":417,"../../util/dom":444,"../../util/keyboard":449,"../../util/scroll-view":450,"../../util/util":452,"../app/app":345,"../ion":359,"../nav/view-controller":383,"../tabs/tabs":404,"@angular/core":162}],351:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -47986,7 +48056,7 @@ function convertToArrayOfStrings(input, type) {
     }
 }
 
-},{"../../config/config":415,"../../util/datetime-util":440,"../../util/form":445,"../../util/util":450,"../item/item":362,"../nav/nav-controller":373,"../picker/picker":384,"@angular/common":14,"@angular/core":160}],350:[function(require,module,exports){
+},{"../../config/config":417,"../../util/datetime-util":442,"../../util/form":447,"../../util/util":452,"../item/item":364,"../nav/nav-controller":375,"../picker/picker":386,"@angular/common":16,"@angular/core":162}],352:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -48171,7 +48241,7 @@ var Icon = (function () {
 }());
 exports.Icon = Icon;
 
-},{"../../config/config":415,"@angular/core":160}],351:[function(require,module,exports){
+},{"../../config/config":417,"@angular/core":162}],353:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -48359,7 +48429,7 @@ function getUnitValue(val) {
     return '';
 }
 
-},{"../../platform/platform":425,"../../util/dom":442,"../../util/util":450,"@angular/core":160}],352:[function(require,module,exports){
+},{"../../platform/platform":427,"../../util/dom":444,"../../util/util":452,"@angular/core":162}],354:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -48417,7 +48487,7 @@ var InfiniteScrollContent = (function () {
 }());
 exports.InfiniteScrollContent = InfiniteScrollContent;
 
-},{"../../config/config":415,"./infinite-scroll":353,"@angular/core":160}],353:[function(require,module,exports){
+},{"../../config/config":417,"./infinite-scroll":355,"@angular/core":162}],355:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -48683,7 +48753,7 @@ var STATE_ENABLED = 'enabled';
 var STATE_DISABLED = 'disabled';
 var STATE_LOADING = 'loading';
 
-},{"../content/content":348,"@angular/core":160}],354:[function(require,module,exports){
+},{"../content/content":350,"@angular/core":162}],356:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -49233,7 +49303,7 @@ function getScrollAssistDuration(distanceToScroll) {
     return Math.min(400, Math.max(150, duration));
 }
 
-},{"../../util/dom":442,"../../util/util":450,"./native-input":356,"@angular/core":160}],355:[function(require,module,exports){
+},{"../../util/dom":444,"../../util/util":452,"./native-input":358,"@angular/core":162}],357:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -49455,7 +49525,7 @@ var TextArea = (function (_super) {
 }(input_base_1.InputBase));
 exports.TextArea = TextArea;
 
-},{"../../config/config":415,"../../platform/platform":425,"../../util/form":445,"../app/app":343,"../content/content":348,"../item/item":362,"../nav/nav-controller":373,"./input-base":354,"./native-input":356,"@angular/common":14,"@angular/core":160}],356:[function(require,module,exports){
+},{"../../config/config":417,"../../platform/platform":427,"../../util/form":447,"../app/app":345,"../content/content":350,"../item/item":364,"../nav/nav-controller":375,"./input-base":356,"./native-input":358,"@angular/common":16,"@angular/core":162}],358:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -49684,7 +49754,7 @@ var NextInput = (function () {
 }());
 exports.NextInput = NextInput;
 
-},{"../../config/config":415,"../../util/dom":442,"@angular/common":14,"@angular/core":160}],357:[function(require,module,exports){
+},{"../../config/config":417,"../../util/dom":444,"@angular/common":16,"@angular/core":162}],359:[function(require,module,exports){
 "use strict";
 var dom_1 = require('../util/dom');
 var ids = 0;
@@ -49720,7 +49790,7 @@ var Ion = (function () {
 }());
 exports.Ion = Ion;
 
-},{"../util/dom":442}],358:[function(require,module,exports){
+},{"../util/dom":444}],360:[function(require,module,exports){
 "use strict";
 var ui_event_manager_1 = require('../../util/ui-event-manager');
 var dom_1 = require('../../util/dom');
@@ -49848,7 +49918,7 @@ function indexForItem(element) {
     return element['$ionIndex'];
 }
 
-},{"../../util/dom":442,"../../util/ui-event-manager":449}],359:[function(require,module,exports){
+},{"../../util/dom":444,"../../util/ui-event-manager":451}],361:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -50049,7 +50119,7 @@ var ItemReorder = (function () {
 }());
 exports.ItemReorder = ItemReorder;
 
-},{"../../util/dom":442,"../../util/util":450,"../content/content":348,"../item/item-reorder-gesture":358,"./item":362,"@angular/core":160}],360:[function(require,module,exports){
+},{"../../util/dom":444,"../../util/util":452,"../content/content":350,"../item/item-reorder-gesture":360,"./item":364,"@angular/core":162}],362:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -50163,7 +50233,7 @@ function isFromOptionButtons(ele) {
     return !!dom_1.closest(ele, 'ion-item-options', true);
 }
 
-},{"../../gestures/drag-gesture":419,"../../util/dom":442}],361:[function(require,module,exports){
+},{"../../gestures/drag-gesture":421,"../../util/dom":444}],363:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -50646,7 +50716,7 @@ function shouldClose(isCloseDirection, isMovingFast, isOnCloseZone) {
     return shouldClose;
 }
 
-},{"../../util/dom":442,"../../util/util":450,"../list/list":364,"./item":362,"@angular/core":160}],362:[function(require,module,exports){
+},{"../../util/dom":444,"../../util/util":452,"../list/list":366,"./item":364,"@angular/core":162}],364:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -51098,7 +51168,7 @@ var ItemContent = (function () {
 }());
 exports.ItemContent = ItemContent;
 
-},{"../../util/form":445,"../button/button":346,"../icon/icon":350,"../item/item-reorder":359,"../label/label":363,"@angular/core":160}],363:[function(require,module,exports){
+},{"../../util/form":447,"../button/button":348,"../icon/icon":352,"../item/item-reorder":361,"../label/label":365,"@angular/core":162}],365:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -51219,7 +51289,7 @@ var Label = (function () {
 }());
 exports.Label = Label;
 
-},{"@angular/core":160}],364:[function(require,module,exports){
+},{"@angular/core":162}],366:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -51387,7 +51457,7 @@ var ListHeader = (function () {
 }());
 exports.ListHeader = ListHeader;
 
-},{"../../util/util":450,"../ion":357,"../item/item-sliding-gesture":360,"@angular/core":160}],365:[function(require,module,exports){
+},{"../../util/util":452,"../ion":359,"../item/item-sliding-gesture":362,"@angular/core":162}],367:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -51716,7 +51786,7 @@ var LoadingWpPopOut = (function (_super) {
 transition_1.Transition.register('loading-wp-pop-out', LoadingWpPopOut);
 var loadingIds = -1;
 
-},{"../../animations/animation":338,"../../config/config":415,"../../transitions/transition":435,"../../util/util":450,"../nav/nav-params":374,"../nav/view-controller":381,"@angular/core":160}],366:[function(require,module,exports){
+},{"../../animations/animation":340,"../../config/config":417,"../../transitions/transition":437,"../../util/util":452,"../nav/nav-params":376,"../nav/view-controller":383,"@angular/core":162}],368:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -51784,7 +51854,7 @@ var MenuClose = (function () {
 }());
 exports.MenuClose = MenuClose;
 
-},{"./menu-controller":367,"@angular/core":160}],367:[function(require,module,exports){
+},{"./menu-controller":369,"@angular/core":162}],369:[function(require,module,exports){
 "use strict";
 /**
  * @name MenuController
@@ -52065,7 +52135,7 @@ var MenuController = (function () {
 exports.MenuController = MenuController;
 var menuTypes = {};
 
-},{}],368:[function(require,module,exports){
+},{}],370:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -52193,7 +52263,7 @@ var MenuTargetGesture = (function (_super) {
 }(MenuContentGesture));
 exports.MenuTargetGesture = MenuTargetGesture;
 
-},{"../../gestures/slide-edge-gesture":422,"../../util/util":450}],369:[function(require,module,exports){
+},{"../../gestures/slide-edge-gesture":424,"../../util/util":452}],371:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -52352,7 +52422,7 @@ var MenuToggle = (function () {
 }());
 exports.MenuToggle = MenuToggle;
 
-},{"../nav/view-controller":381,"../navbar/navbar":382,"./menu-controller":367,"@angular/core":160}],370:[function(require,module,exports){
+},{"../nav/view-controller":383,"../navbar/navbar":384,"./menu-controller":369,"@angular/core":162}],372:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -52498,7 +52568,7 @@ var MenuOverlayType = (function (_super) {
 }(MenuType));
 menu_controller_1.MenuController.registerType('overlay', MenuOverlayType);
 
-},{"../../animations/animation":338,"./menu-controller":367}],371:[function(require,module,exports){
+},{"../../animations/animation":340,"./menu-controller":369}],373:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -53106,7 +53176,7 @@ var Menu = (function (_super) {
 }(ion_1.Ion));
 exports.Menu = Menu;
 
-},{"../../config/config":415,"../../platform/platform":425,"../../util/keyboard":447,"../../util/util":450,"../backdrop/backdrop":344,"../ion":357,"./menu-controller":367,"./menu-gestures":368,"@angular/core":160}],372:[function(require,module,exports){
+},{"../../config/config":417,"../../platform/platform":427,"../../util/keyboard":449,"../../util/util":452,"../backdrop/backdrop":346,"../ion":359,"./menu-controller":369,"./menu-gestures":370,"@angular/core":162}],374:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -53445,7 +53515,7 @@ var ModalMDSlideOut = (function (_super) {
 }(page_transition_1.PageTransition));
 page_transition_1.PageTransition.register('modal-md-slide-out', ModalMDSlideOut);
 
-},{"../../animations/animation":338,"../../config/bootstrap":414,"../../transitions/page-transition":431,"../../util/dom":442,"../../util/key":446,"../../util/util":450,"../nav/nav-params":374,"../nav/view-controller":381,"@angular/core":160}],373:[function(require,module,exports){
+},{"../../animations/animation":340,"../../config/bootstrap":416,"../../transitions/page-transition":433,"../../util/dom":444,"../../util/key":448,"../../util/util":452,"../nav/nav-params":376,"../nav/view-controller":383,"@angular/core":162}],375:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -55064,7 +55134,7 @@ var INIT_ZINDEX = 100;
 var PORTAL_ZINDEX = 9999;
 var ctrlIds = -1;
 
-},{"../../config/bootstrap":414,"../../transitions/transition":435,"../../util/util":450,"../ion":357,"../menu/menu-controller":367,"./nav-params":374,"./swipe-back":380,"./view-controller":381,"@angular/core":160}],374:[function(require,module,exports){
+},{"../../config/bootstrap":416,"../../transitions/transition":437,"../../util/util":452,"../ion":359,"../menu/menu-controller":369,"./nav-params":376,"./swipe-back":382,"./view-controller":383,"@angular/core":162}],376:[function(require,module,exports){
 "use strict";
 /**
  * @name NavParams
@@ -55119,7 +55189,7 @@ var NavParams = (function () {
 }());
 exports.NavParams = NavParams;
 
-},{}],375:[function(require,module,exports){
+},{}],377:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -55181,7 +55251,7 @@ var NavPop = (function () {
 }());
 exports.NavPop = NavPop;
 
-},{"./nav-controller":373,"@angular/core":160}],376:[function(require,module,exports){
+},{"./nav-controller":375,"@angular/core":162}],378:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -55228,7 +55298,7 @@ var NavPortal = (function (_super) {
 }(nav_controller_1.NavController));
 exports.NavPortal = NavPortal;
 
-},{"../../config/config":415,"../../util/keyboard":447,"../app/app":343,"./nav-controller":373,"./view-controller":381,"@angular/core":160}],377:[function(require,module,exports){
+},{"../../config/config":417,"../../util/keyboard":449,"../app/app":345,"./nav-controller":375,"./view-controller":383,"@angular/core":162}],379:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -55332,7 +55402,7 @@ var NavPush = (function () {
 }());
 exports.NavPush = NavPush;
 
-},{"./nav-controller":373,"@angular/core":160}],378:[function(require,module,exports){
+},{"./nav-controller":375,"@angular/core":162}],380:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -55360,7 +55430,7 @@ var NavRouter = (function () {
 }());
 exports.NavRouter = NavRouter;
 
-},{"@angular/core":160}],379:[function(require,module,exports){
+},{"@angular/core":162}],381:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -55596,7 +55666,7 @@ var Nav = (function (_super) {
 }(nav_controller_1.NavController));
 exports.Nav = Nav;
 
-},{"../../config/config":415,"../../util/keyboard":447,"../../util/util":450,"../app/app":343,"./nav-controller":373,"./nav-portal":376,"./view-controller":381,"@angular/core":160}],380:[function(require,module,exports){
+},{"../../config/config":417,"../../util/keyboard":449,"../../util/util":452,"../app/app":345,"./nav-controller":375,"./nav-portal":378,"./view-controller":383,"@angular/core":162}],382:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -55650,7 +55720,7 @@ var SwipeBackGesture = (function (_super) {
 }(slide_edge_gesture_1.SlideEdgeGesture));
 exports.SwipeBackGesture = SwipeBackGesture;
 
-},{"../../gestures/slide-edge-gesture":422,"../../util/util":450}],381:[function(require,module,exports){
+},{"../../gestures/slide-edge-gesture":424,"../../util/util":452}],383:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -56187,7 +56257,7 @@ function ctrlFn(viewCtrl, fnName) {
     }
 }
 
-},{"../../util/util":450,"./nav-params":374,"@angular/core":160}],382:[function(require,module,exports){
+},{"../../util/util":452,"./nav-params":376,"@angular/core":162}],384:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -56438,7 +56508,7 @@ var NavbarTemplate = (function () {
 }());
 exports.NavbarTemplate = NavbarTemplate;
 
-},{"../../config/config":415,"../../util/util":450,"../app/app":343,"../ion":357,"../nav/nav-controller":373,"../nav/view-controller":381,"../toolbar/toolbar":410,"@angular/core":160}],383:[function(require,module,exports){
+},{"../../config/config":417,"../../util/util":452,"../app/app":345,"../ion":359,"../nav/nav-controller":375,"../nav/view-controller":383,"../toolbar/toolbar":412,"@angular/core":162}],385:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -56528,7 +56598,7 @@ var Option = (function () {
 }());
 exports.Option = Option;
 
-},{"../../util/util":450,"@angular/core":160}],384:[function(require,module,exports){
+},{"../../util/util":452,"@angular/core":162}],386:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -57095,7 +57165,7 @@ var pickerIds = -1;
 var DECELERATION_FRICTION = 0.97;
 var FRAME_MS = (1000 / 60);
 
-},{"../../animations/animation":338,"../../config/config":415,"../../transitions/transition":435,"../../util/dom":442,"../../util/key":446,"../../util/ui-event-manager":449,"../../util/util":450,"../nav/nav-params":374,"../nav/view-controller":381,"@angular/core":160,"@angular/platform-browser":280}],385:[function(require,module,exports){
+},{"../../animations/animation":340,"../../config/config":417,"../../transitions/transition":437,"../../util/dom":444,"../../util/key":448,"../../util/ui-event-manager":451,"../../util/util":452,"../nav/nav-params":376,"../nav/view-controller":383,"@angular/core":162,"@angular/platform-browser":282}],387:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -57550,7 +57620,7 @@ var PopoverMdPopOut = (function (_super) {
 page_transition_1.PageTransition.register('popover-md-pop-out', PopoverMdPopOut);
 var popoverIds = -1;
 
-},{"../../animations/animation":338,"../../config/bootstrap":414,"../../config/config":415,"../../transitions/page-transition":431,"../../util/dom":442,"../../util/key":446,"../../util/util":450,"../nav/nav-params":374,"../nav/view-controller":381,"@angular/core":160}],386:[function(require,module,exports){
+},{"../../animations/animation":340,"../../config/bootstrap":416,"../../config/config":417,"../../transitions/page-transition":433,"../../util/dom":444,"../../util/key":448,"../../util/util":452,"../nav/nav-params":376,"../nav/view-controller":383,"@angular/core":162}],388:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -57748,7 +57818,7 @@ var RadioButton = (function () {
 }());
 exports.RadioButton = RadioButton;
 
-},{"../../util/form":445,"../../util/util":450,"../item/item":362,"./radio-group":387,"@angular/core":160}],387:[function(require,module,exports){
+},{"../../util/form":447,"../../util/util":452,"../item/item":364,"./radio-group":389,"@angular/core":162}],389:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -57972,7 +58042,7 @@ var RadioGroup = (function () {
 exports.RadioGroup = RadioGroup;
 var radioGroupIds = -1;
 
-},{"../../util/util":450,"../list/list":364,"@angular/common":14,"@angular/core":160}],388:[function(require,module,exports){
+},{"../../util/util":452,"../list/list":366,"@angular/common":16,"@angular/core":162}],390:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -58663,7 +58733,7 @@ var Range = (function () {
 }());
 exports.Range = Range;
 
-},{"../../util/debouncer":441,"../../util/dom":442,"../../util/form":445,"../../util/ui-event-manager":449,"../../util/util":450,"../item/item":362,"@angular/common":14,"@angular/core":160}],389:[function(require,module,exports){
+},{"../../util/debouncer":443,"../../util/dom":444,"../../util/form":447,"../../util/ui-event-manager":451,"../../util/util":452,"../item/item":364,"@angular/common":16,"@angular/core":162}],391:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -58738,7 +58808,7 @@ var RefresherContent = (function () {
 }());
 exports.RefresherContent = RefresherContent;
 
-},{"../../config/config":415,"./refresher":390,"@angular/core":160}],390:[function(require,module,exports){
+},{"../../config/config":417,"./refresher":392,"@angular/core":162}],392:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -59215,7 +59285,7 @@ var STATE_REFRESHING = 'refreshing';
 var STATE_CANCELLING = 'cancelling';
 var STATE_COMPLETING = 'completing';
 
-},{"../../util/dom":442,"../../util/ui-event-manager":449,"../../util/util":450,"../content/content":348,"@angular/core":160}],391:[function(require,module,exports){
+},{"../../util/dom":444,"../../util/ui-event-manager":451,"../../util/util":452,"../content/content":350,"@angular/core":162}],393:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -59314,7 +59384,7 @@ var Scroll = (function (_super) {
 }(ion_1.Ion));
 exports.Scroll = Scroll;
 
-},{"../ion":357,"@angular/core":160}],392:[function(require,module,exports){
+},{"../ion":359,"@angular/core":162}],394:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -59725,7 +59795,7 @@ var Searchbar = (function () {
 }());
 exports.Searchbar = Searchbar;
 
-},{"../../config/config":415,"../../util/debouncer":441,"../../util/util":450,"@angular/common":14,"@angular/core":160}],393:[function(require,module,exports){
+},{"../../config/config":417,"../../util/debouncer":443,"../../util/util":452,"@angular/common":16,"@angular/core":162}],395:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -60023,7 +60093,7 @@ var Segment = (function () {
 }());
 exports.Segment = Segment;
 
-},{"../../util/util":450,"@angular/common":14,"@angular/core":160}],394:[function(require,module,exports){
+},{"../../util/util":452,"@angular/common":16,"@angular/core":162}],396:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -60505,7 +60575,7 @@ var Select = (function () {
 }());
 exports.Select = Select;
 
-},{"../../util/form":445,"../../util/util":450,"../action-sheet/action-sheet":341,"../alert/alert":342,"../item/item":362,"../nav/nav-controller":373,"../option/option":383,"@angular/common":14,"@angular/core":160}],395:[function(require,module,exports){
+},{"../../util/form":447,"../../util/util":452,"../action-sheet/action-sheet":343,"../alert/alert":344,"../item/item":364,"../nav/nav-controller":375,"../option/option":385,"@angular/common":16,"@angular/core":162}],397:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -60689,7 +60759,7 @@ var HideWhen = (function (_super) {
 }(DisplayWhen));
 exports.HideWhen = HideWhen;
 
-},{"../../platform/platform":425,"@angular/core":160}],396:[function(require,module,exports){
+},{"../../platform/platform":427,"@angular/core":162}],398:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -61452,7 +61522,7 @@ var SlideLazy = (function () {
 exports.SlideLazy = SlideLazy;
 var slidesId = -1;
 
-},{"../../animations/animation":338,"../../gestures/gesture":420,"../../util":438,"../../util/dom":442,"../../util/util":450,"../ion":357,"./swiper-widget":397,"@angular/core":160}],397:[function(require,module,exports){
+},{"../../animations/animation":340,"../../gestures/gesture":422,"../../util":440,"../../util/dom":444,"../../util/util":452,"../ion":359,"./swiper-widget":399,"@angular/core":162}],399:[function(require,module,exports){
 /**
  * Swiper 3.1.2
  * Most modern mobile touch slider and framework with hardware accelerated transitions
@@ -65408,7 +65478,7 @@ function Swiper(container, params) {
       }
   }
 
-},{}],398:[function(require,module,exports){
+},{}],400:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -65703,7 +65773,7 @@ var SPINNERS = {
     }
 };
 
-},{"../../config/config":415,"@angular/core":160}],399:[function(require,module,exports){
+},{"../../config/config":417,"@angular/core":162}],401:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -65782,7 +65852,7 @@ var TabButton = (function (_super) {
 }(ion_1.Ion));
 exports.TabButton = TabButton;
 
-},{"../../config/config":415,"../ion":357,"./tab":401,"@angular/core":160}],400:[function(require,module,exports){
+},{"../../config/config":417,"../ion":359,"./tab":403,"@angular/core":162}],402:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -65826,7 +65896,7 @@ var TabHighlight = (function () {
 }());
 exports.TabHighlight = TabHighlight;
 
-},{"../../util/dom":442,"@angular/core":160}],401:[function(require,module,exports){
+},{"../../util/dom":444,"@angular/core":162}],403:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -66180,7 +66250,7 @@ var Tab = (function (_super) {
 }(nav_controller_1.NavController));
 exports.Tab = Tab;
 
-},{"../../config/config":415,"../../util/keyboard":447,"../../util/util":450,"../app/app":343,"../nav/nav-controller":373,"./tabs":402,"@angular/core":160}],402:[function(require,module,exports){
+},{"../../config/config":417,"../../util/keyboard":449,"../../util/util":452,"../app/app":345,"../nav/nav-controller":375,"./tabs":404,"@angular/core":162}],404:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -66673,7 +66743,7 @@ var Tabs = (function (_super) {
 exports.Tabs = Tabs;
 var tabIds = -1;
 
-},{"../../config/config":415,"../../platform/platform":425,"../../util/dom":442,"../../util/util":450,"../app/app":343,"../content/content":348,"../ion":357,"../nav/nav-controller":373,"../nav/view-controller":381,"./tab-button":399,"./tab-highlight":400,"@angular/core":160}],403:[function(require,module,exports){
+},{"../../config/config":417,"../../platform/platform":427,"../../util/dom":444,"../../util/util":452,"../app/app":345,"../content/content":350,"../ion":359,"../nav/nav-controller":375,"../nav/view-controller":383,"./tab-button":401,"./tab-highlight":402,"@angular/core":162}],405:[function(require,module,exports){
 "use strict";
 var dom_1 = require('../../util/dom');
 var Activator = (function () {
@@ -66755,7 +66825,7 @@ var Activator = (function () {
 exports.Activator = Activator;
 var CLEAR_STATE_DEFERS = 5;
 
-},{"../../util/dom":442}],404:[function(require,module,exports){
+},{"../../util/dom":444}],406:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -66862,7 +66932,7 @@ var RippleActivator = (function (_super) {
 exports.RippleActivator = RippleActivator;
 var TOUCH_DOWN_ACCEL = 300;
 
-},{"../../util/dom":442,"./activator":403}],405:[function(require,module,exports){
+},{"../../util/dom":444,"./activator":405}],407:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -67058,7 +67128,7 @@ var POINTER_TOLERANCE = 4;
 var POINTER_MOVE_UNTIL_CANCEL = 10;
 var DISABLE_NATIVE_CLICK_AMOUNT = 2500;
 
-},{"../../config/config":415,"../../util/dom":442,"../app/app":343,"./activator":403,"./ripple":404,"@angular/core":160}],406:[function(require,module,exports){
+},{"../../config/config":417,"../../util/dom":444,"../app/app":345,"./activator":405,"./ripple":406,"@angular/core":162}],408:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -67449,7 +67519,7 @@ transition_1.Transition.register('toast-wp-slide-out', ToastWpPopOut);
 transition_1.Transition.register('toast-wp-slide-in', ToastWpPopIn);
 var toastIds = -1;
 
-},{"../../animations/animation":338,"../../config/config":415,"../../transitions/transition":435,"../../util/util":450,"../nav/nav-controller":373,"../nav/nav-params":374,"../nav/view-controller":381,"@angular/core":160}],407:[function(require,module,exports){
+},{"../../animations/animation":340,"../../config/config":417,"../../transitions/transition":437,"../../util/util":452,"../nav/nav-controller":375,"../nav/nav-params":376,"../nav/view-controller":383,"@angular/core":162}],409:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -67705,7 +67775,7 @@ var Toggle = (function () {
 }());
 exports.Toggle = Toggle;
 
-},{"../../util/dom":442,"../../util/form":445,"../../util/ui-event-manager":449,"../../util/util":450,"../item/item":362,"@angular/common":14,"@angular/core":160}],408:[function(require,module,exports){
+},{"../../util/dom":444,"../../util/form":447,"../../util/ui-event-manager":451,"../../util/util":452,"../item/item":364,"@angular/common":16,"@angular/core":162}],410:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -67759,7 +67829,7 @@ var ToolbarItem = (function () {
 }());
 exports.ToolbarItem = ToolbarItem;
 
-},{"../button/button":346,"../navbar/navbar":382,"./toolbar":410,"@angular/core":160}],409:[function(require,module,exports){
+},{"../button/button":348,"../navbar/navbar":384,"./toolbar":412,"@angular/core":162}],411:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -67849,7 +67919,7 @@ var ToolbarTitle = (function (_super) {
 }(ion_1.Ion));
 exports.ToolbarTitle = ToolbarTitle;
 
-},{"../ion":357,"../navbar/navbar":382,"./toolbar":410,"@angular/core":160}],410:[function(require,module,exports){
+},{"../ion":359,"../navbar/navbar":384,"./toolbar":412,"@angular/core":162}],412:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -68090,7 +68160,7 @@ var Toolbar = (function (_super) {
 }(ToolbarBase));
 exports.Toolbar = Toolbar;
 
-},{"../../config/config":415,"../ion":357,"../nav/view-controller":381,"@angular/core":160}],411:[function(require,module,exports){
+},{"../../config/config":417,"../ion":359,"../nav/view-controller":383,"@angular/core":162}],413:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -68146,7 +68216,7 @@ var VirtualItem = (function () {
 }());
 exports.VirtualItem = VirtualItem;
 
-},{"@angular/core":160}],412:[function(require,module,exports){
+},{"@angular/core":162}],414:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -68751,7 +68821,7 @@ var SCROLL_END_TIMEOUT_MS = 140;
 var SCROLL_DIFFERENCE_MINIMUM = 20;
 var QUEUE_CHANGE_DETECTION = 0;
 
-},{"../../config/config":415,"../../platform/platform":425,"../../util/dom":442,"../../util/util":450,"../content/content":348,"../img/img":351,"../nav/view-controller":381,"./virtual-item":411,"./virtual-util":413,"@angular/core":160}],413:[function(require,module,exports){
+},{"../../config/config":417,"../../platform/platform":427,"../../util/dom":444,"../../util/util":452,"../content/content":350,"../img/img":353,"../nav/view-controller":383,"./virtual-item":413,"./virtual-util":415,"@angular/core":162}],415:[function(require,module,exports){
 "use strict";
 var dom_1 = require('../../util/dom');
 /**
@@ -69284,7 +69354,7 @@ var TEMPLATE_FOOTER = 2;
 var VIEWABLE_RENDERED_PADDING = 3;
 var REQUIRED_DOM_READS = 2;
 
-},{"../../util/dom":442}],414:[function(require,module,exports){
+},{"../../util/dom":444}],416:[function(require,module,exports){
 "use strict";
 var platform_browser_dynamic_1 = require('@angular/platform-browser-dynamic');
 var core_1 = require('@angular/core');
@@ -69503,7 +69573,7 @@ function addSelector(type, selector) {
 }
 exports.addSelector = addSelector;
 
-},{"../components/app/app":343,"../components/menu/menu-controller":367,"../components/tap-click/tap-click":405,"../platform/platform":425,"../translation/translate":436,"../util/click-block":439,"../util/dom":442,"../util/events":443,"../util/feature-detect":444,"../util/form":445,"../util/keyboard":447,"../util/scroll-view":448,"../util/util":450,"./config":415,"./directives":416,"@angular/core":160,"@angular/http":248,"@angular/platform-browser-dynamic":269}],415:[function(require,module,exports){
+},{"../components/app/app":345,"../components/menu/menu-controller":369,"../components/tap-click/tap-click":407,"../platform/platform":427,"../translation/translate":438,"../util/click-block":441,"../util/dom":444,"../util/events":445,"../util/feature-detect":446,"../util/form":447,"../util/keyboard":449,"../util/scroll-view":450,"../util/util":452,"./config":417,"./directives":418,"@angular/core":162,"@angular/http":250,"@angular/platform-browser-dynamic":271}],417:[function(require,module,exports){
 /**
 * @ngdoc service
 * @name Config
@@ -69835,7 +69905,7 @@ var Config = (function () {
 exports.Config = Config;
 var modeConfigs = {};
 
-},{"../platform/platform":425,"../util/util":450}],416:[function(require,module,exports){
+},{"../platform/platform":427,"../util/util":452}],418:[function(require,module,exports){
 "use strict";
 var common_1 = require('@angular/common');
 var menu_1 = require('../components/menu/menu');
@@ -70026,7 +70096,7 @@ exports.IONIC_DIRECTIVES = [
     show_hide_when_1.HideWhen
 ];
 
-},{"../components/backdrop/backdrop":344,"../components/badge/badge":345,"../components/button/button":346,"../components/checkbox/checkbox":347,"../components/content/content":348,"../components/datetime/datetime":349,"../components/icon/icon":350,"../components/img/img":351,"../components/infinite-scroll/infinite-scroll":353,"../components/infinite-scroll/infinite-scroll-content":352,"../components/input/input":355,"../components/item/item":362,"../components/item/item-reorder":359,"../components/item/item-sliding":361,"../components/label/label":363,"../components/list/list":364,"../components/menu/menu":371,"../components/menu/menu-close":366,"../components/menu/menu-toggle":369,"../components/nav/nav":379,"../components/nav/nav-pop":375,"../components/nav/nav-push":377,"../components/nav/nav-router":378,"../components/navbar/navbar":382,"../components/option/option":383,"../components/radio/radio-button":386,"../components/radio/radio-group":387,"../components/range/range":388,"../components/refresher/refresher":390,"../components/refresher/refresher-content":389,"../components/scroll/scroll":391,"../components/searchbar/searchbar":392,"../components/segment/segment":393,"../components/select/select":394,"../components/show-hide-when/show-hide-when":395,"../components/slides/slides":396,"../components/spinner/spinner":398,"../components/tabs/tab":401,"../components/tabs/tabs":402,"../components/toggle/toggle":407,"../components/toolbar/toolbar":410,"../components/toolbar/toolbar-item":408,"../components/toolbar/toolbar-title":409,"../components/virtual-scroll/virtual-item":411,"../components/virtual-scroll/virtual-scroll":412,"@angular/common":14}],417:[function(require,module,exports){
+},{"../components/backdrop/backdrop":346,"../components/badge/badge":347,"../components/button/button":348,"../components/checkbox/checkbox":349,"../components/content/content":350,"../components/datetime/datetime":351,"../components/icon/icon":352,"../components/img/img":353,"../components/infinite-scroll/infinite-scroll":355,"../components/infinite-scroll/infinite-scroll-content":354,"../components/input/input":357,"../components/item/item":364,"../components/item/item-reorder":361,"../components/item/item-sliding":363,"../components/label/label":365,"../components/list/list":366,"../components/menu/menu":373,"../components/menu/menu-close":368,"../components/menu/menu-toggle":371,"../components/nav/nav":381,"../components/nav/nav-pop":377,"../components/nav/nav-push":379,"../components/nav/nav-router":380,"../components/navbar/navbar":384,"../components/option/option":385,"../components/radio/radio-button":388,"../components/radio/radio-group":389,"../components/range/range":390,"../components/refresher/refresher":392,"../components/refresher/refresher-content":391,"../components/scroll/scroll":393,"../components/searchbar/searchbar":394,"../components/segment/segment":395,"../components/select/select":396,"../components/show-hide-when/show-hide-when":397,"../components/slides/slides":398,"../components/spinner/spinner":400,"../components/tabs/tab":403,"../components/tabs/tabs":404,"../components/toggle/toggle":409,"../components/toolbar/toolbar":412,"../components/toolbar/toolbar-item":410,"../components/toolbar/toolbar-title":411,"../components/virtual-scroll/virtual-item":413,"../components/virtual-scroll/virtual-scroll":414,"@angular/common":16}],419:[function(require,module,exports){
 "use strict";
 var config_1 = require('./config');
 // iOS Mode Settings
@@ -70116,7 +70186,7 @@ config_1.Config.setModeConfig('wp', {
     toastLeave: 'toast-wp-slide-out',
 });
 
-},{"./config":415}],418:[function(require,module,exports){
+},{"./config":417}],420:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var _reflect = Reflect;
@@ -70139,7 +70209,7 @@ function Page(config) {
 }
 exports.Page = Page;
 
-},{"@angular/core":160}],419:[function(require,module,exports){
+},{"@angular/core":162}],421:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -70187,7 +70257,7 @@ var DragGesture = (function (_super) {
 }(gesture_1.Gesture));
 exports.DragGesture = DragGesture;
 
-},{"../util":438,"./gesture":420}],420:[function(require,module,exports){
+},{"../util":440,"./gesture":422}],422:[function(require,module,exports){
 "use strict";
 var util_1 = require('../util');
 var hammer_1 = require('./hammer');
@@ -70255,7 +70325,7 @@ var Gesture = (function () {
 }());
 exports.Gesture = Gesture;
 
-},{"../util":438,"./hammer":421}],421:[function(require,module,exports){
+},{"../util":440,"./hammer":423}],423:[function(require,module,exports){
 "use strict";
 /* tslint:disable */
 var util_1 = require('../util/util');
@@ -72409,7 +72479,7 @@ util_1.assign(Hammer, {
 });
 win.Hammer = Hammer;
 
-},{"../util/util":450}],422:[function(require,module,exports){
+},{"../util/util":452}],424:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -72457,7 +72527,7 @@ var SlideEdgeGesture = (function (_super) {
 }(slide_gesture_1.SlideGesture));
 exports.SlideEdgeGesture = SlideEdgeGesture;
 
-},{"../util/dom":442,"../util/util":450,"./slide-gesture":423}],423:[function(require,module,exports){
+},{"../util/dom":444,"../util/util":452,"./slide-gesture":425}],425:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -72534,7 +72604,7 @@ var SlideGesture = (function (_super) {
 }(drag_gesture_1.DragGesture));
 exports.SlideGesture = SlideGesture;
 
-},{"../util":438,"./drag-gesture":419}],424:[function(require,module,exports){
+},{"../util":440,"./drag-gesture":421}],426:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -72569,7 +72639,7 @@ require('./transitions/transition-ios');
 require('./transitions/transition-md');
 require('./transitions/transition-wp');
 
-},{"./animations/animation":338,"./animations/builtins":339,"./components":340,"./config/bootstrap":414,"./config/config":415,"./config/directives":416,"./config/modes":417,"./decorators/page":418,"./gestures/drag-gesture":419,"./gestures/gesture":420,"./gestures/slide-edge-gesture":422,"./gestures/slide-gesture":423,"./platform/platform":425,"./platform/registry":426,"./platform/storage":427,"./transitions/page-transition":431,"./transitions/transition":435,"./transitions/transition-ios":432,"./transitions/transition-md":433,"./transitions/transition-wp":434,"./translation/translate":436,"./translation/translate_pipe":437,"./util/click-block":439,"./util/events":443,"./util/form":445,"./util/keyboard":447,"./util/util":450}],425:[function(require,module,exports){
+},{"./animations/animation":340,"./animations/builtins":341,"./components":342,"./config/bootstrap":416,"./config/config":417,"./config/directives":418,"./config/modes":419,"./decorators/page":420,"./gestures/drag-gesture":421,"./gestures/gesture":422,"./gestures/slide-edge-gesture":424,"./gestures/slide-gesture":425,"./platform/platform":427,"./platform/registry":428,"./platform/storage":429,"./transitions/page-transition":433,"./transitions/transition":437,"./transitions/transition-ios":434,"./transitions/transition-md":435,"./transitions/transition-wp":436,"./translation/translate":438,"./translation/translate_pipe":439,"./util/click-block":441,"./util/events":445,"./util/form":447,"./util/keyboard":449,"./util/util":452}],427:[function(require,module,exports){
 "use strict";
 var core_1 = require('@angular/core');
 var util_1 = require('../util/util');
@@ -73280,7 +73350,7 @@ var PlatformNode = (function () {
 var platformRegistry = {};
 var platformDefault = null;
 
-},{"../util/dom":442,"../util/util":450,"@angular/core":160}],426:[function(require,module,exports){
+},{"../util/dom":444,"../util/util":452,"@angular/core":162}],428:[function(require,module,exports){
 "use strict";
 var platform_1 = require('./platform');
 var dom_1 = require('../util/dom');
@@ -73469,7 +73539,7 @@ function isIOSDevice(p) {
     return p.testNavigatorPlatform('iphone|ipad|ipod');
 }
 
-},{"../util/dom":442,"./platform":425}],427:[function(require,module,exports){
+},{"../util/dom":444,"./platform":427}],429:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -73478,7 +73548,7 @@ __export(require('./storage/storage'));
 __export(require('./storage/local-storage'));
 __export(require('./storage/sql'));
 
-},{"./storage/local-storage":428,"./storage/sql":429,"./storage/storage":430}],428:[function(require,module,exports){
+},{"./storage/local-storage":430,"./storage/sql":431,"./storage/storage":432}],430:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -73589,7 +73659,7 @@ var LocalStorage = (function (_super) {
 }(storage_1.StorageEngine));
 exports.LocalStorage = LocalStorage;
 
-},{"./storage":430}],429:[function(require,module,exports){
+},{"./storage":432}],431:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -73738,7 +73808,7 @@ var SqlStorage = (function (_super) {
 }(storage_1.StorageEngine));
 exports.SqlStorage = SqlStorage;
 
-},{"../../util/util":450,"./storage":430}],430:[function(require,module,exports){
+},{"../../util/util":452,"./storage":432}],432:[function(require,module,exports){
 "use strict";
 /**
  * Storage is an easy way to store key/value pairs and other complicated
@@ -73819,7 +73889,7 @@ var StorageEngine = (function () {
 }());
 exports.StorageEngine = StorageEngine;
 
-},{}],431:[function(require,module,exports){
+},{}],433:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -73871,7 +73941,7 @@ function parsePxUnit(val) {
     return (val.indexOf('px') > 0) ? parseInt(val, 10) : 0;
 }
 
-},{"../animations/animation":338,"../components/content/content":348,"./transition":435}],432:[function(require,module,exports){
+},{"../animations/animation":340,"../components/content/content":350,"./transition":437}],434:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -74041,7 +74111,7 @@ var IOSTransition = (function (_super) {
 }(page_transition_1.PageTransition));
 page_transition_1.PageTransition.register('ios-transition', IOSTransition);
 
-},{"../animations/animation":338,"./page-transition":431}],433:[function(require,module,exports){
+},{"../animations/animation":340,"./page-transition":433}],435:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -74098,7 +74168,7 @@ var MDTransition = (function (_super) {
 }(page_transition_1.PageTransition));
 page_transition_1.PageTransition.register('md-transition', MDTransition);
 
-},{"../animations/animation":338,"./page-transition":431}],434:[function(require,module,exports){
+},{"../animations/animation":340,"./page-transition":433}],436:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -74153,7 +74223,7 @@ var WPTransition = (function (_super) {
 }(page_transition_1.PageTransition));
 page_transition_1.PageTransition.register('wp-transition', WPTransition);
 
-},{"../animations/animation":338,"./page-transition":431}],435:[function(require,module,exports){
+},{"../animations/animation":340,"./page-transition":433}],437:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -74200,7 +74270,7 @@ var Transition = (function (_super) {
 exports.Transition = Transition;
 var TransitionRegistry = {};
 
-},{"../animations/animation":338}],436:[function(require,module,exports){
+},{"../animations/animation":340}],438:[function(require,module,exports){
 "use strict";
 /**
  * @private
@@ -74265,7 +74335,7 @@ var Translate = (function () {
 }());
 exports.Translate = Translate;
 
-},{}],437:[function(require,module,exports){
+},{}],439:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -74311,7 +74381,7 @@ var TranslatePipe = (function () {
 }());
 exports.TranslatePipe = TranslatePipe;
 
-},{"./translate":436,"@angular/core":160}],438:[function(require,module,exports){
+},{"./translate":438,"@angular/core":162}],440:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -74321,7 +74391,7 @@ exports.dom = domUtil;
 __export(require('./util/util'));
 __export(require('./util/datetime-util'));
 
-},{"./util/datetime-util":440,"./util/dom":442,"./util/util":450}],439:[function(require,module,exports){
+},{"./util/datetime-util":442,"./util/dom":444,"./util/util":452}],441:[function(require,module,exports){
 "use strict";
 var dom_1 = require('./dom');
 var CSS_CLICK_BLOCK = 'click-block-active';
@@ -74374,7 +74444,7 @@ function hide() {
     }
 }
 
-},{"./dom":442}],440:[function(require,module,exports){
+},{"./dom":444}],442:[function(require,module,exports){
 "use strict";
 var util_1 = require('./util');
 function renderDateTime(template, value, locale) {
@@ -74800,7 +74870,7 @@ var MONTH_SHORT_NAMES = [
     'Dec',
 ];
 
-},{"./util":450}],441:[function(require,module,exports){
+},{"./util":452}],443:[function(require,module,exports){
 "use strict";
 var Debouncer = (function () {
     function Debouncer(wait) {
@@ -74827,7 +74897,7 @@ var Debouncer = (function () {
 }());
 exports.Debouncer = Debouncer;
 
-},{}],442:[function(require,module,exports){
+},{}],444:[function(require,module,exports){
 "use strict";
 // RequestAnimationFrame Polyfill (Android 4.3 and below)
 /*! @author Paul Irish */
@@ -75094,7 +75164,7 @@ function flushDimensionCache() {
 exports.flushDimensionCache = flushDimensionCache;
 var dimensionCache = {};
 
-},{}],443:[function(require,module,exports){
+},{}],445:[function(require,module,exports){
 "use strict";
 /**
  * @name Events
@@ -75203,7 +75273,7 @@ var Events = (function () {
 }());
 exports.Events = Events;
 
-},{}],444:[function(require,module,exports){
+},{}],446:[function(require,module,exports){
 "use strict";
 var FeatureDetect = (function () {
     function FeatureDetect() {
@@ -75244,7 +75314,7 @@ FeatureDetect.add('hairlines', function (window, document, body) {
     return canDo;
 });
 
-},{}],445:[function(require,module,exports){
+},{}],447:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -75330,7 +75400,7 @@ var Form = (function () {
 }());
 exports.Form = Form;
 
-},{"@angular/core":160}],446:[function(require,module,exports){
+},{"@angular/core":162}],448:[function(require,module,exports){
 "use strict";
 (function (Key) {
     Key[Key["ENTER"] = 13] = "ENTER";
@@ -75340,7 +75410,7 @@ exports.Form = Form;
 var Key = exports.Key;
 ;
 
-},{}],447:[function(require,module,exports){
+},{}],449:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -75525,7 +75595,7 @@ exports.Keyboard = Keyboard;
 var KEYBOARD_CLOSE_POLLING = 150;
 var KEYBOARD_POLLING_CHECKS_MAX = 100;
 
-},{"../config/config":415,"./dom":442,"./form":445,"./key":446,"@angular/core":160}],448:[function(require,module,exports){
+},{"../config/config":417,"./dom":444,"./form":447,"./key":448,"@angular/core":162}],450:[function(require,module,exports){
 "use strict";
 var dom_1 = require('../util/dom');
 var ScrollView = (function () {
@@ -75752,7 +75822,7 @@ var MIN_VELOCITY_CONTINUE_DECELERATION = 0.12;
 var DECELERATION_FRICTION = 0.97;
 var FRAME_MS = (1000 / 60);
 
-},{"../util/dom":442}],449:[function(require,module,exports){
+},{"../util/dom":444}],451:[function(require,module,exports){
 "use strict";
 /**
  * @private
@@ -75900,7 +75970,7 @@ function listenEvent(ele, eventName, zoneWrapped, option, callback) {
     }
 }
 
-},{}],450:[function(require,module,exports){
+},{}],452:[function(require,module,exports){
 "use strict";
 /**
  * Given a min and max, restrict the given number
@@ -76098,7 +76168,7 @@ function reorderArray(array, indexes) {
 }
 exports.reorderArray = reorderArray;
 
-},{}],451:[function(require,module,exports){
+},{}],453:[function(require,module,exports){
 "use strict";
 function __export(m) {
     for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
@@ -76315,7 +76385,7 @@ setTimeout(function () {
     }
 }, DEVICE_READY_TIMEOUT);
 
-},{"./ng1":452,"./plugins/3dtouch":453,"./plugins/actionsheet":454,"./plugins/admob":455,"./plugins/appavailability":456,"./plugins/apprate":457,"./plugins/appversion":458,"./plugins/background-geolocation":459,"./plugins/backgroundmode":460,"./plugins/badge":461,"./plugins/barcodescanner":462,"./plugins/base64togallery":463,"./plugins/batterystatus":464,"./plugins/ble":465,"./plugins/bluetoothserial":466,"./plugins/brightness":467,"./plugins/calendar":468,"./plugins/camera":469,"./plugins/card-io":470,"./plugins/clipboard":471,"./plugins/contacts":472,"./plugins/datepicker":473,"./plugins/dbmeter":474,"./plugins/deeplinks":475,"./plugins/device":476,"./plugins/deviceaccounts":477,"./plugins/devicemotion":478,"./plugins/deviceorientation":479,"./plugins/diagnostic":480,"./plugins/dialogs":481,"./plugins/emailcomposer":482,"./plugins/facebook":483,"./plugins/file":484,"./plugins/filetransfer":485,"./plugins/flashlight":486,"./plugins/geolocation":487,"./plugins/globalization":488,"./plugins/google-plus":489,"./plugins/googleanalytics":490,"./plugins/googlemaps":491,"./plugins/hotspot":492,"./plugins/httpd":493,"./plugins/imagepicker":494,"./plugins/inappbrowser":495,"./plugins/insomnia":496,"./plugins/keyboard":497,"./plugins/launchnavigator":498,"./plugins/localnotifications":499,"./plugins/media":500,"./plugins/network":501,"./plugins/plugin":502,"./plugins/printer":503,"./plugins/push":504,"./plugins/safari-view-controller":505,"./plugins/screenshot":506,"./plugins/sms":507,"./plugins/socialsharing":508,"./plugins/spinnerdialog":509,"./plugins/splashscreen":510,"./plugins/sqlite":511,"./plugins/statusbar":512,"./plugins/toast":513,"./plugins/touchid":514,"./plugins/vibration":515,"./plugins/webintent":516}],452:[function(require,module,exports){
+},{"./ng1":454,"./plugins/3dtouch":455,"./plugins/actionsheet":456,"./plugins/admob":457,"./plugins/appavailability":458,"./plugins/apprate":459,"./plugins/appversion":460,"./plugins/background-geolocation":461,"./plugins/backgroundmode":462,"./plugins/badge":463,"./plugins/barcodescanner":464,"./plugins/base64togallery":465,"./plugins/batterystatus":466,"./plugins/ble":467,"./plugins/bluetoothserial":468,"./plugins/brightness":469,"./plugins/calendar":470,"./plugins/camera":471,"./plugins/card-io":472,"./plugins/clipboard":473,"./plugins/contacts":474,"./plugins/datepicker":475,"./plugins/dbmeter":476,"./plugins/deeplinks":477,"./plugins/device":478,"./plugins/deviceaccounts":479,"./plugins/devicemotion":480,"./plugins/deviceorientation":481,"./plugins/diagnostic":482,"./plugins/dialogs":483,"./plugins/emailcomposer":484,"./plugins/facebook":485,"./plugins/file":486,"./plugins/filetransfer":487,"./plugins/flashlight":488,"./plugins/geolocation":489,"./plugins/globalization":490,"./plugins/google-plus":491,"./plugins/googleanalytics":492,"./plugins/googlemaps":493,"./plugins/hotspot":494,"./plugins/httpd":495,"./plugins/imagepicker":496,"./plugins/inappbrowser":497,"./plugins/insomnia":498,"./plugins/keyboard":499,"./plugins/launchnavigator":500,"./plugins/localnotifications":501,"./plugins/media":502,"./plugins/network":503,"./plugins/plugin":504,"./plugins/printer":505,"./plugins/push":506,"./plugins/safari-view-controller":507,"./plugins/screenshot":508,"./plugins/sms":509,"./plugins/socialsharing":510,"./plugins/spinnerdialog":511,"./plugins/splashscreen":512,"./plugins/sqlite":513,"./plugins/statusbar":514,"./plugins/toast":515,"./plugins/touchid":516,"./plugins/vibration":517,"./plugins/webintent":518}],454:[function(require,module,exports){
 "use strict";
 /**
  * Initialize the ionic.native Angular module if we're running in ng1.
@@ -76343,7 +76413,7 @@ function initAngular1(plugins) {
 }
 exports.initAngular1 = initAngular1;
 
-},{}],453:[function(require,module,exports){
+},{}],455:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -76478,7 +76548,7 @@ var ThreeDeeTouch = (function () {
 }());
 exports.ThreeDeeTouch = ThreeDeeTouch;
 
-},{"./plugin":502,"rxjs/Observable":518}],454:[function(require,module,exports){
+},{"./plugin":504,"rxjs/Observable":520}],456:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -76554,7 +76624,7 @@ var ActionSheet = (function () {
 }());
 exports.ActionSheet = ActionSheet;
 
-},{"./plugin":502}],455:[function(require,module,exports){
+},{"./plugin":504}],457:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -76760,7 +76830,7 @@ var AdMob = (function () {
 }());
 exports.AdMob = AdMob;
 
-},{"./plugin":502}],456:[function(require,module,exports){
+},{"./plugin":504}],458:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -76820,7 +76890,7 @@ var AppAvailability = (function () {
 }());
 exports.AppAvailability = AppAvailability;
 
-},{"./plugin":502}],457:[function(require,module,exports){
+},{"./plugin":504}],459:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -76901,7 +76971,7 @@ var AppRate = (function () {
 }());
 exports.AppRate = AppRate;
 
-},{"./plugin":502}],458:[function(require,module,exports){
+},{"./plugin":504}],460:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -76975,7 +77045,7 @@ var AppVersion = (function () {
 }());
 exports.AppVersion = AppVersion;
 
-},{"./plugin":502}],459:[function(require,module,exports){
+},{"./plugin":504}],461:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -77182,7 +77252,7 @@ var BackgroundGeolocation = (function () {
 }());
 exports.BackgroundGeolocation = BackgroundGeolocation;
 
-},{"./plugin":502}],460:[function(require,module,exports){
+},{"./plugin":504}],462:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -77281,7 +77351,7 @@ var BackgroundMode = (function () {
 }());
 exports.BackgroundMode = BackgroundMode;
 
-},{"./plugin":502}],461:[function(require,module,exports){
+},{"./plugin":504}],463:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -77379,7 +77449,7 @@ var Badge = (function () {
 }());
 exports.Badge = Badge;
 
-},{"./plugin":502}],462:[function(require,module,exports){
+},{"./plugin":504}],464:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -77448,7 +77518,7 @@ var BarcodeScanner = (function () {
 }());
 exports.BarcodeScanner = BarcodeScanner;
 
-},{"./plugin":502}],463:[function(require,module,exports){
+},{"./plugin":504}],465:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -77497,7 +77567,7 @@ var Base64ToGallery = (function () {
 }());
 exports.Base64ToGallery = Base64ToGallery;
 
-},{"./plugin":502}],464:[function(require,module,exports){
+},{"./plugin":504}],466:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -77576,7 +77646,7 @@ var BatteryStatus = (function () {
 }());
 exports.BatteryStatus = BatteryStatus;
 
-},{"./plugin":502}],465:[function(require,module,exports){
+},{"./plugin":504}],467:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -78000,7 +78070,7 @@ var BLE = (function () {
 }());
 exports.BLE = BLE;
 
-},{"./plugin":502}],466:[function(require,module,exports){
+},{"./plugin":504}],468:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -78254,7 +78324,7 @@ var BluetoothSerial = (function () {
 }());
 exports.BluetoothSerial = BluetoothSerial;
 
-},{"./plugin":502}],467:[function(require,module,exports){
+},{"./plugin":504}],469:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -78321,7 +78391,7 @@ var Brightness = (function () {
 }());
 exports.Brightness = Brightness;
 
-},{"./plugin":502}],468:[function(require,module,exports){
+},{"./plugin":504}],470:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -78683,7 +78753,7 @@ var Calendar = (function () {
 }());
 exports.Calendar = Calendar;
 
-},{"./plugin":502}],469:[function(require,module,exports){
+},{"./plugin":504}],471:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -78811,7 +78881,7 @@ var Camera = (function () {
 }());
 exports.Camera = Camera;
 
-},{"./plugin":502}],470:[function(require,module,exports){
+},{"./plugin":504}],472:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -78883,7 +78953,7 @@ var CardIO = (function () {
 }());
 exports.CardIO = CardIO;
 
-},{"./plugin":502}],471:[function(require,module,exports){
+},{"./plugin":504}],473:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -78951,7 +79021,7 @@ var Clipboard = (function () {
 }());
 exports.Clipboard = Clipboard;
 
-},{"./plugin":502}],472:[function(require,module,exports){
+},{"./plugin":504}],474:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79402,7 +79472,7 @@ var Contacts = (function () {
 }());
 exports.Contacts = Contacts;
 
-},{"./plugin":502}],473:[function(require,module,exports){
+},{"./plugin":504}],475:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79459,7 +79529,7 @@ var DatePicker = (function () {
 }());
 exports.DatePicker = DatePicker;
 
-},{"./plugin":502}],474:[function(require,module,exports){
+},{"./plugin":504}],476:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79547,7 +79617,7 @@ var DBMeter = (function () {
 }());
 exports.DBMeter = DBMeter;
 
-},{"./plugin":502}],475:[function(require,module,exports){
+},{"./plugin":504}],477:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79622,7 +79692,7 @@ var Deeplinks = (function () {
 }());
 exports.Deeplinks = Deeplinks;
 
-},{"./plugin":502}],476:[function(require,module,exports){
+},{"./plugin":504}],478:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79672,7 +79742,7 @@ var Device = (function () {
 }());
 exports.Device = Device;
 
-},{"./plugin":502}],477:[function(require,module,exports){
+},{"./plugin":504}],479:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79724,7 +79794,7 @@ var DeviceAccounts = (function () {
 }());
 exports.DeviceAccounts = DeviceAccounts;
 
-},{"./plugin":502}],478:[function(require,module,exports){
+},{"./plugin":504}],480:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79810,7 +79880,7 @@ var DeviceMotion = (function () {
 }());
 exports.DeviceMotion = DeviceMotion;
 
-},{"./plugin":502}],479:[function(require,module,exports){
+},{"./plugin":504}],481:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -79882,7 +79952,7 @@ var DeviceOrientation = (function () {
 }());
 exports.DeviceOrientation = DeviceOrientation;
 
-},{"./plugin":502}],480:[function(require,module,exports){
+},{"./plugin":504}],482:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -80007,7 +80077,7 @@ var Diagnostic = (function () {
 }());
 exports.Diagnostic = Diagnostic;
 
-},{"./plugin":502}],481:[function(require,module,exports){
+},{"./plugin":504}],483:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -80112,7 +80182,7 @@ var Dialogs = (function () {
 }());
 exports.Dialogs = Dialogs;
 
-},{"./plugin":502}],482:[function(require,module,exports){
+},{"./plugin":504}],484:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -80219,7 +80289,7 @@ var EmailComposer = (function () {
 }());
 exports.EmailComposer = EmailComposer;
 
-},{"./plugin":502}],483:[function(require,module,exports){
+},{"./plugin":504}],485:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -80484,7 +80554,7 @@ var Facebook = (function () {
 }());
 exports.Facebook = Facebook;
 
-},{"./plugin":502}],484:[function(require,module,exports){
+},{"./plugin":504}],486:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -81061,7 +81131,7 @@ var File = (function () {
 }());
 exports.File = File;
 
-},{"./plugin":502}],485:[function(require,module,exports){
+},{"./plugin":504}],487:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -81159,7 +81229,7 @@ var Transfer = (function () {
 }());
 exports.Transfer = Transfer;
 
-},{"./plugin":502}],486:[function(require,module,exports){
+},{"./plugin":504}],488:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -81238,7 +81308,7 @@ var Flashlight = (function () {
 }());
 exports.Flashlight = Flashlight;
 
-},{"./plugin":502}],487:[function(require,module,exports){
+},{"./plugin":504}],489:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -81323,7 +81393,7 @@ var Geolocation = (function () {
 }());
 exports.Geolocation = Geolocation;
 
-},{"./plugin":502,"rxjs/Observable":518}],488:[function(require,module,exports){
+},{"./plugin":504,"rxjs/Observable":520}],490:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -81474,7 +81544,7 @@ var Globalization = (function () {
 }());
 exports.Globalization = Globalization;
 
-},{"./plugin":502}],489:[function(require,module,exports){
+},{"./plugin":504}],491:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -81537,7 +81607,7 @@ var GooglePlus = (function () {
 }());
 exports.GooglePlus = GooglePlus;
 
-},{"./plugin":502}],490:[function(require,module,exports){
+},{"./plugin":504}],492:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -81684,7 +81754,7 @@ var GoogleAnalytics = (function () {
 }());
 exports.GoogleAnalytics = GoogleAnalytics;
 
-},{"./plugin":502}],491:[function(require,module,exports){
+},{"./plugin":504}],493:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -82670,7 +82740,7 @@ var GoogleMapsLatLng = (function () {
 }());
 exports.GoogleMapsLatLng = GoogleMapsLatLng;
 
-},{"./plugin":502,"rxjs/Observable":518}],492:[function(require,module,exports){
+},{"./plugin":504,"rxjs/Observable":520}],494:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -82928,7 +82998,7 @@ var Hotspot = (function () {
 }());
 exports.Hotspot = Hotspot;
 
-},{"./plugin":502}],493:[function(require,module,exports){
+},{"./plugin":504}],495:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -82986,7 +83056,7 @@ var Httpd = (function () {
 }());
 exports.Httpd = Httpd;
 
-},{"./plugin":502}],494:[function(require,module,exports){
+},{"./plugin":504}],496:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83043,7 +83113,7 @@ var ImagePicker = (function () {
 }());
 exports.ImagePicker = ImagePicker;
 
-},{"./plugin":502}],495:[function(require,module,exports){
+},{"./plugin":504}],497:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83079,7 +83149,7 @@ var InAppBrowser = (function () {
 }());
 exports.InAppBrowser = InAppBrowser;
 
-},{"./plugin":502}],496:[function(require,module,exports){
+},{"./plugin":504}],498:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83142,7 +83212,7 @@ var Insomnia = (function () {
 }());
 exports.Insomnia = Insomnia;
 
-},{"./plugin":502}],497:[function(require,module,exports){
+},{"./plugin":504}],499:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83236,7 +83306,7 @@ var Keyboard = (function () {
 }());
 exports.Keyboard = Keyboard;
 
-},{"./plugin":502}],498:[function(require,module,exports){
+},{"./plugin":504}],500:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83294,7 +83364,7 @@ var LaunchNavigator = (function () {
 }());
 exports.LaunchNavigator = LaunchNavigator;
 
-},{"./plugin":502}],499:[function(require,module,exports){
+},{"./plugin":504}],501:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83518,7 +83588,7 @@ var LocalNotifications = (function () {
 }());
 exports.LocalNotifications = LocalNotifications;
 
-},{"./plugin":502}],500:[function(require,module,exports){
+},{"./plugin":504}],502:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83742,7 +83812,7 @@ var MediaError = (function () {
 }());
 exports.MediaError = MediaError;
 
-},{"./plugin":502,"rxjs/Observable":518}],501:[function(require,module,exports){
+},{"./plugin":504,"rxjs/Observable":520}],503:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -83885,7 +83955,7 @@ var Connection = (function () {
 }());
 exports.Connection = Connection;
 
-},{"./plugin":502}],502:[function(require,module,exports){
+},{"./plugin":504}],504:[function(require,module,exports){
 "use strict";
 var util_1 = require('../util');
 var Observable_1 = require('rxjs/Observable');
@@ -84217,7 +84287,7 @@ function InstanceProperty(target, key, descriptor) {
 }
 exports.InstanceProperty = InstanceProperty;
 
-},{"../util":517,"rxjs/Observable":518}],503:[function(require,module,exports){
+},{"../util":519,"rxjs/Observable":520}],505:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84257,7 +84327,7 @@ var Printer = (function () {
 }());
 exports.Printer = Printer;
 
-},{"./plugin":502}],504:[function(require,module,exports){
+},{"./plugin":504}],506:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84331,7 +84401,7 @@ var Push = (function () {
 }());
 exports.Push = Push;
 
-},{"./plugin":502}],505:[function(require,module,exports){
+},{"./plugin":504}],507:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84441,7 +84511,7 @@ var SafariViewController = (function () {
 }());
 exports.SafariViewController = SafariViewController;
 
-},{"./plugin":502}],506:[function(require,module,exports){
+},{"./plugin":504}],508:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84503,7 +84573,7 @@ var Screenshot = (function () {
 }());
 exports.Screenshot = Screenshot;
 
-},{"./plugin":502}],507:[function(require,module,exports){
+},{"./plugin":504}],509:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84555,7 +84625,7 @@ var SMS = (function () {
 }());
 exports.SMS = SMS;
 
-},{"./plugin":502}],508:[function(require,module,exports){
+},{"./plugin":504}],510:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84724,7 +84794,7 @@ var SocialSharing = (function () {
 }());
 exports.SocialSharing = SocialSharing;
 
-},{"./plugin":502}],509:[function(require,module,exports){
+},{"./plugin":504}],511:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84784,7 +84854,7 @@ var SpinnerDialog = (function () {
 }());
 exports.SpinnerDialog = SpinnerDialog;
 
-},{"./plugin":502}],510:[function(require,module,exports){
+},{"./plugin":504}],512:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -84839,7 +84909,7 @@ var Splashscreen = (function () {
 }());
 exports.Splashscreen = Splashscreen;
 
-},{"./plugin":502}],511:[function(require,module,exports){
+},{"./plugin":504}],513:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -85039,7 +85109,7 @@ var SQLite = (function () {
 }());
 exports.SQLite = SQLite;
 
-},{"./plugin":502}],512:[function(require,module,exports){
+},{"./plugin":504}],514:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -85195,7 +85265,7 @@ var StatusBar = (function () {
 }());
 exports.StatusBar = StatusBar;
 
-},{"./plugin":502}],513:[function(require,module,exports){
+},{"./plugin":504}],515:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -85346,7 +85416,7 @@ var Toast = (function () {
 }());
 exports.Toast = Toast;
 
-},{"./plugin":502}],514:[function(require,module,exports){
+},{"./plugin":504}],516:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -85449,7 +85519,7 @@ var TouchID = (function () {
 }());
 exports.TouchID = TouchID;
 
-},{"./plugin":502}],515:[function(require,module,exports){
+},{"./plugin":504}],517:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -85506,7 +85576,7 @@ var Vibration = (function () {
 }());
 exports.Vibration = Vibration;
 
-},{"./plugin":502}],516:[function(require,module,exports){
+},{"./plugin":504}],518:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -85582,7 +85652,7 @@ var WebIntent = (function () {
 }());
 exports.WebIntent = WebIntent;
 
-},{"./plugin":502}],517:[function(require,module,exports){
+},{"./plugin":504}],519:[function(require,module,exports){
 "use strict";
 function get(obj, path) {
     for (var i = 0, path = path.split('.'), len = path.length; i < len; i++) {
@@ -85596,7 +85666,7 @@ function get(obj, path) {
 exports.get = get;
 ;
 
-},{}],518:[function(require,module,exports){
+},{}],520:[function(require,module,exports){
 "use strict";
 var root_1 = require('./util/root');
 var observable_1 = require('./symbol/observable');
@@ -85732,7 +85802,7 @@ var Observable = (function () {
 }());
 exports.Observable = Observable;
 
-},{"./symbol/observable":526,"./util/root":534,"./util/toSubscriber":536}],519:[function(require,module,exports){
+},{"./symbol/observable":528,"./util/root":536,"./util/toSubscriber":538}],521:[function(require,module,exports){
 "use strict";
 exports.empty = {
     isUnsubscribed: true,
@@ -85741,7 +85811,7 @@ exports.empty = {
     complete: function () { }
 };
 
-},{}],520:[function(require,module,exports){
+},{}],522:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -85948,7 +86018,7 @@ var SubjectObservable = (function (_super) {
     return SubjectObservable;
 }(Observable_1.Observable));
 
-},{"./Observable":518,"./SubjectSubscription":521,"./Subscriber":522,"./Subscription":523,"./symbol/rxSubscriber":527,"./util/ObjectUnsubscribedError":528,"./util/throwError":535}],521:[function(require,module,exports){
+},{"./Observable":520,"./SubjectSubscription":523,"./Subscriber":524,"./Subscription":525,"./symbol/rxSubscriber":529,"./util/ObjectUnsubscribedError":530,"./util/throwError":537}],523:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -85989,7 +86059,7 @@ var SubjectSubscription = (function (_super) {
 }(Subscription_1.Subscription));
 exports.SubjectSubscription = SubjectSubscription;
 
-},{"./Subscription":523}],522:[function(require,module,exports){
+},{"./Subscription":525}],524:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -86241,7 +86311,7 @@ var SafeSubscriber = (function (_super) {
     return SafeSubscriber;
 }(Subscriber));
 
-},{"./Observer":519,"./Subscription":523,"./symbol/rxSubscriber":527,"./util/isFunction":532}],523:[function(require,module,exports){
+},{"./Observer":521,"./Subscription":525,"./symbol/rxSubscriber":529,"./util/isFunction":534}],525:[function(require,module,exports){
 "use strict";
 var isArray_1 = require('./util/isArray');
 var isObject_1 = require('./util/isObject');
@@ -86392,7 +86462,7 @@ var Subscription = (function () {
 }());
 exports.Subscription = Subscription;
 
-},{"./util/UnsubscriptionError":529,"./util/errorObject":530,"./util/isArray":531,"./util/isFunction":532,"./util/isObject":533,"./util/tryCatch":537}],524:[function(require,module,exports){
+},{"./util/UnsubscriptionError":531,"./util/errorObject":532,"./util/isArray":533,"./util/isFunction":534,"./util/isObject":535,"./util/tryCatch":539}],526:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -86498,7 +86568,7 @@ function dispatchError(arg) {
     }
 }
 
-},{"../Observable":518,"../util/root":534}],525:[function(require,module,exports){
+},{"../Observable":520,"../util/root":536}],527:[function(require,module,exports){
 "use strict";
 var root_1 = require('../util/root');
 /**
@@ -86527,7 +86597,7 @@ function toPromise(PromiseCtor) {
 }
 exports.toPromise = toPromise;
 
-},{"../util/root":534}],526:[function(require,module,exports){
+},{"../util/root":536}],528:[function(require,module,exports){
 "use strict";
 var root_1 = require('../util/root');
 var Symbol = root_1.root.Symbol;
@@ -86549,14 +86619,14 @@ else {
     exports.$$observable = '@@observable';
 }
 
-},{"../util/root":534}],527:[function(require,module,exports){
+},{"../util/root":536}],529:[function(require,module,exports){
 "use strict";
 var root_1 = require('../util/root');
 var Symbol = root_1.root.Symbol;
 exports.$$rxSubscriber = (typeof Symbol === 'function' && typeof Symbol.for === 'function') ?
     Symbol.for('rxSubscriber') : '@@rxSubscriber';
 
-},{"../util/root":534}],528:[function(require,module,exports){
+},{"../util/root":536}],530:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -86582,7 +86652,7 @@ var ObjectUnsubscribedError = (function (_super) {
 }(Error));
 exports.ObjectUnsubscribedError = ObjectUnsubscribedError;
 
-},{}],529:[function(require,module,exports){
+},{}],531:[function(require,module,exports){
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -86605,30 +86675,30 @@ var UnsubscriptionError = (function (_super) {
 }(Error));
 exports.UnsubscriptionError = UnsubscriptionError;
 
-},{}],530:[function(require,module,exports){
+},{}],532:[function(require,module,exports){
 "use strict";
 // typeof any so that it we don't have to cast when comparing a result to the error object
 exports.errorObject = { e: {} };
 
-},{}],531:[function(require,module,exports){
+},{}],533:[function(require,module,exports){
 "use strict";
 exports.isArray = Array.isArray || (function (x) { return x && typeof x.length === 'number'; });
 
-},{}],532:[function(require,module,exports){
+},{}],534:[function(require,module,exports){
 "use strict";
 function isFunction(x) {
     return typeof x === 'function';
 }
 exports.isFunction = isFunction;
 
-},{}],533:[function(require,module,exports){
+},{}],535:[function(require,module,exports){
 "use strict";
 function isObject(x) {
     return x != null && typeof x === 'object';
 }
 exports.isObject = isObject;
 
-},{}],534:[function(require,module,exports){
+},{}],536:[function(require,module,exports){
 (function (global){
 "use strict";
 var objectTypes = {
@@ -86650,12 +86720,12 @@ if (freeGlobal && (freeGlobal.global === freeGlobal || freeGlobal.window === fre
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],535:[function(require,module,exports){
+},{}],537:[function(require,module,exports){
 "use strict";
 function throwError(e) { throw e; }
 exports.throwError = throwError;
 
-},{}],536:[function(require,module,exports){
+},{}],538:[function(require,module,exports){
 "use strict";
 var Subscriber_1 = require('../Subscriber');
 var rxSubscriber_1 = require('../symbol/rxSubscriber');
@@ -86672,7 +86742,7 @@ function toSubscriber(nextOrObserver, error, complete) {
 }
 exports.toSubscriber = toSubscriber;
 
-},{"../Subscriber":522,"../symbol/rxSubscriber":527}],537:[function(require,module,exports){
+},{"../Subscriber":524,"../symbol/rxSubscriber":529}],539:[function(require,module,exports){
 "use strict";
 var errorObject_1 = require('./errorObject');
 var tryCatchTarget;
@@ -86692,9 +86762,5206 @@ function tryCatch(fn) {
 exports.tryCatch = tryCatch;
 ;
 
-},{"./errorObject":530}],538:[function(require,module,exports){
+},{"./errorObject":532}],540:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Queue_1 = require('./Queue');
+var BSTree = (function () {
+    /**
+     * Creates an empty binary search tree.
+     * @class <p>A binary search tree is a binary tree in which each
+     * internal node stores an element such that the elements stored in the
+     * left subtree are less than it and the elements
+     * stored in the right subtree are greater.</p>
+     * <p>Formally, a binary search tree is a node-based binary tree data structure which
+     * has the following properties:</p>
+     * <ul>
+     * <li>The left subtree of a node contains only nodes with elements less
+     * than the node's element</li>
+     * <li>The right subtree of a node contains only nodes with elements greater
+     * than the node's element</li>
+     * <li>Both the left and right subtrees must also be binary search trees.</li>
+     * </ul>
+     * <p>If the inserted elements are custom objects a compare function must
+     * be provided at construction time, otherwise the <=, === and >= operators are
+     * used to compare elements. Example:</p>
+     * <pre>
+     * function compare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return -1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return 1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     * @constructor
+     * @param {function(Object,Object):number=} compareFunction optional
+     * function used to compare two elements. Must return a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal to,
+     * or greater than the second.
+     */
+    function BSTree(compareFunction) {
+        this.root = null;
+        this.compare = compareFunction || util.defaultCompare;
+        this.nElements = 0;
+    }
+    /**
+     * Adds the specified element to this tree if it is not already present.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if this tree did not already contain the specified element.
+     */
+    BSTree.prototype.add = function (element) {
+        if (util.isUndefined(element)) {
+            return false;
+        }
+        if (this.insertNode(this.createNode(element)) !== null) {
+            this.nElements++;
+            return true;
+        }
+        return false;
+    };
+    /**
+     * Removes all of the elements from this tree.
+     */
+    BSTree.prototype.clear = function () {
+        this.root = null;
+        this.nElements = 0;
+    };
+    /**
+     * Returns true if this tree contains no elements.
+     * @return {boolean} true if this tree contains no elements.
+     */
+    BSTree.prototype.isEmpty = function () {
+        return this.nElements === 0;
+    };
+    /**
+     * Returns the number of elements in this tree.
+     * @return {number} the number of elements in this tree.
+     */
+    BSTree.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this tree contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this tree contains the specified element,
+     * false otherwise.
+     */
+    BSTree.prototype.contains = function (element) {
+        if (util.isUndefined(element)) {
+            return false;
+        }
+        return this.searchNode(this.root, element) !== null;
+    };
+    /**
+     * Removes the specified element from this tree if it is present.
+     * @return {boolean} true if this tree contained the specified element.
+     */
+    BSTree.prototype.remove = function (element) {
+        var node = this.searchNode(this.root, element);
+        if (node === null) {
+            return false;
+        }
+        this.removeNode(node);
+        this.nElements--;
+        return true;
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in
+     * in-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.inorderTraversal = function (callback) {
+        this.inorderTraversalAux(this.root, callback, {
+            stop: false
+        });
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in pre-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.preorderTraversal = function (callback) {
+        this.preorderTraversalAux(this.root, callback, {
+            stop: false
+        });
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in post-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.postorderTraversal = function (callback) {
+        this.postorderTraversalAux(this.root, callback, {
+            stop: false
+        });
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in
+     * level-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.levelTraversal = function (callback) {
+        this.levelTraversalAux(this.root, callback);
+    };
+    /**
+     * Returns the minimum element of this tree.
+     * @return {*} the minimum element of this tree or undefined if this tree is
+     * is empty.
+     */
+    BSTree.prototype.minimum = function () {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        return this.minimumAux(this.root).element;
+    };
+    /**
+     * Returns the maximum element of this tree.
+     * @return {*} the maximum element of this tree or undefined if this tree is
+     * is empty.
+     */
+    BSTree.prototype.maximum = function () {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        return this.maximumAux(this.root).element;
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in inorder.
+     * Equivalent to inorderTraversal.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    BSTree.prototype.forEach = function (callback) {
+        this.inorderTraversal(callback);
+    };
+    /**
+     * Returns an array containing all of the elements in this tree in in-order.
+     * @return {Array} an array containing all of the elements in this tree in in-order.
+     */
+    BSTree.prototype.toArray = function () {
+        var array = [];
+        this.inorderTraversal(function (element) {
+            array.push(element);
+            return true;
+        });
+        return array;
+    };
+    /**
+     * Returns the height of this tree.
+     * @return {number} the height of this tree or -1 if is empty.
+     */
+    BSTree.prototype.height = function () {
+        return this.heightAux(this.root);
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.searchNode = function (node, element) {
+        var cmp = null;
+        while (node !== null && cmp !== 0) {
+            cmp = this.compare(element, node.element);
+            if (cmp < 0) {
+                node = node.leftCh;
+            }
+            else if (cmp > 0) {
+                node = node.rightCh;
+            }
+        }
+        return node;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.transplant = function (n1, n2) {
+        if (n1.parent === null) {
+            this.root = n2;
+        }
+        else if (n1 === n1.parent.leftCh) {
+            n1.parent.leftCh = n2;
+        }
+        else {
+            n1.parent.rightCh = n2;
+        }
+        if (n2 !== null) {
+            n2.parent = n1.parent;
+        }
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.removeNode = function (node) {
+        if (node.leftCh === null) {
+            this.transplant(node, node.rightCh);
+        }
+        else if (node.rightCh === null) {
+            this.transplant(node, node.leftCh);
+        }
+        else {
+            var y = this.minimumAux(node.rightCh);
+            if (y.parent !== node) {
+                this.transplant(y, y.rightCh);
+                y.rightCh = node.rightCh;
+                y.rightCh.parent = y;
+            }
+            this.transplant(node, y);
+            y.leftCh = node.leftCh;
+            y.leftCh.parent = y;
+        }
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.inorderTraversalAux = function (node, callback, signal) {
+        if (node === null || signal.stop) {
+            return;
+        }
+        this.inorderTraversalAux(node.leftCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        signal.stop = callback(node.element) === false;
+        if (signal.stop) {
+            return;
+        }
+        this.inorderTraversalAux(node.rightCh, callback, signal);
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.levelTraversalAux = function (node, callback) {
+        var queue = new Queue_1.default();
+        if (node !== null) {
+            queue.enqueue(node);
+        }
+        while (!queue.isEmpty()) {
+            node = queue.dequeue();
+            if (callback(node.element) === false) {
+                return;
+            }
+            if (node.leftCh !== null) {
+                queue.enqueue(node.leftCh);
+            }
+            if (node.rightCh !== null) {
+                queue.enqueue(node.rightCh);
+            }
+        }
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.preorderTraversalAux = function (node, callback, signal) {
+        if (node === null || signal.stop) {
+            return;
+        }
+        signal.stop = callback(node.element) === false;
+        if (signal.stop) {
+            return;
+        }
+        this.preorderTraversalAux(node.leftCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        this.preorderTraversalAux(node.rightCh, callback, signal);
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.postorderTraversalAux = function (node, callback, signal) {
+        if (node === null || signal.stop) {
+            return;
+        }
+        this.postorderTraversalAux(node.leftCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        this.postorderTraversalAux(node.rightCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        signal.stop = callback(node.element) === false;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.minimumAux = function (node) {
+        while (node.leftCh !== null) {
+            node = node.leftCh;
+        }
+        return node;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.maximumAux = function (node) {
+        while (node.rightCh !== null) {
+            node = node.rightCh;
+        }
+        return node;
+    };
+    /**
+      * @private
+      */
+    BSTree.prototype.heightAux = function (node) {
+        if (node === null) {
+            return -1;
+        }
+        return Math.max(this.heightAux(node.leftCh), this.heightAux(node.rightCh)) + 1;
+    };
+    /*
+    * @private
+    */
+    BSTree.prototype.insertNode = function (node) {
+        var parent = null;
+        var position = this.root;
+        var cmp = null;
+        while (position !== null) {
+            cmp = this.compare(node.element, position.element);
+            if (cmp === 0) {
+                return null;
+            }
+            else if (cmp < 0) {
+                parent = position;
+                position = position.leftCh;
+            }
+            else {
+                parent = position;
+                position = position.rightCh;
+            }
+        }
+        node.parent = parent;
+        if (parent === null) {
+            // tree is empty
+            this.root = node;
+        }
+        else if (this.compare(node.element, parent.element) < 0) {
+            parent.leftCh = node;
+        }
+        else {
+            parent.rightCh = node;
+        }
+        return node;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.createNode = function (element) {
+        return {
+            element: element,
+            leftCh: null,
+            rightCh: null,
+            parent: null
+        };
+    };
+    return BSTree;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = BSTree;
 
-},{}]},{},[1,538])
+},{"./Queue":548,"./util":553}],541:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Dictionary_1 = require('./Dictionary');
+var Set_1 = require('./Set');
+var Bag = (function () {
+    /**
+     * Creates an empty bag.
+     * @class <p>A bag is a special kind of set in which members are
+     * allowed to appear more than once.</p>
+     * <p>If the inserted elements are custom objects a function
+     * which converts elements to unique strings must be provided. Example:</p>
+     *
+     * <pre>
+     * function petToString(pet) {
+     *  return pet.name;
+     * }
+     * </pre>
+     *
+     * @constructor
+     * @param {function(Object):string=} toStrFunction optional function used
+     * to convert elements to strings. If the elements aren't strings or if toString()
+     * is not appropriate, a custom function which receives an object and returns a
+     * unique string must be provided.
+     */
+    function Bag(toStrFunction) {
+        this.toStrF = toStrFunction || util.defaultToString;
+        this.dictionary = new Dictionary_1.default(this.toStrF);
+        this.nElements = 0;
+    }
+    /**
+    * Adds nCopies of the specified object to this bag.
+    * @param {Object} element element to add.
+    * @param {number=} nCopies the number of copies to add, if this argument is
+    * undefined 1 copy is added.
+    * @return {boolean} true unless element is undefined.
+    */
+    Bag.prototype.add = function (element, nCopies) {
+        if (nCopies === void 0) { nCopies = 1; }
+        if (util.isUndefined(element) || nCopies <= 0) {
+            return false;
+        }
+        if (!this.contains(element)) {
+            var node = {
+                value: element,
+                copies: nCopies
+            };
+            this.dictionary.setValue(element, node);
+        }
+        else {
+            this.dictionary.getValue(element).copies += nCopies;
+        }
+        this.nElements += nCopies;
+        return true;
+    };
+    /**
+    * Counts the number of copies of the specified object in this bag.
+    * @param {Object} element the object to search for..
+    * @return {number} the number of copies of the object, 0 if not found
+    */
+    Bag.prototype.count = function (element) {
+        if (!this.contains(element)) {
+            return 0;
+        }
+        else {
+            return this.dictionary.getValue(element).copies;
+        }
+    };
+    /**
+     * Returns true if this bag contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this bag contains the specified element,
+     * false otherwise.
+     */
+    Bag.prototype.contains = function (element) {
+        return this.dictionary.containsKey(element);
+    };
+    /**
+    * Removes nCopies of the specified object to this bag.
+    * If the number of copies to remove is greater than the actual number
+    * of copies in the Bag, all copies are removed.
+    * @param {Object} element element to remove.
+    * @param {number=} nCopies the number of copies to remove, if this argument is
+    * undefined 1 copy is removed.
+    * @return {boolean} true if at least 1 element was removed.
+    */
+    Bag.prototype.remove = function (element, nCopies) {
+        if (nCopies === void 0) { nCopies = 1; }
+        if (util.isUndefined(element) || nCopies <= 0) {
+            return false;
+        }
+        if (!this.contains(element)) {
+            return false;
+        }
+        else {
+            var node = this.dictionary.getValue(element);
+            if (nCopies > node.copies) {
+                this.nElements -= node.copies;
+            }
+            else {
+                this.nElements -= nCopies;
+            }
+            node.copies -= nCopies;
+            if (node.copies <= 0) {
+                this.dictionary.remove(element);
+            }
+            return true;
+        }
+    };
+    /**
+     * Returns an array containing all of the elements in this big in arbitrary order,
+     * including multiple copies.
+     * @return {Array} an array containing all of the elements in this bag.
+     */
+    Bag.prototype.toArray = function () {
+        var a = [];
+        var values = this.dictionary.values();
+        for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
+            var node = values_1[_i];
+            var element = node.value;
+            var copies = node.copies;
+            for (var j = 0; j < copies; j++) {
+                a.push(element);
+            }
+        }
+        return a;
+    };
+    /**
+     * Returns a set of unique elements in this bag.
+     * @return {collections.Set<T>} a set of unique elements in this bag.
+     */
+    Bag.prototype.toSet = function () {
+        var toret = new Set_1.default(this.toStrF);
+        var elements = this.dictionary.values();
+        for (var _i = 0, elements_1 = elements; _i < elements_1.length; _i++) {
+            var ele = elements_1[_i];
+            var value = ele.value;
+            toret.add(value);
+        }
+        return toret;
+    };
+    /**
+     * Executes the provided function once for each element
+     * present in this bag, including multiple copies.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element. To break the iteration you can
+     * optionally return false.
+     */
+    Bag.prototype.forEach = function (callback) {
+        this.dictionary.forEach(function (k, v) {
+            var value = v.value;
+            var copies = v.copies;
+            for (var i = 0; i < copies; i++) {
+                if (callback(value) === false) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    };
+    /**
+     * Returns the number of elements in this bag.
+     * @return {number} the number of elements in this bag.
+     */
+    Bag.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this bag contains no elements.
+     * @return {boolean} true if this bag contains no elements.
+     */
+    Bag.prototype.isEmpty = function () {
+        return this.nElements === 0;
+    };
+    /**
+     * Removes all of the elements from this bag.
+     */
+    Bag.prototype.clear = function () {
+        this.nElements = 0;
+        this.dictionary.clear();
+    };
+    return Bag;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Bag; // End of bag
+
+},{"./Dictionary":542,"./Set":549,"./util":553}],542:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Dictionary = (function () {
+    /**
+     * Creates an empty dictionary.
+     * @class <p>Dictionaries map keys to values; each key can map to at most one value.
+     * This implementation accepts any kind of objects as keys.</p>
+     *
+     * <p>If the keys are custom objects a function which converts keys to unique
+     * strings must be provided. Example:</p>
+     * <pre>
+     * function petToString(pet) {
+     *  return pet.name;
+     * }
+     * </pre>
+     * @constructor
+     * @param {function(Object):string=} toStrFunction optional function used
+     * to convert keys to strings. If the keys aren't strings or if toString()
+     * is not appropriate, a custom function which receives a key and returns a
+     * unique string must be provided.
+     */
+    function Dictionary(toStrFunction) {
+        this.table = {};
+        this.nElements = 0;
+        this.toStr = toStrFunction || util.defaultToString;
+    }
+    /**
+     * Returns the value to which this dictionary maps the specified key.
+     * Returns undefined if this dictionary contains no mapping for this key.
+     * @param {Object} key key whose associated value is to be returned.
+     * @return {*} the value to which this dictionary maps the specified key or
+     * undefined if the map contains no mapping for this key.
+     */
+    Dictionary.prototype.getValue = function (key) {
+        var pair = this.table['$' + this.toStr(key)];
+        if (util.isUndefined(pair)) {
+            return undefined;
+        }
+        return pair.value;
+    };
+    /**
+     * Associates the specified value with the specified key in this dictionary.
+     * If the dictionary previously contained a mapping for this key, the old
+     * value is replaced by the specified value.
+     * @param {Object} key key with which the specified value is to be
+     * associated.
+     * @param {Object} value value to be associated with the specified key.
+     * @return {*} previous value associated with the specified key, or undefined if
+     * there was no mapping for the key or if the key/value are undefined.
+     */
+    Dictionary.prototype.setValue = function (key, value) {
+        if (util.isUndefined(key) || util.isUndefined(value)) {
+            return undefined;
+        }
+        var ret;
+        var k = '$' + this.toStr(key);
+        var previousElement = this.table[k];
+        if (util.isUndefined(previousElement)) {
+            this.nElements++;
+            ret = undefined;
+        }
+        else {
+            ret = previousElement.value;
+        }
+        this.table[k] = {
+            key: key,
+            value: value
+        };
+        return ret;
+    };
+    /**
+     * Removes the mapping for this key from this dictionary if it is present.
+     * @param {Object} key key whose mapping is to be removed from the
+     * dictionary.
+     * @return {*} previous value associated with specified key, or undefined if
+     * there was no mapping for key.
+     */
+    Dictionary.prototype.remove = function (key) {
+        var k = '$' + this.toStr(key);
+        var previousElement = this.table[k];
+        if (!util.isUndefined(previousElement)) {
+            delete this.table[k];
+            this.nElements--;
+            return previousElement.value;
+        }
+        return undefined;
+    };
+    /**
+     * Returns an array containing all of the keys in this dictionary.
+     * @return {Array} an array containing all of the keys in this dictionary.
+     */
+    Dictionary.prototype.keys = function () {
+        var array = [];
+        for (var name_1 in this.table) {
+            if (util.has(this.table, name_1)) {
+                var pair = this.table[name_1];
+                array.push(pair.key);
+            }
+        }
+        return array;
+    };
+    /**
+     * Returns an array containing all of the values in this dictionary.
+     * @return {Array} an array containing all of the values in this dictionary.
+     */
+    Dictionary.prototype.values = function () {
+        var array = [];
+        for (var name_2 in this.table) {
+            if (util.has(this.table, name_2)) {
+                var pair = this.table[name_2];
+                array.push(pair.value);
+            }
+        }
+        return array;
+    };
+    /**
+    * Executes the provided function once for each key-value pair
+    * present in this dictionary.
+    * @param {function(Object,Object):*} callback function to execute, it is
+    * invoked with two arguments: key and value. To break the iteration you can
+    * optionally return false.
+    */
+    Dictionary.prototype.forEach = function (callback) {
+        for (var name_3 in this.table) {
+            if (util.has(this.table, name_3)) {
+                var pair = this.table[name_3];
+                var ret = callback(pair.key, pair.value);
+                if (ret === false) {
+                    return;
+                }
+            }
+        }
+    };
+    /**
+     * Returns true if this dictionary contains a mapping for the specified key.
+     * @param {Object} key key whose presence in this dictionary is to be
+     * tested.
+     * @return {boolean} true if this dictionary contains a mapping for the
+     * specified key.
+     */
+    Dictionary.prototype.containsKey = function (key) {
+        return !util.isUndefined(this.getValue(key));
+    };
+    /**
+    * Removes all mappings from this dictionary.
+    * @this {collections.Dictionary}
+    */
+    Dictionary.prototype.clear = function () {
+        this.table = {};
+        this.nElements = 0;
+    };
+    /**
+     * Returns the number of keys in this dictionary.
+     * @return {number} the number of key-value mappings in this dictionary.
+     */
+    Dictionary.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this dictionary contains no mappings.
+     * @return {boolean} true if this dictionary contains no mappings.
+     */
+    Dictionary.prototype.isEmpty = function () {
+        return this.nElements <= 0;
+    };
+    Dictionary.prototype.toString = function () {
+        var toret = '{';
+        this.forEach(function (k, v) {
+            toret += "\n\t" + k + " : " + v;
+        });
+        return toret + '\n}';
+    };
+    return Dictionary;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Dictionary; // End of dictionary
+
+},{"./util":553}],543:[function(require,module,exports){
+"use strict";
+var collections = require('./util');
+var arrays = require('./arrays');
+var Heap = (function () {
+    /**
+     * Creates an empty Heap.
+     * @class
+     * <p>A heap is a binary tree, where the nodes maintain the heap property:
+     * each node is smaller than each of its children and therefore a MinHeap
+     * This implementation uses an array to store elements.</p>
+     * <p>If the inserted elements are custom objects a compare function must be provided,
+     *  at construction time, otherwise the <=, === and >= operators are
+     * used to compare elements. Example:</p>
+     *
+     * <pre>
+     * function compare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return -1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return 1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     *
+     * <p>If a Max-Heap is wanted (greater elements on top) you can a provide a
+     * reverse compare function to accomplish that behavior. Example:</p>
+     *
+     * <pre>
+     * function reverseCompare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return 1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return -1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     *
+     * @constructor
+     * @param {function(Object,Object):number=} compareFunction optional
+     * function used to compare two elements. Must return a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal to,
+     * or greater than the second.
+     */
+    function Heap(compareFunction) {
+        /**
+         * Array used to store the elements od the heap.
+         * @type {Array.<Object>}
+         * @private
+         */
+        this.data = [];
+        this.compare = compareFunction || collections.defaultCompare;
+    }
+    /**
+     * Returns the index of the left child of the node at the given index.
+     * @param {number} nodeIndex The index of the node to get the left child
+     * for.
+     * @return {number} The index of the left child.
+     * @private
+     */
+    Heap.prototype.leftChildIndex = function (nodeIndex) {
+        return (2 * nodeIndex) + 1;
+    };
+    /**
+     * Returns the index of the right child of the node at the given index.
+     * @param {number} nodeIndex The index of the node to get the right child
+     * for.
+     * @return {number} The index of the right child.
+     * @private
+     */
+    Heap.prototype.rightChildIndex = function (nodeIndex) {
+        return (2 * nodeIndex) + 2;
+    };
+    /**
+     * Returns the index of the parent of the node at the given index.
+     * @param {number} nodeIndex The index of the node to get the parent for.
+     * @return {number} The index of the parent.
+     * @private
+     */
+    Heap.prototype.parentIndex = function (nodeIndex) {
+        return Math.floor((nodeIndex - 1) / 2);
+    };
+    /**
+     * Returns the index of the smaller child node (if it exists).
+     * @param {number} leftChild left child index.
+     * @param {number} rightChild right child index.
+     * @return {number} the index with the minimum value or -1 if it doesn't
+     * exists.
+     * @private
+     */
+    Heap.prototype.minIndex = function (leftChild, rightChild) {
+        if (rightChild >= this.data.length) {
+            if (leftChild >= this.data.length) {
+                return -1;
+            }
+            else {
+                return leftChild;
+            }
+        }
+        else {
+            if (this.compare(this.data[leftChild], this.data[rightChild]) <= 0) {
+                return leftChild;
+            }
+            else {
+                return rightChild;
+            }
+        }
+    };
+    /**
+     * Moves the node at the given index up to its proper place in the heap.
+     * @param {number} index The index of the node to move up.
+     * @private
+     */
+    Heap.prototype.siftUp = function (index) {
+        var parent = this.parentIndex(index);
+        while (index > 0 && this.compare(this.data[parent], this.data[index]) > 0) {
+            arrays.swap(this.data, parent, index);
+            index = parent;
+            parent = this.parentIndex(index);
+        }
+    };
+    /**
+     * Moves the node at the given index down to its proper place in the heap.
+     * @param {number} nodeIndex The index of the node to move down.
+     * @private
+     */
+    Heap.prototype.siftDown = function (nodeIndex) {
+        //smaller child index
+        var min = this.minIndex(this.leftChildIndex(nodeIndex), this.rightChildIndex(nodeIndex));
+        while (min >= 0 && this.compare(this.data[nodeIndex], this.data[min]) > 0) {
+            arrays.swap(this.data, min, nodeIndex);
+            nodeIndex = min;
+            min = this.minIndex(this.leftChildIndex(nodeIndex), this.rightChildIndex(nodeIndex));
+        }
+    };
+    /**
+     * Retrieves but does not remove the root element of this heap.
+     * @return {*} The value at the root of the heap. Returns undefined if the
+     * heap is empty.
+     */
+    Heap.prototype.peek = function () {
+        if (this.data.length > 0) {
+            return this.data[0];
+        }
+        else {
+            return undefined;
+        }
+    };
+    /**
+     * Adds the given element into the heap.
+     * @param {*} element the element.
+     * @return true if the element was added or fals if it is undefined.
+     */
+    Heap.prototype.add = function (element) {
+        if (collections.isUndefined(element)) {
+            return undefined;
+        }
+        this.data.push(element);
+        this.siftUp(this.data.length - 1);
+        return true;
+    };
+    /**
+     * Retrieves and removes the root element of this heap.
+     * @return {*} The value removed from the root of the heap. Returns
+     * undefined if the heap is empty.
+     */
+    Heap.prototype.removeRoot = function () {
+        if (this.data.length > 0) {
+            var obj = this.data[0];
+            this.data[0] = this.data[this.data.length - 1];
+            this.data.splice(this.data.length - 1, 1);
+            if (this.data.length > 0) {
+                this.siftDown(0);
+            }
+            return obj;
+        }
+        return undefined;
+    };
+    /**
+     * Returns true if this heap contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this Heap contains the specified element, false
+     * otherwise.
+     */
+    Heap.prototype.contains = function (element) {
+        var equF = collections.compareToEquals(this.compare);
+        return arrays.contains(this.data, element, equF);
+    };
+    /**
+     * Returns the number of elements in this heap.
+     * @return {number} the number of elements in this heap.
+     */
+    Heap.prototype.size = function () {
+        return this.data.length;
+    };
+    /**
+     * Checks if this heap is empty.
+     * @return {boolean} true if and only if this heap contains no items; false
+     * otherwise.
+     */
+    Heap.prototype.isEmpty = function () {
+        return this.data.length <= 0;
+    };
+    /**
+     * Removes all of the elements from this heap.
+     */
+    Heap.prototype.clear = function () {
+        this.data.length = 0;
+    };
+    /**
+     * Executes the provided function once for each element present in this heap in
+     * no particular order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    Heap.prototype.forEach = function (callback) {
+        arrays.forEach(this.data, callback);
+    };
+    return Heap;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Heap;
+
+},{"./arrays":551,"./util":553}],544:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Dictionary_1 = require('./Dictionary');
+var util = require('./util');
+/**
+ * This class is used by the LinkedDictionary Internally
+ * Has to be a class, not an interface, because it needs to have
+ * the 'unlink' function defined.
+ */
+var LinkedDictionaryPair = (function () {
+    function LinkedDictionaryPair(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    LinkedDictionaryPair.prototype.unlink = function () {
+        this.prev.next = this.next;
+        this.next.prev = this.prev;
+    };
+    return LinkedDictionaryPair;
+}());
+var LinkedDictionary = (function (_super) {
+    __extends(LinkedDictionary, _super);
+    function LinkedDictionary(toStrFunction) {
+        _super.call(this, toStrFunction);
+        this.head = new LinkedDictionaryPair(null, null);
+        this.tail = new LinkedDictionaryPair(null, null);
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+    }
+    /**
+     * Inserts the new node to the 'tail' of the list, updating the
+     * neighbors, and moving 'this.tail' (the End of List indicator) that
+     * to the end.
+     */
+    LinkedDictionary.prototype.appendToTail = function (entry) {
+        var lastNode = this.tail.prev;
+        lastNode.next = entry;
+        entry.prev = lastNode;
+        entry.next = this.tail;
+        this.tail.prev = entry;
+    };
+    /**
+     * Retrieves a linked dictionary from the table internally
+     */
+    LinkedDictionary.prototype.getLinkedDictionaryPair = function (key) {
+        if (util.isUndefined(key)) {
+            return undefined;
+        }
+        var k = '$' + this.toStr(key);
+        var pair = (this.table[k]);
+        return pair;
+    };
+    /**
+     * Returns the value to which this dictionary maps the specified key.
+     * Returns undefined if this dictionary contains no mapping for this key.
+     * @param {Object} key key whose associated value is to be returned.
+     * @return {*} the value to which this dictionary maps the specified key or
+     * undefined if the map contains no mapping for this key.
+     */
+    LinkedDictionary.prototype.getValue = function (key) {
+        var pair = this.getLinkedDictionaryPair(key);
+        if (!util.isUndefined(pair)) {
+            return pair.value;
+        }
+        return undefined;
+    };
+    /**
+     * Removes the mapping for this key from this dictionary if it is present.
+     * Also, if a value is present for this key, the entry is removed from the
+     * insertion ordering.
+     * @param {Object} key key whose mapping is to be removed from the
+     * dictionary.
+     * @return {*} previous value associated with specified key, or undefined if
+     * there was no mapping for key.
+     */
+    LinkedDictionary.prototype.remove = function (key) {
+        var pair = this.getLinkedDictionaryPair(key);
+        if (!util.isUndefined(pair)) {
+            _super.prototype.remove.call(this, key); // This will remove it from the table
+            pair.unlink(); // This will unlink it from the chain
+            return pair.value;
+        }
+        return undefined;
+    };
+    /**
+    * Removes all mappings from this LinkedDictionary.
+    * @this {collections.LinkedDictionary}
+    */
+    LinkedDictionary.prototype.clear = function () {
+        _super.prototype.clear.call(this);
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+    };
+    /**
+     * Internal function used when updating an existing KeyValue pair.
+     * It places the new value indexed by key into the table, but maintains
+     * its place in the linked ordering.
+     */
+    LinkedDictionary.prototype.replace = function (oldPair, newPair) {
+        var k = '$' + this.toStr(newPair.key);
+        // set the new Pair's links to existingPair's links
+        newPair.next = oldPair.next;
+        newPair.prev = oldPair.prev;
+        // Delete Existing Pair from the table, unlink it from chain.
+        // As a result, the nElements gets decremented by this operation
+        this.remove(oldPair.key);
+        // Link new Pair in place of where oldPair was,
+        // by pointing the old pair's neighbors to it.
+        newPair.prev.next = newPair;
+        newPair.next.prev = newPair;
+        this.table[k] = newPair;
+        // To make up for the fact that the number of elements was decremented,
+        // We need to increase it by one.
+        ++this.nElements;
+    };
+    /**
+     * Associates the specified value with the specified key in this dictionary.
+     * If the dictionary previously contained a mapping for this key, the old
+     * value is replaced by the specified value.
+     * Updating of a key that already exists maintains its place in the
+     * insertion order into the map.
+     * @param {Object} key key with which the specified value is to be
+     * associated.
+     * @param {Object} value value to be associated with the specified key.
+     * @return {*} previous value associated with the specified key, or undefined if
+     * there was no mapping for the key or if the key/value are undefined.
+     */
+    LinkedDictionary.prototype.setValue = function (key, value) {
+        if (util.isUndefined(key) || util.isUndefined(value)) {
+            return undefined;
+        }
+        var existingPair = this.getLinkedDictionaryPair(key);
+        var newPair = new LinkedDictionaryPair(key, value);
+        var k = '$' + this.toStr(key);
+        // If there is already an element for that key, we
+        // keep it's place in the LinkedList
+        if (!util.isUndefined(existingPair)) {
+            this.replace(existingPair, newPair);
+            return existingPair.value;
+        }
+        else {
+            this.appendToTail(newPair);
+            this.table[k] = newPair;
+            ++this.nElements;
+            return undefined;
+        }
+    };
+    /**
+     * Returns an array containing all of the keys in this LinkedDictionary, ordered
+     * by insertion order.
+     * @return {Array} an array containing all of the keys in this LinkedDictionary,
+     * ordered by insertion order.
+     */
+    LinkedDictionary.prototype.keys = function () {
+        var array = [];
+        this.forEach(function (key, value) {
+            array.push(key);
+        });
+        return array;
+    };
+    /**
+     * Returns an array containing all of the values in this LinkedDictionary, ordered by
+     * insertion order.
+     * @return {Array} an array containing all of the values in this LinkedDictionary,
+     * ordered by insertion order.
+     */
+    LinkedDictionary.prototype.values = function () {
+        var array = [];
+        this.forEach(function (key, value) {
+            array.push(value);
+        });
+        return array;
+    };
+    /**
+    * Executes the provided function once for each key-value pair
+    * present in this LinkedDictionary. It is done in the order of insertion
+    * into the LinkedDictionary
+    * @param {function(Object,Object):*} callback function to execute, it is
+    * invoked with two arguments: key and value. To break the iteration you can
+    * optionally return false.
+    */
+    LinkedDictionary.prototype.forEach = function (callback) {
+        var crawlNode = this.head.next;
+        while (crawlNode.next != null) {
+            var ret = callback(crawlNode.key, crawlNode.value);
+            if (ret === false) {
+                return;
+            }
+            crawlNode = crawlNode.next;
+        }
+    };
+    return LinkedDictionary;
+}(Dictionary_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = LinkedDictionary; // End of LinkedDictionary
+// /**
+//  * Returns true if this dictionary is equal to the given dictionary.
+//  * Two dictionaries are equal if they contain the same mappings.
+//  * @param {collections.Dictionary} other the other dictionary.
+//  * @param {function(Object,Object):boolean=} valuesEqualFunction optional
+//  * function used to check if two values are equal.
+//  * @return {boolean} true if this dictionary is equal to the given dictionary.
+//  */
+// collections.Dictionary.prototype.equals = function(other,valuesEqualFunction) {
+// 	const eqF = valuesEqualFunction || collections.defaultEquals;
+// 	if(!(other instanceof collections.Dictionary)){
+// 		return false;
+// 	}
+// 	if(this.size() !== other.size()){
+// 		return false;
+// 	}
+// 	return this.equalsAux(this.firstNode,other.firstNode,eqF);
+// }
+
+},{"./Dictionary":542,"./util":553}],545:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var arrays = require('./arrays');
+var LinkedList = (function () {
+    /**
+    * Creates an empty Linked List.
+    * @class A linked list is a data structure consisting of a group of nodes
+    * which together represent a sequence.
+    * @constructor
+    */
+    function LinkedList() {
+        /**
+        * First node in the list
+        * @type {Object}
+        * @private
+        */
+        this.firstNode = null;
+        /**
+        * Last node in the list
+        * @type {Object}
+        * @private
+        */
+        this.lastNode = null;
+        /**
+        * Number of elements in the list
+        * @type {number}
+        * @private
+        */
+        this.nElements = 0;
+    }
+    /**
+    * Adds an element to this list.
+    * @param {Object} item element to be added.
+    * @param {number=} index optional index to add the element. If no index is specified
+    * the element is added to the end of this list.
+    * @return {boolean} true if the element was added or false if the index is invalid
+    * or if the element is undefined.
+    */
+    LinkedList.prototype.add = function (item, index) {
+        if (util.isUndefined(index)) {
+            index = this.nElements;
+        }
+        if (index < 0 || index > this.nElements || util.isUndefined(item)) {
+            return false;
+        }
+        var newNode = this.createNode(item);
+        if (this.nElements === 0) {
+            // First node in the list.
+            this.firstNode = newNode;
+            this.lastNode = newNode;
+        }
+        else if (index === this.nElements) {
+            // Insert at the end.
+            this.lastNode.next = newNode;
+            this.lastNode = newNode;
+        }
+        else if (index === 0) {
+            // Change first node.
+            newNode.next = this.firstNode;
+            this.firstNode = newNode;
+        }
+        else {
+            var prev = this.nodeAtIndex(index - 1);
+            newNode.next = prev.next;
+            prev.next = newNode;
+        }
+        this.nElements++;
+        return true;
+    };
+    /**
+    * Returns the first element in this list.
+    * @return {*} the first element of the list or undefined if the list is
+    * empty.
+    */
+    LinkedList.prototype.first = function () {
+        if (this.firstNode !== null) {
+            return this.firstNode.element;
+        }
+        return undefined;
+    };
+    /**
+    * Returns the last element in this list.
+    * @return {*} the last element in the list or undefined if the list is
+    * empty.
+    */
+    LinkedList.prototype.last = function () {
+        if (this.lastNode !== null) {
+            return this.lastNode.element;
+        }
+        return undefined;
+    };
+    /**
+     * Returns the element at the specified position in this list.
+     * @param {number} index desired index.
+     * @return {*} the element at the given index or undefined if the index is
+     * out of bounds.
+     */
+    LinkedList.prototype.elementAtIndex = function (index) {
+        var node = this.nodeAtIndex(index);
+        if (node === null) {
+            return undefined;
+        }
+        return node.element;
+    };
+    /**
+     * Returns the index in this list of the first occurrence of the
+     * specified element, or -1 if the List does not contain this element.
+     * <p>If the elements inside this list are
+     * not comparable with the === operator a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName = function(pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} item element to search for.
+     * @param {function(Object,Object):boolean=} equalsFunction Optional
+     * function used to check if two elements are equal.
+     * @return {number} the index in this list of the first occurrence
+     * of the specified element, or -1 if this list does not contain the
+     * element.
+     */
+    LinkedList.prototype.indexOf = function (item, equalsFunction) {
+        var equalsF = equalsFunction || util.defaultEquals;
+        if (util.isUndefined(item)) {
+            return -1;
+        }
+        var currentNode = this.firstNode;
+        var index = 0;
+        while (currentNode !== null) {
+            if (equalsF(currentNode.element, item)) {
+                return index;
+            }
+            index++;
+            currentNode = currentNode.next;
+        }
+        return -1;
+    };
+    /**
+       * Returns true if this list contains the specified element.
+       * <p>If the elements inside the list are
+       * not comparable with the === operator a custom equals function should be
+       * provided to perform searches, the function must receive two arguments and
+       * return true if they are equal, false otherwise. Example:</p>
+       *
+       * <pre>
+       * const petsAreEqualByName = function(pet1, pet2) {
+       *  return pet1.name === pet2.name;
+       * }
+       * </pre>
+       * @param {Object} item element to search for.
+       * @param {function(Object,Object):boolean=} equalsFunction Optional
+       * function used to check if two elements are equal.
+       * @return {boolean} true if this list contains the specified element, false
+       * otherwise.
+       */
+    LinkedList.prototype.contains = function (item, equalsFunction) {
+        return (this.indexOf(item, equalsFunction) >= 0);
+    };
+    /**
+     * Removes the first occurrence of the specified element in this list.
+     * <p>If the elements inside the list are
+     * not comparable with the === operator a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName = function(pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} item element to be removed from this list, if present.
+     * @return {boolean} true if the list contained the specified element.
+     */
+    LinkedList.prototype.remove = function (item, equalsFunction) {
+        var equalsF = equalsFunction || util.defaultEquals;
+        if (this.nElements < 1 || util.isUndefined(item)) {
+            return false;
+        }
+        var previous = null;
+        var currentNode = this.firstNode;
+        while (currentNode !== null) {
+            if (equalsF(currentNode.element, item)) {
+                if (currentNode === this.firstNode) {
+                    this.firstNode = this.firstNode.next;
+                    if (currentNode === this.lastNode) {
+                        this.lastNode = null;
+                    }
+                }
+                else if (currentNode === this.lastNode) {
+                    this.lastNode = previous;
+                    previous.next = currentNode.next;
+                    currentNode.next = null;
+                }
+                else {
+                    previous.next = currentNode.next;
+                    currentNode.next = null;
+                }
+                this.nElements--;
+                return true;
+            }
+            previous = currentNode;
+            currentNode = currentNode.next;
+        }
+        return false;
+    };
+    /**
+     * Removes all of the elements from this list.
+     */
+    LinkedList.prototype.clear = function () {
+        this.firstNode = null;
+        this.lastNode = null;
+        this.nElements = 0;
+    };
+    /**
+     * Returns true if this list is equal to the given list.
+     * Two lists are equal if they have the same elements in the same order.
+     * @param {LinkedList} other the other list.
+     * @param {function(Object,Object):boolean=} equalsFunction optional
+     * function used to check if two elements are equal. If the elements in the lists
+     * are custom objects you should provide a function, otherwise
+     * the === operator is used to check equality between elements.
+     * @return {boolean} true if this list is equal to the given list.
+     */
+    LinkedList.prototype.equals = function (other, equalsFunction) {
+        var eqF = equalsFunction || util.defaultEquals;
+        if (!(other instanceof LinkedList)) {
+            return false;
+        }
+        if (this.size() !== other.size()) {
+            return false;
+        }
+        return this.equalsAux(this.firstNode, other.firstNode, eqF);
+    };
+    /**
+    * @private
+    */
+    LinkedList.prototype.equalsAux = function (n1, n2, eqF) {
+        while (n1 !== null) {
+            if (!eqF(n1.element, n2.element)) {
+                return false;
+            }
+            n1 = n1.next;
+            n2 = n2.next;
+        }
+        return true;
+    };
+    /**
+     * Removes the element at the specified position in this list.
+     * @param {number} index given index.
+     * @return {*} removed element or undefined if the index is out of bounds.
+     */
+    LinkedList.prototype.removeElementAtIndex = function (index) {
+        if (index < 0 || index >= this.nElements) {
+            return undefined;
+        }
+        var element;
+        if (this.nElements === 1) {
+            //First node in the list.
+            element = this.firstNode.element;
+            this.firstNode = null;
+            this.lastNode = null;
+        }
+        else {
+            var previous = this.nodeAtIndex(index - 1);
+            if (previous === null) {
+                element = this.firstNode.element;
+                this.firstNode = this.firstNode.next;
+            }
+            else if (previous.next === this.lastNode) {
+                element = this.lastNode.element;
+                this.lastNode = previous;
+            }
+            if (previous !== null) {
+                element = previous.next.element;
+                previous.next = previous.next.next;
+            }
+        }
+        this.nElements--;
+        return element;
+    };
+    /**
+     * Executes the provided function once for each element present in this list in order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    LinkedList.prototype.forEach = function (callback) {
+        var currentNode = this.firstNode;
+        while (currentNode !== null) {
+            if (callback(currentNode.element) === false) {
+                break;
+            }
+            currentNode = currentNode.next;
+        }
+    };
+    /**
+     * Reverses the order of the elements in this linked list (makes the last
+     * element first, and the first element last).
+     */
+    LinkedList.prototype.reverse = function () {
+        var previous = null;
+        var current = this.firstNode;
+        var temp = null;
+        while (current !== null) {
+            temp = current.next;
+            current.next = previous;
+            previous = current;
+            current = temp;
+        }
+        temp = this.firstNode;
+        this.firstNode = this.lastNode;
+        this.lastNode = temp;
+    };
+    /**
+     * Returns an array containing all of the elements in this list in proper
+     * sequence.
+     * @return {Array.<*>} an array containing all of the elements in this list,
+     * in proper sequence.
+     */
+    LinkedList.prototype.toArray = function () {
+        var array = [];
+        var currentNode = this.firstNode;
+        while (currentNode !== null) {
+            array.push(currentNode.element);
+            currentNode = currentNode.next;
+        }
+        return array;
+    };
+    /**
+     * Returns the number of elements in this list.
+     * @return {number} the number of elements in this list.
+     */
+    LinkedList.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this list contains no elements.
+     * @return {boolean} true if this list contains no elements.
+     */
+    LinkedList.prototype.isEmpty = function () {
+        return this.nElements <= 0;
+    };
+    LinkedList.prototype.toString = function () {
+        return arrays.toString(this.toArray());
+    };
+    /**
+     * @private
+     */
+    LinkedList.prototype.nodeAtIndex = function (index) {
+        if (index < 0 || index >= this.nElements) {
+            return null;
+        }
+        if (index === (this.nElements - 1)) {
+            return this.lastNode;
+        }
+        var node = this.firstNode;
+        for (var i = 0; i < index; i++) {
+            node = node.next;
+        }
+        return node;
+    };
+    /**
+     * @private
+     */
+    LinkedList.prototype.createNode = function (item) {
+        return {
+            element: item,
+            next: null
+        };
+    };
+    return LinkedList;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = LinkedList; // End of linked list
+
+},{"./arrays":551,"./util":553}],546:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Dictionary_1 = require('./Dictionary');
+var arrays = require('./arrays');
+var MultiDictionary = (function () {
+    /**
+     * Creates an empty multi dictionary.
+     * @class <p>A multi dictionary is a special kind of dictionary that holds
+     * multiple values against each key. Setting a value into the dictionary will
+     * add the value to an array at that key. Getting a key will return an array,
+     * holding all the values set to that key.
+     * You can configure to allow duplicates in the values.
+     * This implementation accepts any kind of objects as keys.</p>
+     *
+     * <p>If the keys are custom objects a function which converts keys to strings must be
+     * provided. Example:</p>
+     *
+     * <pre>
+     * function petToString(pet) {
+       *  return pet.name;
+       * }
+     * </pre>
+     * <p>If the values are custom objects a function to check equality between values
+     * must be provided. Example:</p>
+     *
+     * <pre>
+     * function petsAreEqualByAge(pet1,pet2) {
+       *  return pet1.age===pet2.age;
+       * }
+     * </pre>
+     * @constructor
+     * @param {function(Object):string=} toStrFunction optional function
+     * to convert keys to strings. If the keys aren't strings or if toString()
+     * is not appropriate, a custom function which receives a key and returns a
+     * unique string must be provided.
+     * @param {function(Object,Object):boolean=} valuesEqualsFunction optional
+     * function to check if two values are equal.
+     *
+     * @param allowDuplicateValues
+     */
+    function MultiDictionary(toStrFunction, valuesEqualsFunction, allowDuplicateValues) {
+        if (allowDuplicateValues === void 0) { allowDuplicateValues = false; }
+        this.dict = new Dictionary_1.default(toStrFunction);
+        this.equalsF = valuesEqualsFunction || util.defaultEquals;
+        this.allowDuplicate = allowDuplicateValues;
+    }
+    /**
+    * Returns an array holding the values to which this dictionary maps
+    * the specified key.
+    * Returns an empty array if this dictionary contains no mappings for this key.
+    * @param {Object} key key whose associated values are to be returned.
+    * @return {Array} an array holding the values to which this dictionary maps
+    * the specified key.
+    */
+    MultiDictionary.prototype.getValue = function (key) {
+        var values = this.dict.getValue(key);
+        if (util.isUndefined(values)) {
+            return [];
+        }
+        return arrays.copy(values);
+    };
+    /**
+     * Adds the value to the array associated with the specified key, if
+     * it is not already present.
+     * @param {Object} key key with which the specified value is to be
+     * associated.
+     * @param {Object} value the value to add to the array at the key
+     * @return {boolean} true if the value was not already associated with that key.
+     */
+    MultiDictionary.prototype.setValue = function (key, value) {
+        if (util.isUndefined(key) || util.isUndefined(value)) {
+            return false;
+        }
+        if (!this.containsKey(key)) {
+            this.dict.setValue(key, [value]);
+            return true;
+        }
+        var array = this.dict.getValue(key);
+        if (!this.allowDuplicate) {
+            if (arrays.contains(array, value, this.equalsF)) {
+                return false;
+            }
+        }
+        array.push(value);
+        return true;
+    };
+    /**
+     * Removes the specified values from the array of values associated with the
+     * specified key. If a value isn't given, all values associated with the specified
+     * key are removed.
+     * @param {Object} key key whose mapping is to be removed from the
+     * dictionary.
+     * @param {Object=} value optional argument to specify the value to remove
+     * from the array associated with the specified key.
+     * @return {*} true if the dictionary changed, false if the key doesn't exist or
+     * if the specified value isn't associated with the specified key.
+     */
+    MultiDictionary.prototype.remove = function (key, value) {
+        if (util.isUndefined(value)) {
+            var v = this.dict.remove(key);
+            return !util.isUndefined(v);
+        }
+        var array = this.dict.getValue(key);
+        if (arrays.remove(array, value, this.equalsF)) {
+            if (array.length === 0) {
+                this.dict.remove(key);
+            }
+            return true;
+        }
+        return false;
+    };
+    /**
+     * Returns an array containing all of the keys in this dictionary.
+     * @return {Array} an array containing all of the keys in this dictionary.
+     */
+    MultiDictionary.prototype.keys = function () {
+        return this.dict.keys();
+    };
+    /**
+     * Returns an array containing all of the values in this dictionary.
+     * @return {Array} an array containing all of the values in this dictionary.
+     */
+    MultiDictionary.prototype.values = function () {
+        var values = this.dict.values();
+        var array = [];
+        for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
+            var v = values_1[_i];
+            for (var _a = 0, v_1 = v; _a < v_1.length; _a++) {
+                var w = v_1[_a];
+                array.push(w);
+            }
+        }
+        return array;
+    };
+    /**
+     * Returns true if this dictionary at least one value associatted the specified key.
+     * @param {Object} key key whose presence in this dictionary is to be
+     * tested.
+     * @return {boolean} true if this dictionary at least one value associatted
+     * the specified key.
+     */
+    MultiDictionary.prototype.containsKey = function (key) {
+        return this.dict.containsKey(key);
+    };
+    /**
+     * Removes all mappings from this dictionary.
+     */
+    MultiDictionary.prototype.clear = function () {
+        this.dict.clear();
+    };
+    /**
+     * Returns the number of keys in this dictionary.
+     * @return {number} the number of key-value mappings in this dictionary.
+     */
+    MultiDictionary.prototype.size = function () {
+        return this.dict.size();
+    };
+    /**
+     * Returns true if this dictionary contains no mappings.
+     * @return {boolean} true if this dictionary contains no mappings.
+     */
+    MultiDictionary.prototype.isEmpty = function () {
+        return this.dict.isEmpty();
+    };
+    return MultiDictionary;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = MultiDictionary; // end of multi dictionary
+
+},{"./Dictionary":542,"./arrays":551,"./util":553}],547:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Heap_1 = require('./Heap');
+var PriorityQueue = (function () {
+    /**
+     * Creates an empty priority queue.
+     * @class <p>In a priority queue each element is associated with a "priority",
+     * elements are dequeued in highest-priority-first order (the elements with the
+     * highest priority are dequeued first). Priority Queues are implemented as heaps.
+     * If the inserted elements are custom objects a compare function must be provided,
+     * otherwise the <=, === and >= operators are used to compare object priority.</p>
+     * <pre>
+     * function compare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return -1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return 1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     * @constructor
+     * @param {function(Object,Object):number=} compareFunction optional
+     * function used to compare two element priorities. Must return a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal to,
+     * or greater than the second.
+     */
+    function PriorityQueue(compareFunction) {
+        this.heap = new Heap_1.default(util.reverseCompareFunction(compareFunction));
+    }
+    /**
+     * Inserts the specified element into this priority queue.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    PriorityQueue.prototype.enqueue = function (element) {
+        return this.heap.add(element);
+    };
+    /**
+     * Inserts the specified element into this priority queue.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    PriorityQueue.prototype.add = function (element) {
+        return this.heap.add(element);
+    };
+    /**
+     * Retrieves and removes the highest priority element of this queue.
+     * @return {*} the the highest priority element of this queue,
+     *  or undefined if this queue is empty.
+     */
+    PriorityQueue.prototype.dequeue = function () {
+        if (this.heap.size() !== 0) {
+            var el = this.heap.peek();
+            this.heap.removeRoot();
+            return el;
+        }
+        return undefined;
+    };
+    /**
+     * Retrieves, but does not remove, the highest priority element of this queue.
+     * @return {*} the highest priority element of this queue, or undefined if this queue is empty.
+     */
+    PriorityQueue.prototype.peek = function () {
+        return this.heap.peek();
+    };
+    /**
+     * Returns true if this priority queue contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this priority queue contains the specified element,
+     * false otherwise.
+     */
+    PriorityQueue.prototype.contains = function (element) {
+        return this.heap.contains(element);
+    };
+    /**
+     * Checks if this priority queue is empty.
+     * @return {boolean} true if and only if this priority queue contains no items; false
+     * otherwise.
+     */
+    PriorityQueue.prototype.isEmpty = function () {
+        return this.heap.isEmpty();
+    };
+    /**
+     * Returns the number of elements in this priority queue.
+     * @return {number} the number of elements in this priority queue.
+     */
+    PriorityQueue.prototype.size = function () {
+        return this.heap.size();
+    };
+    /**
+     * Removes all of the elements from this priority queue.
+     */
+    PriorityQueue.prototype.clear = function () {
+        this.heap.clear();
+    };
+    /**
+     * Executes the provided function once for each element present in this queue in
+     * no particular order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    PriorityQueue.prototype.forEach = function (callback) {
+        this.heap.forEach(callback);
+    };
+    return PriorityQueue;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = PriorityQueue; // end of priority queue
+
+},{"./Heap":543,"./util":553}],548:[function(require,module,exports){
+"use strict";
+var LinkedList_1 = require('./LinkedList');
+var Queue = (function () {
+    /**
+     * Creates an empty queue.
+     * @class A queue is a First-In-First-Out (FIFO) data structure, the first
+     * element added to the queue will be the first one to be removed. This
+     * implementation uses a linked list as a container.
+     * @constructor
+     */
+    function Queue() {
+        this.list = new LinkedList_1.default();
+    }
+    /**
+     * Inserts the specified element into the end of this queue.
+     * @param {Object} elem the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    Queue.prototype.enqueue = function (elem) {
+        return this.list.add(elem);
+    };
+    /**
+     * Inserts the specified element into the end of this queue.
+     * @param {Object} elem the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    Queue.prototype.add = function (elem) {
+        return this.list.add(elem);
+    };
+    /**
+     * Retrieves and removes the head of this queue.
+     * @return {*} the head of this queue, or undefined if this queue is empty.
+     */
+    Queue.prototype.dequeue = function () {
+        if (this.list.size() !== 0) {
+            var el = this.list.first();
+            this.list.removeElementAtIndex(0);
+            return el;
+        }
+        return undefined;
+    };
+    /**
+     * Retrieves, but does not remove, the head of this queue.
+     * @return {*} the head of this queue, or undefined if this queue is empty.
+     */
+    Queue.prototype.peek = function () {
+        if (this.list.size() !== 0) {
+            return this.list.first();
+        }
+        return undefined;
+    };
+    /**
+     * Returns the number of elements in this queue.
+     * @return {number} the number of elements in this queue.
+     */
+    Queue.prototype.size = function () {
+        return this.list.size();
+    };
+    /**
+     * Returns true if this queue contains the specified element.
+     * <p>If the elements inside this stack are
+     * not comparable with the === operator, a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName (pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} elem element to search for.
+     * @param {function(Object,Object):boolean=} equalsFunction optional
+     * function to check if two elements are equal.
+     * @return {boolean} true if this queue contains the specified element,
+     * false otherwise.
+     */
+    Queue.prototype.contains = function (elem, equalsFunction) {
+        return this.list.contains(elem, equalsFunction);
+    };
+    /**
+     * Checks if this queue is empty.
+     * @return {boolean} true if and only if this queue contains no items; false
+     * otherwise.
+     */
+    Queue.prototype.isEmpty = function () {
+        return this.list.size() <= 0;
+    };
+    /**
+     * Removes all of the elements from this queue.
+     */
+    Queue.prototype.clear = function () {
+        this.list.clear();
+    };
+    /**
+     * Executes the provided function once for each element present in this queue in
+     * FIFO order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    Queue.prototype.forEach = function (callback) {
+        this.list.forEach(callback);
+    };
+    return Queue;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Queue; // End of queue
+
+},{"./LinkedList":545}],549:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var arrays = require('./arrays');
+var Dictionary_1 = require('./Dictionary');
+var Set = (function () {
+    /**
+     * Creates an empty set.
+     * @class <p>A set is a data structure that contains no duplicate items.</p>
+     * <p>If the inserted elements are custom objects a function
+     * which converts elements to strings must be provided. Example:</p>
+     *
+     * <pre>
+     * function petToString(pet) {
+     *  return pet.name;
+     * }
+     * </pre>
+     *
+     * @constructor
+     * @param {function(Object):string=} toStringFunction optional function used
+     * to convert elements to strings. If the elements aren't strings or if toString()
+     * is not appropriate, a custom function which receives a onject and returns a
+     * unique string must be provided.
+     */
+    function Set(toStringFunction) {
+        this.dictionary = new Dictionary_1.default(toStringFunction);
+    }
+    /**
+     * Returns true if this set contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this set contains the specified element,
+     * false otherwise.
+     */
+    Set.prototype.contains = function (element) {
+        return this.dictionary.containsKey(element);
+    };
+    /**
+     * Adds the specified element to this set if it is not already present.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if this set did not already contain the specified element.
+     */
+    Set.prototype.add = function (element) {
+        if (this.contains(element) || util.isUndefined(element)) {
+            return false;
+        }
+        else {
+            this.dictionary.setValue(element, element);
+            return true;
+        }
+    };
+    /**
+     * Performs an intersecion between this an another set.
+     * Removes all values that are not present this set and the given set.
+     * @param {collections.Set} otherSet other set.
+     */
+    Set.prototype.intersection = function (otherSet) {
+        var set = this;
+        this.forEach(function (element) {
+            if (!otherSet.contains(element)) {
+                set.remove(element);
+            }
+            return true;
+        });
+    };
+    /**
+     * Performs a union between this an another set.
+     * Adds all values from the given set to this set.
+     * @param {collections.Set} otherSet other set.
+     */
+    Set.prototype.union = function (otherSet) {
+        var set = this;
+        otherSet.forEach(function (element) {
+            set.add(element);
+            return true;
+        });
+    };
+    /**
+     * Performs a difference between this an another set.
+     * Removes from this set all the values that are present in the given set.
+     * @param {collections.Set} otherSet other set.
+     */
+    Set.prototype.difference = function (otherSet) {
+        var set = this;
+        otherSet.forEach(function (element) {
+            set.remove(element);
+            return true;
+        });
+    };
+    /**
+     * Checks whether the given set contains all the elements in this set.
+     * @param {collections.Set} otherSet other set.
+     * @return {boolean} true if this set is a subset of the given set.
+     */
+    Set.prototype.isSubsetOf = function (otherSet) {
+        if (this.size() > otherSet.size()) {
+            return false;
+        }
+        var isSub = true;
+        this.forEach(function (element) {
+            if (!otherSet.contains(element)) {
+                isSub = false;
+                return false;
+            }
+            return true;
+        });
+        return isSub;
+    };
+    /**
+     * Removes the specified element from this set if it is present.
+     * @return {boolean} true if this set contained the specified element.
+     */
+    Set.prototype.remove = function (element) {
+        if (!this.contains(element)) {
+            return false;
+        }
+        else {
+            this.dictionary.remove(element);
+            return true;
+        }
+    };
+    /**
+     * Executes the provided function once for each element
+     * present in this set.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one arguments: the element. To break the iteration you can
+     * optionally return false.
+     */
+    Set.prototype.forEach = function (callback) {
+        this.dictionary.forEach(function (k, v) {
+            return callback(v);
+        });
+    };
+    /**
+     * Returns an array containing all of the elements in this set in arbitrary order.
+     * @return {Array} an array containing all of the elements in this set.
+     */
+    Set.prototype.toArray = function () {
+        return this.dictionary.values();
+    };
+    /**
+     * Returns true if this set contains no elements.
+     * @return {boolean} true if this set contains no elements.
+     */
+    Set.prototype.isEmpty = function () {
+        return this.dictionary.isEmpty();
+    };
+    /**
+     * Returns the number of elements in this set.
+     * @return {number} the number of elements in this set.
+     */
+    Set.prototype.size = function () {
+        return this.dictionary.size();
+    };
+    /**
+     * Removes all of the elements from this set.
+     */
+    Set.prototype.clear = function () {
+        this.dictionary.clear();
+    };
+    /*
+    * Provides a string representation for display
+    */
+    Set.prototype.toString = function () {
+        return arrays.toString(this.toArray());
+    };
+    return Set;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Set; // end of Set
+
+},{"./Dictionary":542,"./arrays":551,"./util":553}],550:[function(require,module,exports){
+"use strict";
+var LinkedList_1 = require('./LinkedList');
+var Stack = (function () {
+    /**
+     * Creates an empty Stack.
+     * @class A Stack is a Last-In-First-Out (LIFO) data structure, the last
+     * element added to the stack will be the first one to be removed. This
+     * implementation uses a linked list as a container.
+     * @constructor
+     */
+    function Stack() {
+        this.list = new LinkedList_1.default();
+    }
+    /**
+     * Pushes an item onto the top of this stack.
+     * @param {Object} elem the element to be pushed onto this stack.
+     * @return {boolean} true if the element was pushed or false if it is undefined.
+     */
+    Stack.prototype.push = function (elem) {
+        return this.list.add(elem, 0);
+    };
+    /**
+     * Pushes an item onto the top of this stack.
+     * @param {Object} elem the element to be pushed onto this stack.
+     * @return {boolean} true if the element was pushed or false if it is undefined.
+     */
+    Stack.prototype.add = function (elem) {
+        return this.list.add(elem, 0);
+    };
+    /**
+     * Removes the object at the top of this stack and returns that object.
+     * @return {*} the object at the top of this stack or undefined if the
+     * stack is empty.
+     */
+    Stack.prototype.pop = function () {
+        return this.list.removeElementAtIndex(0);
+    };
+    /**
+     * Looks at the object at the top of this stack without removing it from the
+     * stack.
+     * @return {*} the object at the top of this stack or undefined if the
+     * stack is empty.
+     */
+    Stack.prototype.peek = function () {
+        return this.list.first();
+    };
+    /**
+     * Returns the number of elements in this stack.
+     * @return {number} the number of elements in this stack.
+     */
+    Stack.prototype.size = function () {
+        return this.list.size();
+    };
+    /**
+     * Returns true if this stack contains the specified element.
+     * <p>If the elements inside this stack are
+     * not comparable with the === operator, a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName (pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} elem element to search for.
+     * @param {function(Object,Object):boolean=} equalsFunction optional
+     * function to check if two elements are equal.
+     * @return {boolean} true if this stack contains the specified element,
+     * false otherwise.
+     */
+    Stack.prototype.contains = function (elem, equalsFunction) {
+        return this.list.contains(elem, equalsFunction);
+    };
+    /**
+     * Checks if this stack is empty.
+     * @return {boolean} true if and only if this stack contains no items; false
+     * otherwise.
+     */
+    Stack.prototype.isEmpty = function () {
+        return this.list.isEmpty();
+    };
+    /**
+     * Removes all of the elements from this stack.
+     */
+    Stack.prototype.clear = function () {
+        this.list.clear();
+    };
+    /**
+     * Executes the provided function once for each element present in this stack in
+     * LIFO order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    Stack.prototype.forEach = function (callback) {
+        this.list.forEach(callback);
+    };
+    return Stack;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Stack; // End of stack
+
+},{"./LinkedList":545}],551:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+/**
+ * Returns the position of the first occurrence of the specified item
+ * within the specified array.4
+ * @param {*} array the array in which to search the element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between 2 elements.
+ * @return {number} the position of the first occurrence of the specified element
+ * within the specified array, or -1 if not found.
+ */
+function indexOf(array, item, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    var length = array.length;
+    for (var i = 0; i < length; i++) {
+        if (equals(array[i], item)) {
+            return i;
+        }
+    }
+    return -1;
+}
+exports.indexOf = indexOf;
+/**
+ * Returns the position of the last occurrence of the specified element
+ * within the specified array.
+ * @param {*} array the array in which to search the element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between 2 elements.
+ * @return {number} the position of the last occurrence of the specified element
+ * within the specified array or -1 if not found.
+ */
+function lastIndexOf(array, item, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    var length = array.length;
+    for (var i = length - 1; i >= 0; i--) {
+        if (equals(array[i], item)) {
+            return i;
+        }
+    }
+    return -1;
+}
+exports.lastIndexOf = lastIndexOf;
+/**
+ * Returns true if the specified array contains the specified element.
+ * @param {*} array the array in which to search the element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function to
+ * check equality between 2 elements.
+ * @return {boolean} true if the specified array contains the specified element.
+ */
+function contains(array, item, equalsFunction) {
+    return indexOf(array, item, equalsFunction) >= 0;
+}
+exports.contains = contains;
+/**
+ * Removes the first ocurrence of the specified element from the specified array.
+ * @param {*} array the array in which to search element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function to
+ * check equality between 2 elements.
+ * @return {boolean} true if the array changed after this call.
+ */
+function remove(array, item, equalsFunction) {
+    var index = indexOf(array, item, equalsFunction);
+    if (index < 0) {
+        return false;
+    }
+    array.splice(index, 1);
+    return true;
+}
+exports.remove = remove;
+/**
+ * Returns the number of elements in the specified array equal
+ * to the specified object.
+ * @param {Array} array the array in which to determine the frequency of the element.
+ * @param {Object} item the element whose frequency is to be determined.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between 2 elements.
+ * @return {number} the number of elements in the specified array
+ * equal to the specified object.
+ */
+function frequency(array, item, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    var length = array.length;
+    var freq = 0;
+    for (var i = 0; i < length; i++) {
+        if (equals(array[i], item)) {
+            freq++;
+        }
+    }
+    return freq;
+}
+exports.frequency = frequency;
+/**
+ * Returns true if the two specified arrays are equal to one another.
+ * Two arrays are considered equal if both arrays contain the same number
+ * of elements, and all corresponding pairs of elements in the two
+ * arrays are equal and are in the same order.
+ * @param {Array} array1 one array to be tested for equality.
+ * @param {Array} array2 the other array to be tested for equality.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between elemements in the arrays.
+ * @return {boolean} true if the two arrays are equal
+ */
+function equals(array1, array2, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    if (array1.length !== array2.length) {
+        return false;
+    }
+    var length = array1.length;
+    for (var i = 0; i < length; i++) {
+        if (!equals(array1[i], array2[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+exports.equals = equals;
+/**
+ * Returns shallow a copy of the specified array.
+ * @param {*} array the array to copy.
+ * @return {Array} a copy of the specified array
+ */
+function copy(array) {
+    return array.concat();
+}
+exports.copy = copy;
+/**
+ * Swaps the elements at the specified positions in the specified array.
+ * @param {Array} array The array in which to swap elements.
+ * @param {number} i the index of one element to be swapped.
+ * @param {number} j the index of the other element to be swapped.
+ * @return {boolean} true if the array is defined and the indexes are valid.
+ */
+function swap(array, i, j) {
+    if (i < 0 || i >= array.length || j < 0 || j >= array.length) {
+        return false;
+    }
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+    return true;
+}
+exports.swap = swap;
+function toString(array) {
+    return '[' + array.toString() + ']';
+}
+exports.toString = toString;
+/**
+ * Executes the provided function once for each element present in this array
+ * starting from index 0 to length - 1.
+ * @param {Array} array The array in which to iterate.
+ * @param {function(Object):*} callback function to execute, it is
+ * invoked with one argument: the element value, to break the iteration you can
+ * optionally return false.
+ */
+function forEach(array, callback) {
+    for (var _i = 0, array_1 = array; _i < array_1.length; _i++) {
+        var ele = array_1[_i];
+        if (callback(ele) === false) {
+            return;
+        }
+    }
+}
+exports.forEach = forEach;
+
+},{"./util":553}],552:[function(require,module,exports){
+(function (global){
+(function(f) {
+    if (typeof exports === "object" && typeof module !== "undefined") {
+        module.exports = f()
+    } else if (typeof define === "function" && define.amd) {
+        define([], f)
+    } else {
+        var g;
+        if (typeof window !== "undefined") {
+            g = window
+        } else if (typeof global !== "undefined") {
+            g = global
+        } else if (typeof self !== "undefined") {
+            g = self
+        } else {
+            g = this
+        }
+        g.listComponent = f()
+    }
+})(function() {
+        var define, module, exports;
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Queue_1 = require('./Queue');
+var BSTree = (function () {
+    /**
+     * Creates an empty binary search tree.
+     * @class <p>A binary search tree is a binary tree in which each
+     * internal node stores an element such that the elements stored in the
+     * left subtree are less than it and the elements
+     * stored in the right subtree are greater.</p>
+     * <p>Formally, a binary search tree is a node-based binary tree data structure which
+     * has the following properties:</p>
+     * <ul>
+     * <li>The left subtree of a node contains only nodes with elements less
+     * than the node's element</li>
+     * <li>The right subtree of a node contains only nodes with elements greater
+     * than the node's element</li>
+     * <li>Both the left and right subtrees must also be binary search trees.</li>
+     * </ul>
+     * <p>If the inserted elements are custom objects a compare function must
+     * be provided at construction time, otherwise the <=, === and >= operators are
+     * used to compare elements. Example:</p>
+     * <pre>
+     * function compare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return -1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return 1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     * @constructor
+     * @param {function(Object,Object):number=} compareFunction optional
+     * function used to compare two elements. Must return a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal to,
+     * or greater than the second.
+     */
+    function BSTree(compareFunction) {
+        this.root = null;
+        this.compare = compareFunction || util.defaultCompare;
+        this.nElements = 0;
+    }
+    /**
+     * Adds the specified element to this tree if it is not already present.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if this tree did not already contain the specified element.
+     */
+    BSTree.prototype.add = function (element) {
+        if (util.isUndefined(element)) {
+            return false;
+        }
+        if (this.insertNode(this.createNode(element)) !== null) {
+            this.nElements++;
+            return true;
+        }
+        return false;
+    };
+    /**
+     * Removes all of the elements from this tree.
+     */
+    BSTree.prototype.clear = function () {
+        this.root = null;
+        this.nElements = 0;
+    };
+    /**
+     * Returns true if this tree contains no elements.
+     * @return {boolean} true if this tree contains no elements.
+     */
+    BSTree.prototype.isEmpty = function () {
+        return this.nElements === 0;
+    };
+    /**
+     * Returns the number of elements in this tree.
+     * @return {number} the number of elements in this tree.
+     */
+    BSTree.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this tree contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this tree contains the specified element,
+     * false otherwise.
+     */
+    BSTree.prototype.contains = function (element) {
+        if (util.isUndefined(element)) {
+            return false;
+        }
+        return this.searchNode(this.root, element) !== null;
+    };
+    /**
+     * Removes the specified element from this tree if it is present.
+     * @return {boolean} true if this tree contained the specified element.
+     */
+    BSTree.prototype.remove = function (element) {
+        var node = this.searchNode(this.root, element);
+        if (node === null) {
+            return false;
+        }
+        this.removeNode(node);
+        this.nElements--;
+        return true;
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in
+     * in-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.inorderTraversal = function (callback) {
+        this.inorderTraversalAux(this.root, callback, {
+            stop: false
+        });
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in pre-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.preorderTraversal = function (callback) {
+        this.preorderTraversalAux(this.root, callback, {
+            stop: false
+        });
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in post-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.postorderTraversal = function (callback) {
+        this.postorderTraversalAux(this.root, callback, {
+            stop: false
+        });
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in
+     * level-order.
+     * @param {function(Object):*} callback function to execute, it is invoked with one
+     * argument: the element value, to break the iteration you can optionally return false.
+     */
+    BSTree.prototype.levelTraversal = function (callback) {
+        this.levelTraversalAux(this.root, callback);
+    };
+    /**
+     * Returns the minimum element of this tree.
+     * @return {*} the minimum element of this tree or undefined if this tree is
+     * is empty.
+     */
+    BSTree.prototype.minimum = function () {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        return this.minimumAux(this.root).element;
+    };
+    /**
+     * Returns the maximum element of this tree.
+     * @return {*} the maximum element of this tree or undefined if this tree is
+     * is empty.
+     */
+    BSTree.prototype.maximum = function () {
+        if (this.isEmpty()) {
+            return undefined;
+        }
+        return this.maximumAux(this.root).element;
+    };
+    /**
+     * Executes the provided function once for each element present in this tree in inorder.
+     * Equivalent to inorderTraversal.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    BSTree.prototype.forEach = function (callback) {
+        this.inorderTraversal(callback);
+    };
+    /**
+     * Returns an array containing all of the elements in this tree in in-order.
+     * @return {Array} an array containing all of the elements in this tree in in-order.
+     */
+    BSTree.prototype.toArray = function () {
+        var array = [];
+        this.inorderTraversal(function (element) {
+            array.push(element);
+            return true;
+        });
+        return array;
+    };
+    /**
+     * Returns the height of this tree.
+     * @return {number} the height of this tree or -1 if is empty.
+     */
+    BSTree.prototype.height = function () {
+        return this.heightAux(this.root);
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.searchNode = function (node, element) {
+        var cmp = null;
+        while (node !== null && cmp !== 0) {
+            cmp = this.compare(element, node.element);
+            if (cmp < 0) {
+                node = node.leftCh;
+            }
+            else if (cmp > 0) {
+                node = node.rightCh;
+            }
+        }
+        return node;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.transplant = function (n1, n2) {
+        if (n1.parent === null) {
+            this.root = n2;
+        }
+        else if (n1 === n1.parent.leftCh) {
+            n1.parent.leftCh = n2;
+        }
+        else {
+            n1.parent.rightCh = n2;
+        }
+        if (n2 !== null) {
+            n2.parent = n1.parent;
+        }
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.removeNode = function (node) {
+        if (node.leftCh === null) {
+            this.transplant(node, node.rightCh);
+        }
+        else if (node.rightCh === null) {
+            this.transplant(node, node.leftCh);
+        }
+        else {
+            var y = this.minimumAux(node.rightCh);
+            if (y.parent !== node) {
+                this.transplant(y, y.rightCh);
+                y.rightCh = node.rightCh;
+                y.rightCh.parent = y;
+            }
+            this.transplant(node, y);
+            y.leftCh = node.leftCh;
+            y.leftCh.parent = y;
+        }
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.inorderTraversalAux = function (node, callback, signal) {
+        if (node === null || signal.stop) {
+            return;
+        }
+        this.inorderTraversalAux(node.leftCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        signal.stop = callback(node.element) === false;
+        if (signal.stop) {
+            return;
+        }
+        this.inorderTraversalAux(node.rightCh, callback, signal);
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.levelTraversalAux = function (node, callback) {
+        var queue = new Queue_1.default();
+        if (node !== null) {
+            queue.enqueue(node);
+        }
+        while (!queue.isEmpty()) {
+            node = queue.dequeue();
+            if (callback(node.element) === false) {
+                return;
+            }
+            if (node.leftCh !== null) {
+                queue.enqueue(node.leftCh);
+            }
+            if (node.rightCh !== null) {
+                queue.enqueue(node.rightCh);
+            }
+        }
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.preorderTraversalAux = function (node, callback, signal) {
+        if (node === null || signal.stop) {
+            return;
+        }
+        signal.stop = callback(node.element) === false;
+        if (signal.stop) {
+            return;
+        }
+        this.preorderTraversalAux(node.leftCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        this.preorderTraversalAux(node.rightCh, callback, signal);
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.postorderTraversalAux = function (node, callback, signal) {
+        if (node === null || signal.stop) {
+            return;
+        }
+        this.postorderTraversalAux(node.leftCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        this.postorderTraversalAux(node.rightCh, callback, signal);
+        if (signal.stop) {
+            return;
+        }
+        signal.stop = callback(node.element) === false;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.minimumAux = function (node) {
+        while (node.leftCh !== null) {
+            node = node.leftCh;
+        }
+        return node;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.maximumAux = function (node) {
+        while (node.rightCh !== null) {
+            node = node.rightCh;
+        }
+        return node;
+    };
+    /**
+      * @private
+      */
+    BSTree.prototype.heightAux = function (node) {
+        if (node === null) {
+            return -1;
+        }
+        return Math.max(this.heightAux(node.leftCh), this.heightAux(node.rightCh)) + 1;
+    };
+    /*
+    * @private
+    */
+    BSTree.prototype.insertNode = function (node) {
+        var parent = null;
+        var position = this.root;
+        var cmp = null;
+        while (position !== null) {
+            cmp = this.compare(node.element, position.element);
+            if (cmp === 0) {
+                return null;
+            }
+            else if (cmp < 0) {
+                parent = position;
+                position = position.leftCh;
+            }
+            else {
+                parent = position;
+                position = position.rightCh;
+            }
+        }
+        node.parent = parent;
+        if (parent === null) {
+            // tree is empty
+            this.root = node;
+        }
+        else if (this.compare(node.element, parent.element) < 0) {
+            parent.leftCh = node;
+        }
+        else {
+            parent.rightCh = node;
+        }
+        return node;
+    };
+    /**
+    * @private
+    */
+    BSTree.prototype.createNode = function (element) {
+        return {
+            element: element,
+            leftCh: null,
+            rightCh: null,
+            parent: null
+        };
+    };
+    return BSTree;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = BSTree;
+
+},{"./Queue":9,"./util":13}],2:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Dictionary_1 = require('./Dictionary');
+var Set_1 = require('./Set');
+var Bag = (function () {
+    /**
+     * Creates an empty bag.
+     * @class <p>A bag is a special kind of set in which members are
+     * allowed to appear more than once.</p>
+     * <p>If the inserted elements are custom objects a function
+     * which converts elements to unique strings must be provided. Example:</p>
+     *
+     * <pre>
+     * function petToString(pet) {
+     *  return pet.name;
+     * }
+     * </pre>
+     *
+     * @constructor
+     * @param {function(Object):string=} toStrFunction optional function used
+     * to convert elements to strings. If the elements aren't strings or if toString()
+     * is not appropriate, a custom function which receives an object and returns a
+     * unique string must be provided.
+     */
+    function Bag(toStrFunction) {
+        this.toStrF = toStrFunction || util.defaultToString;
+        this.dictionary = new Dictionary_1.default(this.toStrF);
+        this.nElements = 0;
+    }
+    /**
+    * Adds nCopies of the specified object to this bag.
+    * @param {Object} element element to add.
+    * @param {number=} nCopies the number of copies to add, if this argument is
+    * undefined 1 copy is added.
+    * @return {boolean} true unless element is undefined.
+    */
+    Bag.prototype.add = function (element, nCopies) {
+        if (nCopies === void 0) { nCopies = 1; }
+        if (util.isUndefined(element) || nCopies <= 0) {
+            return false;
+        }
+        if (!this.contains(element)) {
+            var node = {
+                value: element,
+                copies: nCopies
+            };
+            this.dictionary.setValue(element, node);
+        }
+        else {
+            this.dictionary.getValue(element).copies += nCopies;
+        }
+        this.nElements += nCopies;
+        return true;
+    };
+    /**
+    * Counts the number of copies of the specified object in this bag.
+    * @param {Object} element the object to search for..
+    * @return {number} the number of copies of the object, 0 if not found
+    */
+    Bag.prototype.count = function (element) {
+        if (!this.contains(element)) {
+            return 0;
+        }
+        else {
+            return this.dictionary.getValue(element).copies;
+        }
+    };
+    /**
+     * Returns true if this bag contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this bag contains the specified element,
+     * false otherwise.
+     */
+    Bag.prototype.contains = function (element) {
+        return this.dictionary.containsKey(element);
+    };
+    /**
+    * Removes nCopies of the specified object to this bag.
+    * If the number of copies to remove is greater than the actual number
+    * of copies in the Bag, all copies are removed.
+    * @param {Object} element element to remove.
+    * @param {number=} nCopies the number of copies to remove, if this argument is
+    * undefined 1 copy is removed.
+    * @return {boolean} true if at least 1 element was removed.
+    */
+    Bag.prototype.remove = function (element, nCopies) {
+        if (nCopies === void 0) { nCopies = 1; }
+        if (util.isUndefined(element) || nCopies <= 0) {
+            return false;
+        }
+        if (!this.contains(element)) {
+            return false;
+        }
+        else {
+            var node = this.dictionary.getValue(element);
+            if (nCopies > node.copies) {
+                this.nElements -= node.copies;
+            }
+            else {
+                this.nElements -= nCopies;
+            }
+            node.copies -= nCopies;
+            if (node.copies <= 0) {
+                this.dictionary.remove(element);
+            }
+            return true;
+        }
+    };
+    /**
+     * Returns an array containing all of the elements in this big in arbitrary order,
+     * including multiple copies.
+     * @return {Array} an array containing all of the elements in this bag.
+     */
+    Bag.prototype.toArray = function () {
+        var a = [];
+        var values = this.dictionary.values();
+        for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
+            var node = values_1[_i];
+            var element = node.value;
+            var copies = node.copies;
+            for (var j = 0; j < copies; j++) {
+                a.push(element);
+            }
+        }
+        return a;
+    };
+    /**
+     * Returns a set of unique elements in this bag.
+     * @return {collections.Set<T>} a set of unique elements in this bag.
+     */
+    Bag.prototype.toSet = function () {
+        var toret = new Set_1.default(this.toStrF);
+        var elements = this.dictionary.values();
+        for (var _i = 0, elements_1 = elements; _i < elements_1.length; _i++) {
+            var ele = elements_1[_i];
+            var value = ele.value;
+            toret.add(value);
+        }
+        return toret;
+    };
+    /**
+     * Executes the provided function once for each element
+     * present in this bag, including multiple copies.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element. To break the iteration you can
+     * optionally return false.
+     */
+    Bag.prototype.forEach = function (callback) {
+        this.dictionary.forEach(function (k, v) {
+            var value = v.value;
+            var copies = v.copies;
+            for (var i = 0; i < copies; i++) {
+                if (callback(value) === false) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    };
+    /**
+     * Returns the number of elements in this bag.
+     * @return {number} the number of elements in this bag.
+     */
+    Bag.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this bag contains no elements.
+     * @return {boolean} true if this bag contains no elements.
+     */
+    Bag.prototype.isEmpty = function () {
+        return this.nElements === 0;
+    };
+    /**
+     * Removes all of the elements from this bag.
+     */
+    Bag.prototype.clear = function () {
+        this.nElements = 0;
+        this.dictionary.clear();
+    };
+    return Bag;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Bag; // End of bag
+
+},{"./Dictionary":3,"./Set":10,"./util":13}],3:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Dictionary = (function () {
+    /**
+     * Creates an empty dictionary.
+     * @class <p>Dictionaries map keys to values; each key can map to at most one value.
+     * This implementation accepts any kind of objects as keys.</p>
+     *
+     * <p>If the keys are custom objects a function which converts keys to unique
+     * strings must be provided. Example:</p>
+     * <pre>
+     * function petToString(pet) {
+     *  return pet.name;
+     * }
+     * </pre>
+     * @constructor
+     * @param {function(Object):string=} toStrFunction optional function used
+     * to convert keys to strings. If the keys aren't strings or if toString()
+     * is not appropriate, a custom function which receives a key and returns a
+     * unique string must be provided.
+     */
+    function Dictionary(toStrFunction) {
+        this.table = {};
+        this.nElements = 0;
+        this.toStr = toStrFunction || util.defaultToString;
+    }
+    /**
+     * Returns the value to which this dictionary maps the specified key.
+     * Returns undefined if this dictionary contains no mapping for this key.
+     * @param {Object} key key whose associated value is to be returned.
+     * @return {*} the value to which this dictionary maps the specified key or
+     * undefined if the map contains no mapping for this key.
+     */
+    Dictionary.prototype.getValue = function (key) {
+        var pair = this.table['$' + this.toStr(key)];
+        if (util.isUndefined(pair)) {
+            return undefined;
+        }
+        return pair.value;
+    };
+    /**
+     * Associates the specified value with the specified key in this dictionary.
+     * If the dictionary previously contained a mapping for this key, the old
+     * value is replaced by the specified value.
+     * @param {Object} key key with which the specified value is to be
+     * associated.
+     * @param {Object} value value to be associated with the specified key.
+     * @return {*} previous value associated with the specified key, or undefined if
+     * there was no mapping for the key or if the key/value are undefined.
+     */
+    Dictionary.prototype.setValue = function (key, value) {
+        if (util.isUndefined(key) || util.isUndefined(value)) {
+            return undefined;
+        }
+        var ret;
+        var k = '$' + this.toStr(key);
+        var previousElement = this.table[k];
+        if (util.isUndefined(previousElement)) {
+            this.nElements++;
+            ret = undefined;
+        }
+        else {
+            ret = previousElement.value;
+        }
+        this.table[k] = {
+            key: key,
+            value: value
+        };
+        return ret;
+    };
+    /**
+     * Removes the mapping for this key from this dictionary if it is present.
+     * @param {Object} key key whose mapping is to be removed from the
+     * dictionary.
+     * @return {*} previous value associated with specified key, or undefined if
+     * there was no mapping for key.
+     */
+    Dictionary.prototype.remove = function (key) {
+        var k = '$' + this.toStr(key);
+        var previousElement = this.table[k];
+        if (!util.isUndefined(previousElement)) {
+            delete this.table[k];
+            this.nElements--;
+            return previousElement.value;
+        }
+        return undefined;
+    };
+    /**
+     * Returns an array containing all of the keys in this dictionary.
+     * @return {Array} an array containing all of the keys in this dictionary.
+     */
+    Dictionary.prototype.keys = function () {
+        var array = [];
+        for (var name_1 in this.table) {
+            if (util.has(this.table, name_1)) {
+                var pair = this.table[name_1];
+                array.push(pair.key);
+            }
+        }
+        return array;
+    };
+    /**
+     * Returns an array containing all of the values in this dictionary.
+     * @return {Array} an array containing all of the values in this dictionary.
+     */
+    Dictionary.prototype.values = function () {
+        var array = [];
+        for (var name_2 in this.table) {
+            if (util.has(this.table, name_2)) {
+                var pair = this.table[name_2];
+                array.push(pair.value);
+            }
+        }
+        return array;
+    };
+    /**
+    * Executes the provided function once for each key-value pair
+    * present in this dictionary.
+    * @param {function(Object,Object):*} callback function to execute, it is
+    * invoked with two arguments: key and value. To break the iteration you can
+    * optionally return false.
+    */
+    Dictionary.prototype.forEach = function (callback) {
+        for (var name_3 in this.table) {
+            if (util.has(this.table, name_3)) {
+                var pair = this.table[name_3];
+                var ret = callback(pair.key, pair.value);
+                if (ret === false) {
+                    return;
+                }
+            }
+        }
+    };
+    /**
+     * Returns true if this dictionary contains a mapping for the specified key.
+     * @param {Object} key key whose presence in this dictionary is to be
+     * tested.
+     * @return {boolean} true if this dictionary contains a mapping for the
+     * specified key.
+     */
+    Dictionary.prototype.containsKey = function (key) {
+        return !util.isUndefined(this.getValue(key));
+    };
+    /**
+    * Removes all mappings from this dictionary.
+    * @this {collections.Dictionary}
+    */
+    Dictionary.prototype.clear = function () {
+        this.table = {};
+        this.nElements = 0;
+    };
+    /**
+     * Returns the number of keys in this dictionary.
+     * @return {number} the number of key-value mappings in this dictionary.
+     */
+    Dictionary.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this dictionary contains no mappings.
+     * @return {boolean} true if this dictionary contains no mappings.
+     */
+    Dictionary.prototype.isEmpty = function () {
+        return this.nElements <= 0;
+    };
+    Dictionary.prototype.toString = function () {
+        var toret = '{';
+        this.forEach(function (k, v) {
+            toret += "\n\t" + k + " : " + v;
+        });
+        return toret + '\n}';
+    };
+    return Dictionary;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Dictionary; // End of dictionary
+
+},{"./util":13}],4:[function(require,module,exports){
+"use strict";
+var collections = require('./util');
+var arrays = require('./arrays');
+var Heap = (function () {
+    /**
+     * Creates an empty Heap.
+     * @class
+     * <p>A heap is a binary tree, where the nodes maintain the heap property:
+     * each node is smaller than each of its children and therefore a MinHeap
+     * This implementation uses an array to store elements.</p>
+     * <p>If the inserted elements are custom objects a compare function must be provided,
+     *  at construction time, otherwise the <=, === and >= operators are
+     * used to compare elements. Example:</p>
+     *
+     * <pre>
+     * function compare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return -1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return 1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     *
+     * <p>If a Max-Heap is wanted (greater elements on top) you can a provide a
+     * reverse compare function to accomplish that behavior. Example:</p>
+     *
+     * <pre>
+     * function reverseCompare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return 1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return -1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     *
+     * @constructor
+     * @param {function(Object,Object):number=} compareFunction optional
+     * function used to compare two elements. Must return a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal to,
+     * or greater than the second.
+     */
+    function Heap(compareFunction) {
+        /**
+         * Array used to store the elements od the heap.
+         * @type {Array.<Object>}
+         * @private
+         */
+        this.data = [];
+        this.compare = compareFunction || collections.defaultCompare;
+    }
+    /**
+     * Returns the index of the left child of the node at the given index.
+     * @param {number} nodeIndex The index of the node to get the left child
+     * for.
+     * @return {number} The index of the left child.
+     * @private
+     */
+    Heap.prototype.leftChildIndex = function (nodeIndex) {
+        return (2 * nodeIndex) + 1;
+    };
+    /**
+     * Returns the index of the right child of the node at the given index.
+     * @param {number} nodeIndex The index of the node to get the right child
+     * for.
+     * @return {number} The index of the right child.
+     * @private
+     */
+    Heap.prototype.rightChildIndex = function (nodeIndex) {
+        return (2 * nodeIndex) + 2;
+    };
+    /**
+     * Returns the index of the parent of the node at the given index.
+     * @param {number} nodeIndex The index of the node to get the parent for.
+     * @return {number} The index of the parent.
+     * @private
+     */
+    Heap.prototype.parentIndex = function (nodeIndex) {
+        return Math.floor((nodeIndex - 1) / 2);
+    };
+    /**
+     * Returns the index of the smaller child node (if it exists).
+     * @param {number} leftChild left child index.
+     * @param {number} rightChild right child index.
+     * @return {number} the index with the minimum value or -1 if it doesn't
+     * exists.
+     * @private
+     */
+    Heap.prototype.minIndex = function (leftChild, rightChild) {
+        if (rightChild >= this.data.length) {
+            if (leftChild >= this.data.length) {
+                return -1;
+            }
+            else {
+                return leftChild;
+            }
+        }
+        else {
+            if (this.compare(this.data[leftChild], this.data[rightChild]) <= 0) {
+                return leftChild;
+            }
+            else {
+                return rightChild;
+            }
+        }
+    };
+    /**
+     * Moves the node at the given index up to its proper place in the heap.
+     * @param {number} index The index of the node to move up.
+     * @private
+     */
+    Heap.prototype.siftUp = function (index) {
+        var parent = this.parentIndex(index);
+        while (index > 0 && this.compare(this.data[parent], this.data[index]) > 0) {
+            arrays.swap(this.data, parent, index);
+            index = parent;
+            parent = this.parentIndex(index);
+        }
+    };
+    /**
+     * Moves the node at the given index down to its proper place in the heap.
+     * @param {number} nodeIndex The index of the node to move down.
+     * @private
+     */
+    Heap.prototype.siftDown = function (nodeIndex) {
+        //smaller child index
+        var min = this.minIndex(this.leftChildIndex(nodeIndex), this.rightChildIndex(nodeIndex));
+        while (min >= 0 && this.compare(this.data[nodeIndex], this.data[min]) > 0) {
+            arrays.swap(this.data, min, nodeIndex);
+            nodeIndex = min;
+            min = this.minIndex(this.leftChildIndex(nodeIndex), this.rightChildIndex(nodeIndex));
+        }
+    };
+    /**
+     * Retrieves but does not remove the root element of this heap.
+     * @return {*} The value at the root of the heap. Returns undefined if the
+     * heap is empty.
+     */
+    Heap.prototype.peek = function () {
+        if (this.data.length > 0) {
+            return this.data[0];
+        }
+        else {
+            return undefined;
+        }
+    };
+    /**
+     * Adds the given element into the heap.
+     * @param {*} element the element.
+     * @return true if the element was added or fals if it is undefined.
+     */
+    Heap.prototype.add = function (element) {
+        if (collections.isUndefined(element)) {
+            return undefined;
+        }
+        this.data.push(element);
+        this.siftUp(this.data.length - 1);
+        return true;
+    };
+    /**
+     * Retrieves and removes the root element of this heap.
+     * @return {*} The value removed from the root of the heap. Returns
+     * undefined if the heap is empty.
+     */
+    Heap.prototype.removeRoot = function () {
+        if (this.data.length > 0) {
+            var obj = this.data[0];
+            this.data[0] = this.data[this.data.length - 1];
+            this.data.splice(this.data.length - 1, 1);
+            if (this.data.length > 0) {
+                this.siftDown(0);
+            }
+            return obj;
+        }
+        return undefined;
+    };
+    /**
+     * Returns true if this heap contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this Heap contains the specified element, false
+     * otherwise.
+     */
+    Heap.prototype.contains = function (element) {
+        var equF = collections.compareToEquals(this.compare);
+        return arrays.contains(this.data, element, equF);
+    };
+    /**
+     * Returns the number of elements in this heap.
+     * @return {number} the number of elements in this heap.
+     */
+    Heap.prototype.size = function () {
+        return this.data.length;
+    };
+    /**
+     * Checks if this heap is empty.
+     * @return {boolean} true if and only if this heap contains no items; false
+     * otherwise.
+     */
+    Heap.prototype.isEmpty = function () {
+        return this.data.length <= 0;
+    };
+    /**
+     * Removes all of the elements from this heap.
+     */
+    Heap.prototype.clear = function () {
+        this.data.length = 0;
+    };
+    /**
+     * Executes the provided function once for each element present in this heap in
+     * no particular order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    Heap.prototype.forEach = function (callback) {
+        arrays.forEach(this.data, callback);
+    };
+    return Heap;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Heap;
+
+},{"./arrays":12,"./util":13}],5:[function(require,module,exports){
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var Dictionary_1 = require('./Dictionary');
+var util = require('./util');
+/**
+ * This class is used by the LinkedDictionary Internally
+ * Has to be a class, not an interface, because it needs to have
+ * the 'unlink' function defined.
+ */
+var LinkedDictionaryPair = (function () {
+    function LinkedDictionaryPair(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    LinkedDictionaryPair.prototype.unlink = function () {
+        this.prev.next = this.next;
+        this.next.prev = this.prev;
+    };
+    return LinkedDictionaryPair;
+}());
+var LinkedDictionary = (function (_super) {
+    __extends(LinkedDictionary, _super);
+    function LinkedDictionary(toStrFunction) {
+        _super.call(this, toStrFunction);
+        this.head = new LinkedDictionaryPair(null, null);
+        this.tail = new LinkedDictionaryPair(null, null);
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+    }
+    /**
+     * Inserts the new node to the 'tail' of the list, updating the
+     * neighbors, and moving 'this.tail' (the End of List indicator) that
+     * to the end.
+     */
+    LinkedDictionary.prototype.appendToTail = function (entry) {
+        var lastNode = this.tail.prev;
+        lastNode.next = entry;
+        entry.prev = lastNode;
+        entry.next = this.tail;
+        this.tail.prev = entry;
+    };
+    /**
+     * Retrieves a linked dictionary from the table internally
+     */
+    LinkedDictionary.prototype.getLinkedDictionaryPair = function (key) {
+        if (util.isUndefined(key)) {
+            return undefined;
+        }
+        var k = '$' + this.toStr(key);
+        var pair = (this.table[k]);
+        return pair;
+    };
+    /**
+     * Returns the value to which this dictionary maps the specified key.
+     * Returns undefined if this dictionary contains no mapping for this key.
+     * @param {Object} key key whose associated value is to be returned.
+     * @return {*} the value to which this dictionary maps the specified key or
+     * undefined if the map contains no mapping for this key.
+     */
+    LinkedDictionary.prototype.getValue = function (key) {
+        var pair = this.getLinkedDictionaryPair(key);
+        if (!util.isUndefined(pair)) {
+            return pair.value;
+        }
+        return undefined;
+    };
+    /**
+     * Removes the mapping for this key from this dictionary if it is present.
+     * Also, if a value is present for this key, the entry is removed from the
+     * insertion ordering.
+     * @param {Object} key key whose mapping is to be removed from the
+     * dictionary.
+     * @return {*} previous value associated with specified key, or undefined if
+     * there was no mapping for key.
+     */
+    LinkedDictionary.prototype.remove = function (key) {
+        var pair = this.getLinkedDictionaryPair(key);
+        if (!util.isUndefined(pair)) {
+            _super.prototype.remove.call(this, key); // This will remove it from the table
+            pair.unlink(); // This will unlink it from the chain
+            return pair.value;
+        }
+        return undefined;
+    };
+    /**
+    * Removes all mappings from this LinkedDictionary.
+    * @this {collections.LinkedDictionary}
+    */
+    LinkedDictionary.prototype.clear = function () {
+        _super.prototype.clear.call(this);
+        this.head.next = this.tail;
+        this.tail.prev = this.head;
+    };
+    /**
+     * Internal function used when updating an existing KeyValue pair.
+     * It places the new value indexed by key into the table, but maintains
+     * its place in the linked ordering.
+     */
+    LinkedDictionary.prototype.replace = function (oldPair, newPair) {
+        var k = '$' + this.toStr(newPair.key);
+        // set the new Pair's links to existingPair's links
+        newPair.next = oldPair.next;
+        newPair.prev = oldPair.prev;
+        // Delete Existing Pair from the table, unlink it from chain.
+        // As a result, the nElements gets decremented by this operation
+        this.remove(oldPair.key);
+        // Link new Pair in place of where oldPair was,
+        // by pointing the old pair's neighbors to it.
+        newPair.prev.next = newPair;
+        newPair.next.prev = newPair;
+        this.table[k] = newPair;
+        // To make up for the fact that the number of elements was decremented,
+        // We need to increase it by one.
+        ++this.nElements;
+    };
+    /**
+     * Associates the specified value with the specified key in this dictionary.
+     * If the dictionary previously contained a mapping for this key, the old
+     * value is replaced by the specified value.
+     * Updating of a key that already exists maintains its place in the
+     * insertion order into the map.
+     * @param {Object} key key with which the specified value is to be
+     * associated.
+     * @param {Object} value value to be associated with the specified key.
+     * @return {*} previous value associated with the specified key, or undefined if
+     * there was no mapping for the key or if the key/value are undefined.
+     */
+    LinkedDictionary.prototype.setValue = function (key, value) {
+        if (util.isUndefined(key) || util.isUndefined(value)) {
+            return undefined;
+        }
+        var existingPair = this.getLinkedDictionaryPair(key);
+        var newPair = new LinkedDictionaryPair(key, value);
+        var k = '$' + this.toStr(key);
+        // If there is already an element for that key, we
+        // keep it's place in the LinkedList
+        if (!util.isUndefined(existingPair)) {
+            this.replace(existingPair, newPair);
+            return existingPair.value;
+        }
+        else {
+            this.appendToTail(newPair);
+            this.table[k] = newPair;
+            ++this.nElements;
+            return undefined;
+        }
+    };
+    /**
+     * Returns an array containing all of the keys in this LinkedDictionary, ordered
+     * by insertion order.
+     * @return {Array} an array containing all of the keys in this LinkedDictionary,
+     * ordered by insertion order.
+     */
+    LinkedDictionary.prototype.keys = function () {
+        var array = [];
+        this.forEach(function (key, value) {
+            array.push(key);
+        });
+        return array;
+    };
+    /**
+     * Returns an array containing all of the values in this LinkedDictionary, ordered by
+     * insertion order.
+     * @return {Array} an array containing all of the values in this LinkedDictionary,
+     * ordered by insertion order.
+     */
+    LinkedDictionary.prototype.values = function () {
+        var array = [];
+        this.forEach(function (key, value) {
+            array.push(value);
+        });
+        return array;
+    };
+    /**
+    * Executes the provided function once for each key-value pair
+    * present in this LinkedDictionary. It is done in the order of insertion
+    * into the LinkedDictionary
+    * @param {function(Object,Object):*} callback function to execute, it is
+    * invoked with two arguments: key and value. To break the iteration you can
+    * optionally return false.
+    */
+    LinkedDictionary.prototype.forEach = function (callback) {
+        var crawlNode = this.head.next;
+        while (crawlNode.next != null) {
+            var ret = callback(crawlNode.key, crawlNode.value);
+            if (ret === false) {
+                return;
+            }
+            crawlNode = crawlNode.next;
+        }
+    };
+    return LinkedDictionary;
+}(Dictionary_1.default));
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = LinkedDictionary; // End of LinkedDictionary
+// /**
+//  * Returns true if this dictionary is equal to the given dictionary.
+//  * Two dictionaries are equal if they contain the same mappings.
+//  * @param {collections.Dictionary} other the other dictionary.
+//  * @param {function(Object,Object):boolean=} valuesEqualFunction optional
+//  * function used to check if two values are equal.
+//  * @return {boolean} true if this dictionary is equal to the given dictionary.
+//  */
+// collections.Dictionary.prototype.equals = function(other,valuesEqualFunction) {
+// 	const eqF = valuesEqualFunction || collections.defaultEquals;
+// 	if(!(other instanceof collections.Dictionary)){
+// 		return false;
+// 	}
+// 	if(this.size() !== other.size()){
+// 		return false;
+// 	}
+// 	return this.equalsAux(this.firstNode,other.firstNode,eqF);
+// }
+
+},{"./Dictionary":3,"./util":13}],6:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var arrays = require('./arrays');
+var LinkedList = (function () {
+    /**
+    * Creates an empty Linked List.
+    * @class A linked list is a data structure consisting of a group of nodes
+    * which together represent a sequence.
+    * @constructor
+    */
+    function LinkedList() {
+        /**
+        * First node in the list
+        * @type {Object}
+        * @private
+        */
+        this.firstNode = null;
+        /**
+        * Last node in the list
+        * @type {Object}
+        * @private
+        */
+        this.lastNode = null;
+        /**
+        * Number of elements in the list
+        * @type {number}
+        * @private
+        */
+        this.nElements = 0;
+    }
+    /**
+    * Adds an element to this list.
+    * @param {Object} item element to be added.
+    * @param {number=} index optional index to add the element. If no index is specified
+    * the element is added to the end of this list.
+    * @return {boolean} true if the element was added or false if the index is invalid
+    * or if the element is undefined.
+    */
+    LinkedList.prototype.add = function (item, index) {
+        if (util.isUndefined(index)) {
+            index = this.nElements;
+        }
+        if (index < 0 || index > this.nElements || util.isUndefined(item)) {
+            return false;
+        }
+        var newNode = this.createNode(item);
+        if (this.nElements === 0) {
+            // First node in the list.
+            this.firstNode = newNode;
+            this.lastNode = newNode;
+        }
+        else if (index === this.nElements) {
+            // Insert at the end.
+            this.lastNode.next = newNode;
+            this.lastNode = newNode;
+        }
+        else if (index === 0) {
+            // Change first node.
+            newNode.next = this.firstNode;
+            this.firstNode = newNode;
+        }
+        else {
+            var prev = this.nodeAtIndex(index - 1);
+            newNode.next = prev.next;
+            prev.next = newNode;
+        }
+        this.nElements++;
+        return true;
+    };
+    /**
+    * Returns the first element in this list.
+    * @return {*} the first element of the list or undefined if the list is
+    * empty.
+    */
+    LinkedList.prototype.first = function () {
+        if (this.firstNode !== null) {
+            return this.firstNode.element;
+        }
+        return undefined;
+    };
+    /**
+    * Returns the last element in this list.
+    * @return {*} the last element in the list or undefined if the list is
+    * empty.
+    */
+    LinkedList.prototype.last = function () {
+        if (this.lastNode !== null) {
+            return this.lastNode.element;
+        }
+        return undefined;
+    };
+    /**
+     * Returns the element at the specified position in this list.
+     * @param {number} index desired index.
+     * @return {*} the element at the given index or undefined if the index is
+     * out of bounds.
+     */
+    LinkedList.prototype.elementAtIndex = function (index) {
+        var node = this.nodeAtIndex(index);
+        if (node === null) {
+            return undefined;
+        }
+        return node.element;
+    };
+    /**
+     * Returns the index in this list of the first occurrence of the
+     * specified element, or -1 if the List does not contain this element.
+     * <p>If the elements inside this list are
+     * not comparable with the === operator a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName = function(pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} item element to search for.
+     * @param {function(Object,Object):boolean=} equalsFunction Optional
+     * function used to check if two elements are equal.
+     * @return {number} the index in this list of the first occurrence
+     * of the specified element, or -1 if this list does not contain the
+     * element.
+     */
+    LinkedList.prototype.indexOf = function (item, equalsFunction) {
+        var equalsF = equalsFunction || util.defaultEquals;
+        if (util.isUndefined(item)) {
+            return -1;
+        }
+        var currentNode = this.firstNode;
+        var index = 0;
+        while (currentNode !== null) {
+            if (equalsF(currentNode.element, item)) {
+                return index;
+            }
+            index++;
+            currentNode = currentNode.next;
+        }
+        return -1;
+    };
+    /**
+       * Returns true if this list contains the specified element.
+       * <p>If the elements inside the list are
+       * not comparable with the === operator a custom equals function should be
+       * provided to perform searches, the function must receive two arguments and
+       * return true if they are equal, false otherwise. Example:</p>
+       *
+       * <pre>
+       * const petsAreEqualByName = function(pet1, pet2) {
+       *  return pet1.name === pet2.name;
+       * }
+       * </pre>
+       * @param {Object} item element to search for.
+       * @param {function(Object,Object):boolean=} equalsFunction Optional
+       * function used to check if two elements are equal.
+       * @return {boolean} true if this list contains the specified element, false
+       * otherwise.
+       */
+    LinkedList.prototype.contains = function (item, equalsFunction) {
+        return (this.indexOf(item, equalsFunction) >= 0);
+    };
+    /**
+     * Removes the first occurrence of the specified element in this list.
+     * <p>If the elements inside the list are
+     * not comparable with the === operator a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName = function(pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} item element to be removed from this list, if present.
+     * @return {boolean} true if the list contained the specified element.
+     */
+    LinkedList.prototype.remove = function (item, equalsFunction) {
+        var equalsF = equalsFunction || util.defaultEquals;
+        if (this.nElements < 1 || util.isUndefined(item)) {
+            return false;
+        }
+        var previous = null;
+        var currentNode = this.firstNode;
+        while (currentNode !== null) {
+            if (equalsF(currentNode.element, item)) {
+                if (currentNode === this.firstNode) {
+                    this.firstNode = this.firstNode.next;
+                    if (currentNode === this.lastNode) {
+                        this.lastNode = null;
+                    }
+                }
+                else if (currentNode === this.lastNode) {
+                    this.lastNode = previous;
+                    previous.next = currentNode.next;
+                    currentNode.next = null;
+                }
+                else {
+                    previous.next = currentNode.next;
+                    currentNode.next = null;
+                }
+                this.nElements--;
+                return true;
+            }
+            previous = currentNode;
+            currentNode = currentNode.next;
+        }
+        return false;
+    };
+    /**
+     * Removes all of the elements from this list.
+     */
+    LinkedList.prototype.clear = function () {
+        this.firstNode = null;
+        this.lastNode = null;
+        this.nElements = 0;
+    };
+    /**
+     * Returns true if this list is equal to the given list.
+     * Two lists are equal if they have the same elements in the same order.
+     * @param {LinkedList} other the other list.
+     * @param {function(Object,Object):boolean=} equalsFunction optional
+     * function used to check if two elements are equal. If the elements in the lists
+     * are custom objects you should provide a function, otherwise
+     * the === operator is used to check equality between elements.
+     * @return {boolean} true if this list is equal to the given list.
+     */
+    LinkedList.prototype.equals = function (other, equalsFunction) {
+        var eqF = equalsFunction || util.defaultEquals;
+        if (!(other instanceof LinkedList)) {
+            return false;
+        }
+        if (this.size() !== other.size()) {
+            return false;
+        }
+        return this.equalsAux(this.firstNode, other.firstNode, eqF);
+    };
+    /**
+    * @private
+    */
+    LinkedList.prototype.equalsAux = function (n1, n2, eqF) {
+        while (n1 !== null) {
+            if (!eqF(n1.element, n2.element)) {
+                return false;
+            }
+            n1 = n1.next;
+            n2 = n2.next;
+        }
+        return true;
+    };
+    /**
+     * Removes the element at the specified position in this list.
+     * @param {number} index given index.
+     * @return {*} removed element or undefined if the index is out of bounds.
+     */
+    LinkedList.prototype.removeElementAtIndex = function (index) {
+        if (index < 0 || index >= this.nElements) {
+            return undefined;
+        }
+        var element;
+        if (this.nElements === 1) {
+            //First node in the list.
+            element = this.firstNode.element;
+            this.firstNode = null;
+            this.lastNode = null;
+        }
+        else {
+            var previous = this.nodeAtIndex(index - 1);
+            if (previous === null) {
+                element = this.firstNode.element;
+                this.firstNode = this.firstNode.next;
+            }
+            else if (previous.next === this.lastNode) {
+                element = this.lastNode.element;
+                this.lastNode = previous;
+            }
+            if (previous !== null) {
+                element = previous.next.element;
+                previous.next = previous.next.next;
+            }
+        }
+        this.nElements--;
+        return element;
+    };
+    /**
+     * Executes the provided function once for each element present in this list in order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    LinkedList.prototype.forEach = function (callback) {
+        var currentNode = this.firstNode;
+        while (currentNode !== null) {
+            if (callback(currentNode.element) === false) {
+                break;
+            }
+            currentNode = currentNode.next;
+        }
+    };
+    /**
+     * Reverses the order of the elements in this linked list (makes the last
+     * element first, and the first element last).
+     */
+    LinkedList.prototype.reverse = function () {
+        var previous = null;
+        var current = this.firstNode;
+        var temp = null;
+        while (current !== null) {
+            temp = current.next;
+            current.next = previous;
+            previous = current;
+            current = temp;
+        }
+        temp = this.firstNode;
+        this.firstNode = this.lastNode;
+        this.lastNode = temp;
+    };
+    /**
+     * Returns an array containing all of the elements in this list in proper
+     * sequence.
+     * @return {Array.<*>} an array containing all of the elements in this list,
+     * in proper sequence.
+     */
+    LinkedList.prototype.toArray = function () {
+        var array = [];
+        var currentNode = this.firstNode;
+        while (currentNode !== null) {
+            array.push(currentNode.element);
+            currentNode = currentNode.next;
+        }
+        return array;
+    };
+    /**
+     * Returns the number of elements in this list.
+     * @return {number} the number of elements in this list.
+     */
+    LinkedList.prototype.size = function () {
+        return this.nElements;
+    };
+    /**
+     * Returns true if this list contains no elements.
+     * @return {boolean} true if this list contains no elements.
+     */
+    LinkedList.prototype.isEmpty = function () {
+        return this.nElements <= 0;
+    };
+    LinkedList.prototype.toString = function () {
+        return arrays.toString(this.toArray());
+    };
+    /**
+     * @private
+     */
+    LinkedList.prototype.nodeAtIndex = function (index) {
+        if (index < 0 || index >= this.nElements) {
+            return null;
+        }
+        if (index === (this.nElements - 1)) {
+            return this.lastNode;
+        }
+        var node = this.firstNode;
+        for (var i = 0; i < index; i++) {
+            node = node.next;
+        }
+        return node;
+    };
+    /**
+     * @private
+     */
+    LinkedList.prototype.createNode = function (item) {
+        return {
+            element: item,
+            next: null
+        };
+    };
+    return LinkedList;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = LinkedList; // End of linked list
+
+},{"./arrays":12,"./util":13}],7:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Dictionary_1 = require('./Dictionary');
+var arrays = require('./arrays');
+var MultiDictionary = (function () {
+    /**
+     * Creates an empty multi dictionary.
+     * @class <p>A multi dictionary is a special kind of dictionary that holds
+     * multiple values against each key. Setting a value into the dictionary will
+     * add the value to an array at that key. Getting a key will return an array,
+     * holding all the values set to that key.
+     * You can configure to allow duplicates in the values.
+     * This implementation accepts any kind of objects as keys.</p>
+     *
+     * <p>If the keys are custom objects a function which converts keys to strings must be
+     * provided. Example:</p>
+     *
+     * <pre>
+     * function petToString(pet) {
+       *  return pet.name;
+       * }
+     * </pre>
+     * <p>If the values are custom objects a function to check equality between values
+     * must be provided. Example:</p>
+     *
+     * <pre>
+     * function petsAreEqualByAge(pet1,pet2) {
+       *  return pet1.age===pet2.age;
+       * }
+     * </pre>
+     * @constructor
+     * @param {function(Object):string=} toStrFunction optional function
+     * to convert keys to strings. If the keys aren't strings or if toString()
+     * is not appropriate, a custom function which receives a key and returns a
+     * unique string must be provided.
+     * @param {function(Object,Object):boolean=} valuesEqualsFunction optional
+     * function to check if two values are equal.
+     *
+     * @param allowDuplicateValues
+     */
+    function MultiDictionary(toStrFunction, valuesEqualsFunction, allowDuplicateValues) {
+        if (allowDuplicateValues === void 0) { allowDuplicateValues = false; }
+        this.dict = new Dictionary_1.default(toStrFunction);
+        this.equalsF = valuesEqualsFunction || util.defaultEquals;
+        this.allowDuplicate = allowDuplicateValues;
+    }
+    /**
+    * Returns an array holding the values to which this dictionary maps
+    * the specified key.
+    * Returns an empty array if this dictionary contains no mappings for this key.
+    * @param {Object} key key whose associated values are to be returned.
+    * @return {Array} an array holding the values to which this dictionary maps
+    * the specified key.
+    */
+    MultiDictionary.prototype.getValue = function (key) {
+        var values = this.dict.getValue(key);
+        if (util.isUndefined(values)) {
+            return [];
+        }
+        return arrays.copy(values);
+    };
+    /**
+     * Adds the value to the array associated with the specified key, if
+     * it is not already present.
+     * @param {Object} key key with which the specified value is to be
+     * associated.
+     * @param {Object} value the value to add to the array at the key
+     * @return {boolean} true if the value was not already associated with that key.
+     */
+    MultiDictionary.prototype.setValue = function (key, value) {
+        if (util.isUndefined(key) || util.isUndefined(value)) {
+            return false;
+        }
+        if (!this.containsKey(key)) {
+            this.dict.setValue(key, [value]);
+            return true;
+        }
+        var array = this.dict.getValue(key);
+        if (!this.allowDuplicate) {
+            if (arrays.contains(array, value, this.equalsF)) {
+                return false;
+            }
+        }
+        array.push(value);
+        return true;
+    };
+    /**
+     * Removes the specified values from the array of values associated with the
+     * specified key. If a value isn't given, all values associated with the specified
+     * key are removed.
+     * @param {Object} key key whose mapping is to be removed from the
+     * dictionary.
+     * @param {Object=} value optional argument to specify the value to remove
+     * from the array associated with the specified key.
+     * @return {*} true if the dictionary changed, false if the key doesn't exist or
+     * if the specified value isn't associated with the specified key.
+     */
+    MultiDictionary.prototype.remove = function (key, value) {
+        if (util.isUndefined(value)) {
+            var v = this.dict.remove(key);
+            return !util.isUndefined(v);
+        }
+        var array = this.dict.getValue(key);
+        if (arrays.remove(array, value, this.equalsF)) {
+            if (array.length === 0) {
+                this.dict.remove(key);
+            }
+            return true;
+        }
+        return false;
+    };
+    /**
+     * Returns an array containing all of the keys in this dictionary.
+     * @return {Array} an array containing all of the keys in this dictionary.
+     */
+    MultiDictionary.prototype.keys = function () {
+        return this.dict.keys();
+    };
+    /**
+     * Returns an array containing all of the values in this dictionary.
+     * @return {Array} an array containing all of the values in this dictionary.
+     */
+    MultiDictionary.prototype.values = function () {
+        var values = this.dict.values();
+        var array = [];
+        for (var _i = 0, values_1 = values; _i < values_1.length; _i++) {
+            var v = values_1[_i];
+            for (var _a = 0, v_1 = v; _a < v_1.length; _a++) {
+                var w = v_1[_a];
+                array.push(w);
+            }
+        }
+        return array;
+    };
+    /**
+     * Returns true if this dictionary at least one value associatted the specified key.
+     * @param {Object} key key whose presence in this dictionary is to be
+     * tested.
+     * @return {boolean} true if this dictionary at least one value associatted
+     * the specified key.
+     */
+    MultiDictionary.prototype.containsKey = function (key) {
+        return this.dict.containsKey(key);
+    };
+    /**
+     * Removes all mappings from this dictionary.
+     */
+    MultiDictionary.prototype.clear = function () {
+        this.dict.clear();
+    };
+    /**
+     * Returns the number of keys in this dictionary.
+     * @return {number} the number of key-value mappings in this dictionary.
+     */
+    MultiDictionary.prototype.size = function () {
+        return this.dict.size();
+    };
+    /**
+     * Returns true if this dictionary contains no mappings.
+     * @return {boolean} true if this dictionary contains no mappings.
+     */
+    MultiDictionary.prototype.isEmpty = function () {
+        return this.dict.isEmpty();
+    };
+    return MultiDictionary;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = MultiDictionary; // end of multi dictionary
+
+},{"./Dictionary":3,"./arrays":12,"./util":13}],8:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var Heap_1 = require('./Heap');
+var PriorityQueue = (function () {
+    /**
+     * Creates an empty priority queue.
+     * @class <p>In a priority queue each element is associated with a "priority",
+     * elements are dequeued in highest-priority-first order (the elements with the
+     * highest priority are dequeued first). Priority Queues are implemented as heaps.
+     * If the inserted elements are custom objects a compare function must be provided,
+     * otherwise the <=, === and >= operators are used to compare object priority.</p>
+     * <pre>
+     * function compare(a, b) {
+     *  if (a is less than b by some ordering criterion) {
+     *     return -1;
+     *  } if (a is greater than b by the ordering criterion) {
+     *     return 1;
+     *  }
+     *  // a must be equal to b
+     *  return 0;
+     * }
+     * </pre>
+     * @constructor
+     * @param {function(Object,Object):number=} compareFunction optional
+     * function used to compare two element priorities. Must return a negative integer,
+     * zero, or a positive integer as the first argument is less than, equal to,
+     * or greater than the second.
+     */
+    function PriorityQueue(compareFunction) {
+        this.heap = new Heap_1.default(util.reverseCompareFunction(compareFunction));
+    }
+    /**
+     * Inserts the specified element into this priority queue.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    PriorityQueue.prototype.enqueue = function (element) {
+        return this.heap.add(element);
+    };
+    /**
+     * Inserts the specified element into this priority queue.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    PriorityQueue.prototype.add = function (element) {
+        return this.heap.add(element);
+    };
+    /**
+     * Retrieves and removes the highest priority element of this queue.
+     * @return {*} the the highest priority element of this queue,
+     *  or undefined if this queue is empty.
+     */
+    PriorityQueue.prototype.dequeue = function () {
+        if (this.heap.size() !== 0) {
+            var el = this.heap.peek();
+            this.heap.removeRoot();
+            return el;
+        }
+        return undefined;
+    };
+    /**
+     * Retrieves, but does not remove, the highest priority element of this queue.
+     * @return {*} the highest priority element of this queue, or undefined if this queue is empty.
+     */
+    PriorityQueue.prototype.peek = function () {
+        return this.heap.peek();
+    };
+    /**
+     * Returns true if this priority queue contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this priority queue contains the specified element,
+     * false otherwise.
+     */
+    PriorityQueue.prototype.contains = function (element) {
+        return this.heap.contains(element);
+    };
+    /**
+     * Checks if this priority queue is empty.
+     * @return {boolean} true if and only if this priority queue contains no items; false
+     * otherwise.
+     */
+    PriorityQueue.prototype.isEmpty = function () {
+        return this.heap.isEmpty();
+    };
+    /**
+     * Returns the number of elements in this priority queue.
+     * @return {number} the number of elements in this priority queue.
+     */
+    PriorityQueue.prototype.size = function () {
+        return this.heap.size();
+    };
+    /**
+     * Removes all of the elements from this priority queue.
+     */
+    PriorityQueue.prototype.clear = function () {
+        this.heap.clear();
+    };
+    /**
+     * Executes the provided function once for each element present in this queue in
+     * no particular order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    PriorityQueue.prototype.forEach = function (callback) {
+        this.heap.forEach(callback);
+    };
+    return PriorityQueue;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = PriorityQueue; // end of priority queue
+
+},{"./Heap":4,"./util":13}],9:[function(require,module,exports){
+"use strict";
+var LinkedList_1 = require('./LinkedList');
+var Queue = (function () {
+    /**
+     * Creates an empty queue.
+     * @class A queue is a First-In-First-Out (FIFO) data structure, the first
+     * element added to the queue will be the first one to be removed. This
+     * implementation uses a linked list as a container.
+     * @constructor
+     */
+    function Queue() {
+        this.list = new LinkedList_1.default();
+    }
+    /**
+     * Inserts the specified element into the end of this queue.
+     * @param {Object} elem the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    Queue.prototype.enqueue = function (elem) {
+        return this.list.add(elem);
+    };
+    /**
+     * Inserts the specified element into the end of this queue.
+     * @param {Object} elem the element to insert.
+     * @return {boolean} true if the element was inserted, or false if it is undefined.
+     */
+    Queue.prototype.add = function (elem) {
+        return this.list.add(elem);
+    };
+    /**
+     * Retrieves and removes the head of this queue.
+     * @return {*} the head of this queue, or undefined if this queue is empty.
+     */
+    Queue.prototype.dequeue = function () {
+        if (this.list.size() !== 0) {
+            var el = this.list.first();
+            this.list.removeElementAtIndex(0);
+            return el;
+        }
+        return undefined;
+    };
+    /**
+     * Retrieves, but does not remove, the head of this queue.
+     * @return {*} the head of this queue, or undefined if this queue is empty.
+     */
+    Queue.prototype.peek = function () {
+        if (this.list.size() !== 0) {
+            return this.list.first();
+        }
+        return undefined;
+    };
+    /**
+     * Returns the number of elements in this queue.
+     * @return {number} the number of elements in this queue.
+     */
+    Queue.prototype.size = function () {
+        return this.list.size();
+    };
+    /**
+     * Returns true if this queue contains the specified element.
+     * <p>If the elements inside this stack are
+     * not comparable with the === operator, a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName (pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} elem element to search for.
+     * @param {function(Object,Object):boolean=} equalsFunction optional
+     * function to check if two elements are equal.
+     * @return {boolean} true if this queue contains the specified element,
+     * false otherwise.
+     */
+    Queue.prototype.contains = function (elem, equalsFunction) {
+        return this.list.contains(elem, equalsFunction);
+    };
+    /**
+     * Checks if this queue is empty.
+     * @return {boolean} true if and only if this queue contains no items; false
+     * otherwise.
+     */
+    Queue.prototype.isEmpty = function () {
+        return this.list.size() <= 0;
+    };
+    /**
+     * Removes all of the elements from this queue.
+     */
+    Queue.prototype.clear = function () {
+        this.list.clear();
+    };
+    /**
+     * Executes the provided function once for each element present in this queue in
+     * FIFO order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    Queue.prototype.forEach = function (callback) {
+        this.list.forEach(callback);
+    };
+    return Queue;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Queue; // End of queue
+
+},{"./LinkedList":6}],10:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+var arrays = require('./arrays');
+var Dictionary_1 = require('./Dictionary');
+var Set = (function () {
+    /**
+     * Creates an empty set.
+     * @class <p>A set is a data structure that contains no duplicate items.</p>
+     * <p>If the inserted elements are custom objects a function
+     * which converts elements to strings must be provided. Example:</p>
+     *
+     * <pre>
+     * function petToString(pet) {
+     *  return pet.name;
+     * }
+     * </pre>
+     *
+     * @constructor
+     * @param {function(Object):string=} toStringFunction optional function used
+     * to convert elements to strings. If the elements aren't strings or if toString()
+     * is not appropriate, a custom function which receives a onject and returns a
+     * unique string must be provided.
+     */
+    function Set(toStringFunction) {
+        this.dictionary = new Dictionary_1.default(toStringFunction);
+    }
+    /**
+     * Returns true if this set contains the specified element.
+     * @param {Object} element element to search for.
+     * @return {boolean} true if this set contains the specified element,
+     * false otherwise.
+     */
+    Set.prototype.contains = function (element) {
+        return this.dictionary.containsKey(element);
+    };
+    /**
+     * Adds the specified element to this set if it is not already present.
+     * @param {Object} element the element to insert.
+     * @return {boolean} true if this set did not already contain the specified element.
+     */
+    Set.prototype.add = function (element) {
+        if (this.contains(element) || util.isUndefined(element)) {
+            return false;
+        }
+        else {
+            this.dictionary.setValue(element, element);
+            return true;
+        }
+    };
+    /**
+     * Performs an intersecion between this an another set.
+     * Removes all values that are not present this set and the given set.
+     * @param {collections.Set} otherSet other set.
+     */
+    Set.prototype.intersection = function (otherSet) {
+        var set = this;
+        this.forEach(function (element) {
+            if (!otherSet.contains(element)) {
+                set.remove(element);
+            }
+            return true;
+        });
+    };
+    /**
+     * Performs a union between this an another set.
+     * Adds all values from the given set to this set.
+     * @param {collections.Set} otherSet other set.
+     */
+    Set.prototype.union = function (otherSet) {
+        var set = this;
+        otherSet.forEach(function (element) {
+            set.add(element);
+            return true;
+        });
+    };
+    /**
+     * Performs a difference between this an another set.
+     * Removes from this set all the values that are present in the given set.
+     * @param {collections.Set} otherSet other set.
+     */
+    Set.prototype.difference = function (otherSet) {
+        var set = this;
+        otherSet.forEach(function (element) {
+            set.remove(element);
+            return true;
+        });
+    };
+    /**
+     * Checks whether the given set contains all the elements in this set.
+     * @param {collections.Set} otherSet other set.
+     * @return {boolean} true if this set is a subset of the given set.
+     */
+    Set.prototype.isSubsetOf = function (otherSet) {
+        if (this.size() > otherSet.size()) {
+            return false;
+        }
+        var isSub = true;
+        this.forEach(function (element) {
+            if (!otherSet.contains(element)) {
+                isSub = false;
+                return false;
+            }
+            return true;
+        });
+        return isSub;
+    };
+    /**
+     * Removes the specified element from this set if it is present.
+     * @return {boolean} true if this set contained the specified element.
+     */
+    Set.prototype.remove = function (element) {
+        if (!this.contains(element)) {
+            return false;
+        }
+        else {
+            this.dictionary.remove(element);
+            return true;
+        }
+    };
+    /**
+     * Executes the provided function once for each element
+     * present in this set.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one arguments: the element. To break the iteration you can
+     * optionally return false.
+     */
+    Set.prototype.forEach = function (callback) {
+        this.dictionary.forEach(function (k, v) {
+            return callback(v);
+        });
+    };
+    /**
+     * Returns an array containing all of the elements in this set in arbitrary order.
+     * @return {Array} an array containing all of the elements in this set.
+     */
+    Set.prototype.toArray = function () {
+        return this.dictionary.values();
+    };
+    /**
+     * Returns true if this set contains no elements.
+     * @return {boolean} true if this set contains no elements.
+     */
+    Set.prototype.isEmpty = function () {
+        return this.dictionary.isEmpty();
+    };
+    /**
+     * Returns the number of elements in this set.
+     * @return {number} the number of elements in this set.
+     */
+    Set.prototype.size = function () {
+        return this.dictionary.size();
+    };
+    /**
+     * Removes all of the elements from this set.
+     */
+    Set.prototype.clear = function () {
+        this.dictionary.clear();
+    };
+    /*
+    * Provides a string representation for display
+    */
+    Set.prototype.toString = function () {
+        return arrays.toString(this.toArray());
+    };
+    return Set;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Set; // end of Set
+
+},{"./Dictionary":3,"./arrays":12,"./util":13}],11:[function(require,module,exports){
+"use strict";
+var LinkedList_1 = require('./LinkedList');
+var Stack = (function () {
+    /**
+     * Creates an empty Stack.
+     * @class A Stack is a Last-In-First-Out (LIFO) data structure, the last
+     * element added to the stack will be the first one to be removed. This
+     * implementation uses a linked list as a container.
+     * @constructor
+     */
+    function Stack() {
+        this.list = new LinkedList_1.default();
+    }
+    /**
+     * Pushes an item onto the top of this stack.
+     * @param {Object} elem the element to be pushed onto this stack.
+     * @return {boolean} true if the element was pushed or false if it is undefined.
+     */
+    Stack.prototype.push = function (elem) {
+        return this.list.add(elem, 0);
+    };
+    /**
+     * Pushes an item onto the top of this stack.
+     * @param {Object} elem the element to be pushed onto this stack.
+     * @return {boolean} true if the element was pushed or false if it is undefined.
+     */
+    Stack.prototype.add = function (elem) {
+        return this.list.add(elem, 0);
+    };
+    /**
+     * Removes the object at the top of this stack and returns that object.
+     * @return {*} the object at the top of this stack or undefined if the
+     * stack is empty.
+     */
+    Stack.prototype.pop = function () {
+        return this.list.removeElementAtIndex(0);
+    };
+    /**
+     * Looks at the object at the top of this stack without removing it from the
+     * stack.
+     * @return {*} the object at the top of this stack or undefined if the
+     * stack is empty.
+     */
+    Stack.prototype.peek = function () {
+        return this.list.first();
+    };
+    /**
+     * Returns the number of elements in this stack.
+     * @return {number} the number of elements in this stack.
+     */
+    Stack.prototype.size = function () {
+        return this.list.size();
+    };
+    /**
+     * Returns true if this stack contains the specified element.
+     * <p>If the elements inside this stack are
+     * not comparable with the === operator, a custom equals function should be
+     * provided to perform searches, the function must receive two arguments and
+     * return true if they are equal, false otherwise. Example:</p>
+     *
+     * <pre>
+     * const petsAreEqualByName (pet1, pet2) {
+     *  return pet1.name === pet2.name;
+     * }
+     * </pre>
+     * @param {Object} elem element to search for.
+     * @param {function(Object,Object):boolean=} equalsFunction optional
+     * function to check if two elements are equal.
+     * @return {boolean} true if this stack contains the specified element,
+     * false otherwise.
+     */
+    Stack.prototype.contains = function (elem, equalsFunction) {
+        return this.list.contains(elem, equalsFunction);
+    };
+    /**
+     * Checks if this stack is empty.
+     * @return {boolean} true if and only if this stack contains no items; false
+     * otherwise.
+     */
+    Stack.prototype.isEmpty = function () {
+        return this.list.isEmpty();
+    };
+    /**
+     * Removes all of the elements from this stack.
+     */
+    Stack.prototype.clear = function () {
+        this.list.clear();
+    };
+    /**
+     * Executes the provided function once for each element present in this stack in
+     * LIFO order.
+     * @param {function(Object):*} callback function to execute, it is
+     * invoked with one argument: the element value, to break the iteration you can
+     * optionally return false.
+     */
+    Stack.prototype.forEach = function (callback) {
+        this.list.forEach(callback);
+    };
+    return Stack;
+}());
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = Stack; // End of stack
+
+},{"./LinkedList":6}],12:[function(require,module,exports){
+"use strict";
+var util = require('./util');
+/**
+ * Returns the position of the first occurrence of the specified item
+ * within the specified array.4
+ * @param {*} array the array in which to search the element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between 2 elements.
+ * @return {number} the position of the first occurrence of the specified element
+ * within the specified array, or -1 if not found.
+ */
+function indexOf(array, item, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    var length = array.length;
+    for (var i = 0; i < length; i++) {
+        if (equals(array[i], item)) {
+            return i;
+        }
+    }
+    return -1;
+}
+exports.indexOf = indexOf;
+/**
+ * Returns the position of the last occurrence of the specified element
+ * within the specified array.
+ * @param {*} array the array in which to search the element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between 2 elements.
+ * @return {number} the position of the last occurrence of the specified element
+ * within the specified array or -1 if not found.
+ */
+function lastIndexOf(array, item, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    var length = array.length;
+    for (var i = length - 1; i >= 0; i--) {
+        if (equals(array[i], item)) {
+            return i;
+        }
+    }
+    return -1;
+}
+exports.lastIndexOf = lastIndexOf;
+/**
+ * Returns true if the specified array contains the specified element.
+ * @param {*} array the array in which to search the element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function to
+ * check equality between 2 elements.
+ * @return {boolean} true if the specified array contains the specified element.
+ */
+function contains(array, item, equalsFunction) {
+    return indexOf(array, item, equalsFunction) >= 0;
+}
+exports.contains = contains;
+/**
+ * Removes the first ocurrence of the specified element from the specified array.
+ * @param {*} array the array in which to search element.
+ * @param {Object} item the element to search.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function to
+ * check equality between 2 elements.
+ * @return {boolean} true if the array changed after this call.
+ */
+function remove(array, item, equalsFunction) {
+    var index = indexOf(array, item, equalsFunction);
+    if (index < 0) {
+        return false;
+    }
+    array.splice(index, 1);
+    return true;
+}
+exports.remove = remove;
+/**
+ * Returns the number of elements in the specified array equal
+ * to the specified object.
+ * @param {Array} array the array in which to determine the frequency of the element.
+ * @param {Object} item the element whose frequency is to be determined.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between 2 elements.
+ * @return {number} the number of elements in the specified array
+ * equal to the specified object.
+ */
+function frequency(array, item, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    var length = array.length;
+    var freq = 0;
+    for (var i = 0; i < length; i++) {
+        if (equals(array[i], item)) {
+            freq++;
+        }
+    }
+    return freq;
+}
+exports.frequency = frequency;
+/**
+ * Returns true if the two specified arrays are equal to one another.
+ * Two arrays are considered equal if both arrays contain the same number
+ * of elements, and all corresponding pairs of elements in the two
+ * arrays are equal and are in the same order.
+ * @param {Array} array1 one array to be tested for equality.
+ * @param {Array} array2 the other array to be tested for equality.
+ * @param {function(Object,Object):boolean=} equalsFunction optional function used to
+ * check equality between elemements in the arrays.
+ * @return {boolean} true if the two arrays are equal
+ */
+function equals(array1, array2, equalsFunction) {
+    var equals = equalsFunction || util.defaultEquals;
+    if (array1.length !== array2.length) {
+        return false;
+    }
+    var length = array1.length;
+    for (var i = 0; i < length; i++) {
+        if (!equals(array1[i], array2[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+exports.equals = equals;
+/**
+ * Returns shallow a copy of the specified array.
+ * @param {*} array the array to copy.
+ * @return {Array} a copy of the specified array
+ */
+function copy(array) {
+    return array.concat();
+}
+exports.copy = copy;
+/**
+ * Swaps the elements at the specified positions in the specified array.
+ * @param {Array} array The array in which to swap elements.
+ * @param {number} i the index of one element to be swapped.
+ * @param {number} j the index of the other element to be swapped.
+ * @return {boolean} true if the array is defined and the indexes are valid.
+ */
+function swap(array, i, j) {
+    if (i < 0 || i >= array.length || j < 0 || j >= array.length) {
+        return false;
+    }
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+    return true;
+}
+exports.swap = swap;
+function toString(array) {
+    return '[' + array.toString() + ']';
+}
+exports.toString = toString;
+/**
+ * Executes the provided function once for each element present in this array
+ * starting from index 0 to length - 1.
+ * @param {Array} array The array in which to iterate.
+ * @param {function(Object):*} callback function to execute, it is
+ * invoked with one argument: the element value, to break the iteration you can
+ * optionally return false.
+ */
+function forEach(array, callback) {
+    for (var _i = 0, array_1 = array; _i < array_1.length; _i++) {
+        var ele = array_1[_i];
+        if (callback(ele) === false) {
+            return;
+        }
+    }
+}
+exports.forEach = forEach;
+
+},{"./util":13}],13:[function(require,module,exports){
+"use strict";
+var _hasOwnProperty = Object.prototype.hasOwnProperty;
+exports.has = function (obj, prop) {
+    return _hasOwnProperty.call(obj, prop);
+};
+/**
+ * Default function to compare element order.
+ * @function
+ */
+function defaultCompare(a, b) {
+    if (a < b) {
+        return -1;
+    }
+    else if (a === b) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+}
+exports.defaultCompare = defaultCompare;
+/**
+ * Default function to test equality.
+ * @function
+ */
+function defaultEquals(a, b) {
+    return a === b;
+}
+exports.defaultEquals = defaultEquals;
+/**
+ * Default function to convert an object to a string.
+ * @function
+ */
+function defaultToString(item) {
+    if (item === null) {
+        return 'COLLECTION_NULL';
+    }
+    else if (isUndefined(item)) {
+        return 'COLLECTION_UNDEFINED';
+    }
+    else if (isString(item)) {
+        return '$s' + item;
+    }
+    else {
+        return '$o' + item.toString();
+    }
+}
+exports.defaultToString = defaultToString;
+/**
+* Joins all the properies of the object using the provided join string
+*/
+function makeString(item, join) {
+    if (join === void 0) { join = ','; }
+    if (item === null) {
+        return 'COLLECTION_NULL';
+    }
+    else if (isUndefined(item)) {
+        return 'COLLECTION_UNDEFINED';
+    }
+    else if (isString(item)) {
+        return item.toString();
+    }
+    else {
+        var toret = '{';
+        var first = true;
+        for (var prop in item) {
+            if (exports.has(item, prop)) {
+                if (first) {
+                    first = false;
+                }
+                else {
+                    toret = toret + join;
+                }
+                toret = toret + prop + ':' + item[prop];
+            }
+        }
+        return toret + '}';
+    }
+}
+exports.makeString = makeString;
+/**
+ * Checks if the given argument is a function.
+ * @function
+ */
+function isFunction(func) {
+    return (typeof func) === 'function';
+}
+exports.isFunction = isFunction;
+/**
+ * Checks if the given argument is undefined.
+ * @function
+ */
+function isUndefined(obj) {
+    return (typeof obj) === 'undefined';
+}
+exports.isUndefined = isUndefined;
+/**
+ * Checks if the given argument is a string.
+ * @function
+ */
+function isString(obj) {
+    return Object.prototype.toString.call(obj) === '[object String]';
+}
+exports.isString = isString;
+/**
+ * Reverses a compare function.
+ * @function
+ */
+function reverseCompareFunction(compareFunction) {
+    if (!isFunction(compareFunction)) {
+        return function (a, b) {
+            if (a < b) {
+                return 1;
+            }
+            else if (a === b) {
+                return 0;
+            }
+            else {
+                return -1;
+            }
+        };
+    }
+    else {
+        return function (d, v) {
+            return compareFunction(d, v) * -1;
+        };
+    }
+}
+exports.reverseCompareFunction = reverseCompareFunction;
+/**
+ * Returns an equal function given a compare function.
+ * @function
+ */
+function compareToEquals(compareFunction) {
+    return function (a, b) {
+        return compareFunction(a, b) === 0;
+    };
+}
+exports.compareToEquals = compareToEquals;
+
+},{}],"typescript-collections":[function(require,module,exports){
+"use strict";
+// Copyright 2013 Basarat Ali Syed. All Rights Reserved.
+//
+// Licensed under MIT open source license http://opensource.org/licenses/MIT
+//
+// Orginal javascript code was by Mauricio Santos
+//
+var _arrays = require('./arrays');
+exports.arrays = _arrays;
+var Bag_1 = require('./Bag');
+exports.Bag = Bag_1.default;
+var BSTree_1 = require('./BSTree');
+exports.BSTree = BSTree_1.default;
+var Dictionary_1 = require('./Dictionary');
+exports.Dictionary = Dictionary_1.default;
+var Heap_1 = require('./Heap');
+exports.Heap = Heap_1.default;
+var LinkedDictionary_1 = require('./LinkedDictionary');
+exports.LinkedDictionary = LinkedDictionary_1.default;
+var LinkedList_1 = require('./LinkedList');
+exports.LinkedList = LinkedList_1.default;
+var MultiDictionary_1 = require('./MultiDictionary');
+exports.MultiDictionary = MultiDictionary_1.default;
+var Queue_1 = require('./Queue');
+exports.Queue = Queue_1.default;
+var PriorityQueue_1 = require('./PriorityQueue');
+exports.PriorityQueue = PriorityQueue_1.default;
+var Set_1 = require('./Set');
+exports.Set = Set_1.default;
+var Stack_1 = require('./Stack');
+exports.Stack = Stack_1.default;
+var _util = require('./util');
+exports.util = _util;
+
+},{"./BSTree":1,"./Bag":2,"./Dictionary":3,"./Heap":4,"./LinkedDictionary":5,"./LinkedList":6,"./MultiDictionary":7,"./PriorityQueue":8,"./Queue":9,"./Set":10,"./Stack":11,"./arrays":12,"./util":13}]},{},[])
+
+return require('typescript-collections');
+});
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{"./BSTree":540,"./Bag":541,"./Dictionary":542,"./Heap":543,"./LinkedDictionary":544,"./LinkedList":545,"./MultiDictionary":546,"./PriorityQueue":547,"./Queue":548,"./Set":549,"./Stack":550,"./arrays":551,"./util":553,"typescript-collections":552}],553:[function(require,module,exports){
+"use strict";
+var _hasOwnProperty = Object.prototype.hasOwnProperty;
+exports.has = function (obj, prop) {
+    return _hasOwnProperty.call(obj, prop);
+};
+/**
+ * Default function to compare element order.
+ * @function
+ */
+function defaultCompare(a, b) {
+    if (a < b) {
+        return -1;
+    }
+    else if (a === b) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+}
+exports.defaultCompare = defaultCompare;
+/**
+ * Default function to test equality.
+ * @function
+ */
+function defaultEquals(a, b) {
+    return a === b;
+}
+exports.defaultEquals = defaultEquals;
+/**
+ * Default function to convert an object to a string.
+ * @function
+ */
+function defaultToString(item) {
+    if (item === null) {
+        return 'COLLECTION_NULL';
+    }
+    else if (isUndefined(item)) {
+        return 'COLLECTION_UNDEFINED';
+    }
+    else if (isString(item)) {
+        return '$s' + item;
+    }
+    else {
+        return '$o' + item.toString();
+    }
+}
+exports.defaultToString = defaultToString;
+/**
+* Joins all the properies of the object using the provided join string
+*/
+function makeString(item, join) {
+    if (join === void 0) { join = ','; }
+    if (item === null) {
+        return 'COLLECTION_NULL';
+    }
+    else if (isUndefined(item)) {
+        return 'COLLECTION_UNDEFINED';
+    }
+    else if (isString(item)) {
+        return item.toString();
+    }
+    else {
+        var toret = '{';
+        var first = true;
+        for (var prop in item) {
+            if (exports.has(item, prop)) {
+                if (first) {
+                    first = false;
+                }
+                else {
+                    toret = toret + join;
+                }
+                toret = toret + prop + ':' + item[prop];
+            }
+        }
+        return toret + '}';
+    }
+}
+exports.makeString = makeString;
+/**
+ * Checks if the given argument is a function.
+ * @function
+ */
+function isFunction(func) {
+    return (typeof func) === 'function';
+}
+exports.isFunction = isFunction;
+/**
+ * Checks if the given argument is undefined.
+ * @function
+ */
+function isUndefined(obj) {
+    return (typeof obj) === 'undefined';
+}
+exports.isUndefined = isUndefined;
+/**
+ * Checks if the given argument is a string.
+ * @function
+ */
+function isString(obj) {
+    return Object.prototype.toString.call(obj) === '[object String]';
+}
+exports.isString = isString;
+/**
+ * Reverses a compare function.
+ * @function
+ */
+function reverseCompareFunction(compareFunction) {
+    if (!isFunction(compareFunction)) {
+        return function (a, b) {
+            if (a < b) {
+                return 1;
+            }
+            else if (a === b) {
+                return 0;
+            }
+            else {
+                return -1;
+            }
+        };
+    }
+    else {
+        return function (d, v) {
+            return compareFunction(d, v) * -1;
+        };
+    }
+}
+exports.reverseCompareFunction = reverseCompareFunction;
+/**
+ * Returns an equal function given a compare function.
+ * @function
+ */
+function compareToEquals(compareFunction) {
+    return function (a, b) {
+        return compareFunction(a, b) === 0;
+    };
+}
+exports.compareToEquals = compareToEquals;
+
+},{}],554:[function(require,module,exports){
+
+},{}]},{},[1,554])
 
 
 //# sourceMappingURL=app.bundle.js.map

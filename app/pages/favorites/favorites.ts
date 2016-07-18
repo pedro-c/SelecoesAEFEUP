@@ -34,8 +34,6 @@ export class FavoritesPage {
             else
                 this.toggles.push(false);
         }
-
-        console.log(this.toggles);
     }
 
     toggled(modalityId: number, event: any): void {

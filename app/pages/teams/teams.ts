@@ -16,13 +16,9 @@ export class TeamsPage {
       this.modalities = modalitiesFactory.getModalities();
   }
 
-  openModalityDetails(modality : any) {
+  openModalityDetails(modality : Modality) {
     this.navController.push(TeamDetailsPage, {
-      modalityId : modality.id
+      modalityId : modality.getId()
     });
-  }
-
-  favorite(modality : any) {
-    console.log("Oi");
   }
 }

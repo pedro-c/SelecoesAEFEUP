@@ -1,27 +1,30 @@
 import {Component} from '@angular/core';
 import {NavController} from 'ionic-angular';
 import {MatchesFactory} from '../../services/matchesFactory';
-import {EntitiesFactory} from '../../services/entitiesFactory';
 import {MatchDetailsPage} from '../matchDetails/matchDetails';
+import {Match, MatchStatus} from '../../classes/match';
 
 @Component({
   templateUrl: 'build/pages/matches/matches.html',
-  providers: [MatchesFactory, EntitiesFactory]
+  providers: [MatchesFactory]
 })
 export class MatchesPage {
-  private lastMatches : any[];
-  private nextMatches : any[];
-  private getEntityById : any;
+  private lastMatches : Match[];
+  private nextMatches : Match[];
 
-  constructor(private navController: NavController, private matchesFactory: MatchesFactory, private entitiesFactory: EntitiesFactory) {
-    this.lastMatches = matchesFactory.getLastMatches(1);
-    this.nextMatches = matchesFactory.getNextMatches(1);
-    this.getEntityById = entitiesFactory.getEntityById;
+  constructor(private navController: NavController, private matchesFactory: MatchesFactory) {
+
   }
 
-  openMatchDetails(match : any) {
+  openMatchDetails(match : Match) {
     this.navController.push(MatchDetailsPage, {
-      matchId : match.id
+      matchId : match.getId()
     });
+  }
+
+  //Updates favorites everytime the view is entered
+  ionViewWillEnter() : void {
+    this.lastMatches = this.matchesFactory.getLastMatches();
+    this.nextMatches = this.matchesFactory.getNextMatches();
   }
 }

@@ -15,8 +15,8 @@
       <ion-item *ngFor="let result of lastMatches" (click)="openMatchDetails(result)">
         <table style="width:100%">
           <tr>
-            <td align="left"> <font size="3"> {{result.teamType}} </font></td>
-            <td align="right"> <font size="2"> {{result.local}} </font></td>
+            <td align="left"> <font size="3"> {{result.getModalityName()}} </font></td>
+            <td align="right"> <font size="2"> {{result.getLocal()}} </font></td>
           </tr>
           <tr>
             <td>
@@ -27,12 +27,12 @@
             </td>
           </tr>
           <tr>
-            <td align="left"> <font size="3"> {{getEntityById(result.teamId1).shortName}} </font></td>
-            <td align="right"> <font size="3"> {{result.score1}} </font></td>
+            <td align="left"> <font size="3"> {{result.getTeam1ShortName()}} </font></td>
+            <td align="right"> <font size="3"> {{result.getScore1()}} </font></td>
           </tr>
           <tr>
-            <td align="left"> <font size="3"> {{getEntityById(result.teamId2).shortName}} </font></td>
-            <td align="right"> <font size="3"> {{result.score2}} </font></td>
+            <td align="left"> <font size="3"> {{result.getTeam2ShortName()}} </font></td>
+            <td align="right"> <font size="3"> {{result.getScore2()}} </font></td>
           </tr>
         </table>
       </ion-item>
@@ -45,8 +45,8 @@
     <ion-item *ngFor="let nextMatch of nextMatches" (click)="openMatchDetails(nextMatch)">
       <table style="width:100%">
         <tr>
-          <td align="left"> <font size="3"> {{nextMatch.teamType}} </font></td>
-          <td align="right"> <font size="2"> {{nextMatch.local}} </font></td>
+          <td align="left"> <font size="3"> {{nextMatch.getModalityName()}} </font></td>
+          <td align="right"> <font size="2"> {{nextMatch.getLocal()}} </font></td>
         </tr>
         <tr>
           <td>
@@ -57,12 +57,12 @@
           </td>
         </tr>
         <tr>
-          <td align="left"> <font size="3"> {{getEntityById(nextMatch.teamId1).shortName}} </font></td>
-          <td align="right"> <font size="3"> {{nextMatch.date | date:"dd'/'MM'/'yyyy"}} </font></td>
+          <td align="left"> <font size="3"> {{nextMatch.getTeam1ShortName()}} </font></td>
+          <td align="right"> <font size="3"> {{nextMatch.getDate() | date:"dd'/'MM'/'yyyy"}} </font></td>
         </tr>
         <tr>
-          <td align="left"> <font size="3"> {{getEntityById(nextMatch.teamId2).shortName}} </font></td>
-          <td align="right"> <font size="3"> {{nextMatch.date | date:"HH'h'mm"}} </font></td>
+          <td align="left"> <font size="3"> {{nextMatch.getTeam2ShortName()}} </font></td>
+          <td align="right"> <font size="3"> {{nextMatch.getDate() | date:"HH'h'mm"}} </font></td>
         </tr>
       </table>
     </ion-item>

@@ -1,87 +1,89 @@
 import {Injectable} from '@angular/core';
 import {FavoritesService} from './favoritesService';
+import {Match, MatchStatus} from '../classes/match';
 
-const matches : any[] = [
-  {
-    id: 0,
-    status: 'finished',
-    teamType: 'Andebol Masculino',
-    teamId1: 0, score1: 1,
-    teamId2: 1, score2: 0,
-    local: 'Pavilhão Desportivo Luís Falcão',
-    date: new Date(2016, 7, 12, 14, 0)
-  },
-  {
-    id: 1,
-    status: 'upcoming',
-    teamType: 'Futsal Feminino',
-    teamId1: 0, score1: null,
-    teamId2: 1, score2: null,
-    local: 'Pavilhão Desportivo Luís Falcão',
-    date: new Date(2016, 7, 14, 14, 0)
-  },
-  {
-    id: 2,
-    status: 'upcoming',
-    teamType: 'Futsal Feminino',
-    teamId1: 0, score1: null,
-    teamId2: 2, score2: null,
-    local: 'Campo FADEUP',
-    date: new Date(2016, 7, 15, 17, 0)
-  },
-  {
-    id: 3,
-    status: 'upcoming',
-    teamType: 'Futsal Feminino',
-    teamId1: 0, score1: null,
-    teamId2: 2, score2: null,
-    local: 'Pavilhão Desportivo Luís Falcão',
-    date: new Date(2016, 7, 14, 18, 30)
-  }
+const matches: Match[] = [
+    new Match(new Date(2016, 7, 12, 14, 0), 0, 0, 1, 1, 0,
+        'Pavilhão Desportivo Luís Falcão'),
+    new Match(new Date(2016, 7, 14, 14, 0), 7, 0, null, 1, null,
+        'Pavilhão Desportivo Luís Falcão'),
+    new Match(new Date(2016, 8, 20, 17, 0), 7, 0, null, 2, null,
+        'Campo FADEUP'),
+    new Match(new Date(2016, 9, 19, 18, 30), 7, 0, null, 2, null,
+        'Pavilhão Desportivo Luís Falcão')
 ];
+
+const LAST_MATCHES_LENGTH: number = 3;
+const NEXT_MATCHES_LENGTH: number = 3;
 
 @Injectable()
 export class MatchesFactory {
-  private favoritesService;
+    private favoritesService;
+    private lastMatches: Match[];
+    private nextMatches: Match[];
 
-  constructor() {
-    this.favoritesService = FavoritesService.getInstance();
-  }
-
-  getLastMatches(quantity) {
-    //Gets the index of the last played game
-    var i;
-    for (i = matches.length - 1; i >= 0; i--) {
-      if (matches[i].date.getTime() < Date.now()) {
-        break;
-      }
+    constructor() {
+        this.favoritesService = FavoritesService.getInstance();
     }
 
-    i++;
+    private refreshLastMatches() {
+        //Gets the index of the last played game
+        let i: number;
+        for (i = matches.length - 1; i >= 0; i--) {
+            if (matches[i].getStatus() == MatchStatus.FINISHED) {
+                break;
+            }
+        }
 
-    return matches.slice(i - quantity + 1, quantity);
-  };
+        i++;
 
-  getMatchById(id) {
-    return matches[id];
-  };
+        this.lastMatches = [];
+        let quantity: number = LAST_MATCHES_LENGTH;
 
-  getNextMatches(quantity) {
-    //Gets the index of the first match to be played
-    var i;
-    var nextMatches : any[];
-    for (i = matches.length - 1; i >= 0; i--) {
-      if (matches[i].date.getTime() < Date.now()) {
-        break;
-      }
+        while (i > 0 && quantity > 0) {
+            if (this.favoritesService.isModalityOnFavorites(matches[i].getModalityId()))
+                this.lastMatches.unshift(matches[i]);
+            i--;
+            quantity--;
+        }
     }
 
-    i++;
+    public getLastMatches() {
+        if (FavoritesService.getInstance().refreshMatches())
+            this.refreshLastMatches();
+        return this.lastMatches;
+    };
 
-    /*for(; i < matches.length; i++) {
-      if(this.FavoritesService.)
-    }*/
+    public getMatchById(id) {
+        return matches[id];
+    };
 
-    return matches.slice(i, i + quantity);
-  };
+    private refreshNextMatches() {
+        //Gets the index of the first match to be played
+        let i: number;
+        for (i = matches.length - 1; i >= 0; i--) {
+            if (matches[i].getStatus() == MatchStatus.FINISHED) {
+                break;
+            }
+        }
+
+        i++;
+        i++;
+
+        this.nextMatches = [];
+        let quantity: number = NEXT_MATCHES_LENGTH;
+
+        while (i < matches.length && quantity > 0) {
+            if (this.favoritesService.isModalityOnFavorites(matches[i].getModalityId()))
+                this.nextMatches.push(matches[i]);
+            i++;
+            quantity--;
+        }
+    }
+
+    getNextMatches() {
+        if (FavoritesService.getInstance().refreshMatches())
+            this.refreshNextMatches();
+        return this.nextMatches;
+    };
 }

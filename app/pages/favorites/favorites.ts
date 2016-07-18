@@ -2,18 +2,49 @@ import {Component} from '@angular/core';
 import {NavController} from 'ionic-angular';
 import {ModalitiesFactory} from '../../services/modalitiesFactory';
 import {FavoritesService} from '../../services/favoritesService';
+import {Modality} from '../../classes/modality';
+import {Set} from '../../../node_modules/typescript-collections';
 
 @Component({
-  templateUrl: 'build/pages/favorites/favorites.html',
-  providers: [ModalitiesFactory, FavoritesService]
+    templateUrl: 'build/pages/favorites/favorites.html',
+    providers: [ModalitiesFactory, FavoritesService]
 })
 
 export class FavoritesPage {
-  private modalities : any[];
-  private favorites : any[];
+    private modalities: Modality[];
+    private favoritesService: FavoritesService;
 
-  constructor(private navController: NavController, private modalitiesFactory : ModalitiesFactory) {
-      this.modalities = modalitiesFactory.getModalities();
-      this.favorites = FavoritesService.getInstance().getFavorites();
-  }
+    //FIXME: Figure out a better way to do this.
+    //This variable is needed in order to use the ngModelChange directive
+    //in ion-toggles because it needs a ngModel directive as well that binds
+    //to this variable.
+    private placeholder: boolean;
+    //Needed because right now there is no checked directive in ion-toggles,
+    //so the toggles can't be initialized with the correct value
+    private toggles: boolean[];
+
+    constructor(private navController: NavController, private modalitiesFactory: ModalitiesFactory) {
+        this.modalities = modalitiesFactory.getModalities();
+        this.favoritesService = FavoritesService.getInstance();
+        this.toggles = [];
+
+        for (let i: number = 0; i < this.modalities.length; i++) {
+            if (this.favoritesService.isModalityOnFavorites(i))
+                this.toggles.push(true);
+            else
+                this.toggles.push(false);
+        }
+
+        console.log(this.toggles);
+    }
+
+    toggled(modalityId: number, event: any): void {
+        if (event) {
+            this.favoritesService.addFavorite(modalityId);
+            this.toggles[modalityId] = true;
+        } else {
+            this.favoritesService.removeFavorite(modalityId);
+            this.toggles[modalityId] = false;
+        }
+    }
 }

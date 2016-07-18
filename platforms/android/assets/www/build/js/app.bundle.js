@@ -389,31 +389,36 @@ var FavoritesService = (function () {
     FavoritesService.prototype.getFavorites = function () {
         return this.favorites;
     };
+    /*public isTeamOnFavorites(id : number) {
+      for(var i = 0; i < this.favorites.length; i++) {
+        if(favorites[id])
+      }
+    }*/
     FavoritesService.prototype.loadFavorites = function () {
         var filePath;
         this.recreateFavorites();
-        /*  if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
-              filePath = cordova.file.dataDirectory.syncedDataDirectory;
-          } else {
-              filePath = cordova.file.dataDirectory;
-          }
-  
-          filePath += FAVORITES_FILENAME;
-  
-          window.resolveLocalFileSystemURL(filePath, function(fileEntry : any) {
-            fileEntry.file(function (file) {
-              var reader = new FileReader();
-  
-              reader.onloadend = function (event) {
-                //FavoritesService.getInstance().setFavorites(new Uint8Array(event.target.result));
-                console.log(new Uint8Array(event.target.result));
-              }
-  
-              reader.readAsArrayBuffer(file);
-            }, function() {
-              console.log("Error reading from file.");
-            });
-          }, this.recreateFavorites);*/
+        /*if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
+            filePath = cordova.file.dataDirectory.syncedDataDirectory;
+        } else {
+            filePath = cordova.file.dataDirectory;
+        }
+
+        filePath += FAVORITES_FILENAME;
+
+        window.resolveLocalFileSystemURL(filePath, function(fileEntry : any) {
+          fileEntry.file(function (file) {
+            var reader = new FileReader();
+
+            reader.onloadend = function (event) {
+              //FavoritesService.getInstance().setFavorites(new Uint8Array(event.target.result));
+              console.log(new Uint8Array(event.target.result));
+            }
+
+            reader.readAsArrayBuffer(file);
+          }, function() {
+            console.log("Error reading from file.");
+          });
+        }, this.recreateFavorites());*/
     };
     FavoritesService.prototype.recreateFavorites = function () {
         for (var _i = 0, _a = this.modalities; _i < _a.length; _i++) {
@@ -444,6 +449,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require('@angular/core');
+var favoritesService_1 = require('./favoritesService');
 var matches = [
     {
         id: 0,
@@ -484,6 +490,7 @@ var matches = [
 ];
 var MatchesFactory = (function () {
     function MatchesFactory() {
+        this.favoritesService = favoritesService_1.FavoritesService.getInstance();
     }
     MatchesFactory.prototype.getLastMatches = function (quantity) {
         //Gets the index of the last played game
@@ -504,12 +511,16 @@ var MatchesFactory = (function () {
     MatchesFactory.prototype.getNextMatches = function (quantity) {
         //Gets the index of the first match to be played
         var i;
+        var nextMatches;
         for (i = matches.length - 1; i >= 0; i--) {
             if (matches[i].date.getTime() < Date.now()) {
                 break;
             }
         }
         i++;
+        /*for(; i < matches.length; i++) {
+          if(this.FavoritesService.)
+        }*/
         return matches.slice(i, i + quantity);
     };
     ;
@@ -520,7 +531,7 @@ var MatchesFactory = (function () {
     return MatchesFactory;
 }());
 exports.MatchesFactory = MatchesFactory;
-},{"@angular/core":160}],13:[function(require,module,exports){
+},{"./favoritesService":11,"@angular/core":160}],13:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;

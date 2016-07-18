@@ -1,48 +1,27 @@
 import {Injectable} from '@angular/core';
+import {Modality} from '../classes/modality';
 
-const modalities: any[] = [
-  {
-    id: 0, name: 'Andebol Masculino'
-  },
-  {
-    id: 1, name: 'Andebol Feminino'
-  },
-  {
-    id: 2, name: 'Basquetebol Masculino'
-  },
-  {
-    id: 3, name: 'Basquetebol Feminino'
-  },
-  {
-    id: 4, name: 'Futebol 11 Masculino'
-  },
-  {
-    id: 5, name: 'Futebol 11 Feminino'
-  },
-  {
-    id: 6, name: 'Futsal Masculino'
-  },
-  {
-    id: 7, name: 'Futsal Feminino'
-  },
-  {
-    id: 8, name: 'Voleibol Masculino'
-  },
-  {
-    id: 9, name: 'Voleibol Feminino'
-  },
-  {
-    id: 10, name: 'Rugby 7 Masculino'
-  }
-];
+const MODALITIES : Modality[] = [
+  new Modality('Andebol Masculino'),
+  new Modality( 'Andebol Feminino'),
+  new Modality('Basquetebol Masculino'),
+  new Modality('Basquetebol Feminino'),
+  new Modality('Futebol 11 Masculino'),
+  new Modality('Futebol 11 Feminino'),
+  new Modality('Futsal Masculino'),
+  new Modality('Futsal Feminino'),
+  new Modality('Voleibol Masculino'),
+  new Modality('Voleibol Feminino'),
+  new Modality('Rugby 7 Masculino')
+]
 
 @Injectable()
 export class ModalitiesFactory {
-  getModalities() {
-    return modalities;
+  getModalities() : Modality[] {
+    return MODALITIES;
   }
 
-  getModalityById(id) {
-    return modalities[id];
+  getModalityById(id) : Modality {
+    return MODALITIES[id];
   }
 }

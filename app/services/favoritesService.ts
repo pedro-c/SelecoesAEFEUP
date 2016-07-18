@@ -1,14 +1,17 @@
 import {Injectable} from '@angular/core';
 import {ModalitiesFactory} from './modalitiesFactory';
-import {File} from 'ionic-native';
-import {Device} from 'ionic-native';
+import {File, Device} from 'ionic-native';
+import {Modality} from '../classes/modality';
+import {Set} from '../../node_modules/typescript-collections';
 
 const FAVORITES_FILENAME: string = "favorites.dat";
 
 @Injectable()
 export class FavoritesService {
-    private favorites: boolean[];
-    private modalities: any[];
+    private favorites : Set<number>;
+    private modalities: Modality[];
+    private refreshResults : boolean = false;
+
     private static instance: FavoritesService;
     private static isCreating: boolean = false;
 
@@ -17,9 +20,9 @@ export class FavoritesService {
             throw new Error("You cannot use new in singletons. Use getInstance() instead.");
 
         this.modalities = modalitiesFactory.getModalities();
-        this.favorites = [];
+        this.favorites = new Set<number>();
 
-        this.loadFavorites();
+        //this.loadFavorites();
     }
 
     public static getInstance(): FavoritesService {
@@ -33,20 +36,28 @@ export class FavoritesService {
         return FavoritesService.instance;
     }
 
-    public getFavorites(): any[] {
-        return this.favorites;
+    public isModalityOnFavorites(id : number) {
+      return this.favorites.contains(id);
     }
 
-    /*public isTeamOnFavorites(id : number) {
-      for(var i = 0; i < this.favorites.length; i++) {
-        if(favorites[id])
-      }
-    }*/
+    public addFavorite(modalityId : number) {
+      this.refreshResults = true;
+      this.favorites.add(modalityId);
+    }
+
+    public removeFavorite(modalityId : number) {
+      this.refreshResults = true;
+      this.favorites.add(modalityId);
+    }
+
+    public refreshMatches() : boolean {
+      return this.refreshResults;
+    }
 
     private loadFavorites() {
         var filePath: string;
-        this.recreateFavorites();
-      /*  if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
+
+        /*if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
             filePath = cordova.file.dataDirectory.syncedDataDirectory;
         } else {
             filePath = cordova.file.dataDirectory;
@@ -67,16 +78,6 @@ export class FavoritesService {
           }, function() {
             console.log("Error reading from file.");
           });
-        }, this.recreateFavorites);*/
+        }, this.recreateFavorites());*/
     }
-
-    private recreateFavorites(): void {
-        for (var modality of this.modalities) {
-            this.favorites.push(false);
-        }
-    }
-
-    private setFavorites(newFavorites : boolean[]) : void {
-      this.favorites = newFavorites;
-    }
-}
+  }

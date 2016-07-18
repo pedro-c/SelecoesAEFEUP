@@ -174,7 +174,6 @@ var FavoritesPage = (function () {
             else
                 this.toggles.push(false);
         }
-        console.log(this.toggles);
     }
     FavoritesPage.prototype.toggled = function (modalityId, event) {
         if (event) {
@@ -388,11 +387,8 @@ var TeamsPage = (function () {
     }
     TeamsPage.prototype.openModalityDetails = function (modality) {
         this.navController.push(teamDetails_1.TeamDetailsPage, {
-            modalityId: modality.id
+            modalityId: modality.getId()
         });
-    };
-    TeamsPage.prototype.favorite = function (modality) {
-        console.log("Oi");
     };
     TeamsPage = __decorate([
         core_1.Component({

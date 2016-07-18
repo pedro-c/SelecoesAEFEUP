@@ -1,70 +1,82 @@
 <ion-header>
-  <ion-navbar>
-    <ion-title>
-      Jogos
-    </ion-title>
-  </ion-navbar>
+    <ion-navbar>
+        <ion-title>
+            Jogos
+        </ion-title>
+    </ion-navbar>
 </ion-header>
 
 <ion-content padding class="matches">
-  <form class="list ">
-    <label class="item item-input ">
-      <span class="input-label"> <b> Últimos Resultados </b> </span>
-    </label>
-    <ion-list class=" ">
-      <ion-item *ngFor="let result of lastMatches" (click)="openMatchDetails(result)">
-        <table style="width:100%">
-          <tr>
-            <td align="left"> <font size="3"> {{result.getModalityName()}} </font></td>
-            <td align="right"> <font size="2"> {{result.getLocal()}} </font></td>
-          </tr>
-          <tr>
-            <td>
-              <hr>
-            </td>
-            <td>
-              <hr>
-            </td>
-          </tr>
-          <tr>
-            <td align="left"> <font size="3"> {{result.getTeam1ShortName()}} </font></td>
-            <td align="right"> <font size="3"> {{result.getScore1()}} </font></td>
-          </tr>
-          <tr>
-            <td align="left"> <font size="3"> {{result.getTeam2ShortName()}} </font></td>
-            <td align="right"> <font size="3"> {{result.getScore2()}} </font></td>
-          </tr>
-        </table>
-      </ion-item>
-    </ion-list>
-  </form>
-  <label class="item item-input " id="jogos-textarea3">
-    <span class="input-label"> <b>Próximos Jogos </b> </span>
-  </label>
-  <ion-list>
-    <ion-item *ngFor="let nextMatch of nextMatches" (click)="openMatchDetails(nextMatch)">
-      <table style="width:100%">
-        <tr>
-          <td align="left"> <font size="3"> {{nextMatch.getModalityName()}} </font></td>
-          <td align="right"> <font size="2"> {{nextMatch.getLocal()}} </font></td>
-        </tr>
-        <tr>
-          <td>
-            <hr>
-          </td>
-          <td>
-            <hr>
-          </td>
-        </tr>
-        <tr>
-          <td align="left"> <font size="3"> {{nextMatch.getTeam1ShortName()}} </font></td>
-          <td align="right"> <font size="3"> {{nextMatch.getDate() | date:"dd'/'MM'/'yyyy"}} </font></td>
-        </tr>
-        <tr>
-          <td align="left"> <font size="3"> {{nextMatch.getTeam2ShortName()}} </font></td>
-          <td align="right"> <font size="3"> {{nextMatch.getDate() | date:"HH'h'mm"}} </font></td>
-        </tr>
-      </table>
-    </ion-item>
-  </ion-list>
+    <form class="list " *ngIf="lastMatches != undefined && nextMatches != undefined">
+      <form *ngIf="lastMatches.length > 0">
+      <label class="item item-input ">
+          <span class="input-label"> <b> Últimos Resultados </b> </span>
+          </label>
+
+            <ion-list class=" " >
+                <ion-item *ngFor="let result of lastMatches" (click)="openMatchDetails(result)">
+                    <table style="width:100%">
+                        <tr>
+                            <td align="left"> <font size="3"> {{result.getModalityName()}} </font></td>
+                            <td align="right"> <font size="2"> {{result.getLocal()}} </font></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <hr>
+                            </td>
+                            <td>
+                                <hr>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="left"> <font size="3"> {{result.getTeam1ShortName()}} </font></td>
+                            <td align="right"> <font size="3"> {{result.getScore1()}} </font></td>
+                        </tr>
+                        <tr>
+                            <td align="left"> <font size="3"> {{result.getTeam2ShortName()}} </font></td>
+                            <td align="right"> <font size="3"> {{result.getScore2()}} </font></td>
+                        </tr>
+                    </table>
+                </ion-item>
+            </ion-list>
+</form>
+
+  <form  *ngIf="nextMatches.length > 0">
+        <label class="item item-input " id="jogos-textarea3">
+            <span class="input-label"> <b>Próximos Jogos </b> </span>
+        </label>
+        <ion-list>
+            <ion-item *ngFor="let nextMatch of nextMatches" (click)="openMatchDetails(nextMatch)">
+                <table style="width:100%">
+                    <tr>
+                        <td align="left"> <font size="3"> {{nextMatch.getModalityName()}} </font></td>
+                        <td align="right"> <font size="2"> {{nextMatch.getLocal()}} </font></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <hr>
+                        </td>
+                        <td>
+                            <hr>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="left"> <font size="3"> {{nextMatch.getTeam1ShortName()}} </font></td>
+                        <td align="right"> <font size="3"> {{nextMatch.getDate() | date:"dd'/'MM'/'yyyy"}} </font></td>
+                    </tr>
+                    <tr>
+                        <td align="left"> <font size="3"> {{nextMatch.getTeam2ShortName()}} </font></td>
+                        <td align="right"> <font size="3"> {{nextMatch.getDate() | date:"HH'h'mm"}} </font></td>
+                    </tr>
+                </table>
+            </ion-item>
+        </ion-list>
+      </form>
+    </form>
+
+    <form *ngIf="lastMatches == undefined && nextMatches == undefined">
+      <p>
+        No last or next matches...<br>Add some favorites!
+      </p>
+    </form>
 </ion-content>

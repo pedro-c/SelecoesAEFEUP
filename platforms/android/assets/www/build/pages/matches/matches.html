@@ -11,7 +11,7 @@
     <label class="item item-input ">
       <span class="input-label"> <b> Últimos Resultados </b> </span>
     </label>
-    <ion-list class=" ">
+    <ion-list *ngIf="lastMatches.length > 0 || nextMatches.length > 0" class=" ">
       <ion-item *ngFor="let result of lastMatches" (click)="openMatchDetails(result)">
         <table style="width:100%">
           <tr>

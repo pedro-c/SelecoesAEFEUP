@@ -5,9 +5,9 @@ import {Match, MatchStatus} from '../classes/match';
 const matches: Match[] = [
     new Match(new Date(2016, 7, 12, 14, 0), 0, 0, 1, 1, 0,
         'Pavilhão Desportivo Luís Falcão'),
-    new Match(new Date(2016, 7, 14, 14, 0), 7, 0, null, 1, null,
+    new Match(new Date(2016, 7, 14, 14, 0), 2, 0, null, 1, null,
         'Pavilhão Desportivo Luís Falcão'),
-    new Match(new Date(2016, 8, 20, 17, 0), 7, 0, null, 2, null,
+    new Match(new Date(2016, 8, 20, 17, 0), 4, 0, null, 2, null,
         'Campo FADEUP'),
     new Match(new Date(2016, 9, 19, 18, 30), 7, 0, null, 2, null,
         'Pavilhão Desportivo Luís Falcão')

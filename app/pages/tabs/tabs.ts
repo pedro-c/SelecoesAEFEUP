@@ -3,6 +3,7 @@ import {MatchesPage} from '../matches/matches';
 import {CalendarPage} from '../calendar/calendar';
 import {TeamsPage} from '../teams/teams';
 import {OptionsPage} from '../options/options';
+import {FavoritesService} from '../../services/favoritesService';
 
 @Component({
   templateUrl: 'build/pages/tabs/tabs.html',
@@ -21,5 +22,10 @@ export class TabsPage {
     this.calendarTabRoot = CalendarPage;
     this.teamsTabRoot = TeamsPage;
     this.optionsTabRoot = OptionsPage;
+
+    FavoritesService.getInstance();
+
+    document.addEventListener('pause', FavoritesService.getInstance().saveFavorites, false);
+    document.addEventListener('resume', FavoritesService.getInstance().loadFavorites, false);
   }
 }

@@ -3,7 +3,7 @@ import {Modality} from '../classes/modality';
 
 const MODALITIES : Modality[] = [
   new Modality('Andebol Masculino'),
-  new Modality( 'Andebol Feminino'),
+  new Modality('Andebol Feminino'),
   new Modality('Basquetebol Masculino'),
   new Modality('Basquetebol Feminino'),
   new Modality('Futebol 11 Masculino'),

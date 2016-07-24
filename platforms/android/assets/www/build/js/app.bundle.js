@@ -36,6 +36,7 @@ exports.MyApp = MyApp;
 ionic_angular_1.ionicBootstrap(MyApp, [favoritesService_1.FavoritesService], {
     tabbarPlacement: 'bottom'
 });
+
 },{"./pages/tabs/tabs":9,"./services/favoritesService":13,"@angular/core":162,"ionic-angular":426,"ionic-native":453}],2:[function(require,module,exports){
 "use strict";
 var modalitiesFactory_1 = require('../services/modalitiesFactory');
@@ -102,6 +103,7 @@ var Match = (function () {
     return Match;
 }());
 exports.Match = Match;
+
 },{"../services/entitiesFactory":12,"../services/modalitiesFactory":15}],3:[function(require,module,exports){
 "use strict";
 var Modality = (function () {
@@ -120,6 +122,7 @@ var Modality = (function () {
     return Modality;
 }());
 exports.Modality = Modality;
+
 },{}],4:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -146,6 +149,7 @@ var CalendarPage = (function () {
     return CalendarPage;
 }());
 exports.CalendarPage = CalendarPage;
+
 },{"@angular/core":162,"ionic-angular":426}],5:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -195,6 +199,7 @@ var FavoritesPage = (function () {
     return FavoritesPage;
 }());
 exports.FavoritesPage = FavoritesPage;
+
 },{"../../services/favoritesService":13,"../../services/modalitiesFactory":15,"@angular/core":162,"ionic-angular":426}],6:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -229,6 +234,7 @@ var MatchDetailsPage = (function () {
     return MatchDetailsPage;
 }());
 exports.MatchDetailsPage = MatchDetailsPage;
+
 },{"../../services/entitiesFactory":12,"../../services/matchesFactory":14,"@angular/core":162,"ionic-angular":426}],7:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -269,6 +275,7 @@ var MatchesPage = (function () {
     return MatchesPage;
 }());
 exports.MatchesPage = MatchesPage;
+
 },{"../../services/matchesFactory":14,"../matchDetails/matchDetails":6,"@angular/core":162,"ionic-angular":426}],8:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -299,6 +306,7 @@ var OptionsPage = (function () {
     return OptionsPage;
 }());
 exports.OptionsPage = OptionsPage;
+
 },{"../favorites/favorites":5,"@angular/core":162,"ionic-angular":426}],9:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -315,6 +323,7 @@ var matches_1 = require('../matches/matches');
 var calendar_1 = require('../calendar/calendar');
 var teams_1 = require('../teams/teams');
 var options_1 = require('../options/options');
+var favoritesService_1 = require('../../services/favoritesService');
 var TabsPage = (function () {
     function TabsPage() {
         // this tells the tabs component which Pages
@@ -323,6 +332,9 @@ var TabsPage = (function () {
         this.calendarTabRoot = calendar_1.CalendarPage;
         this.teamsTabRoot = teams_1.TeamsPage;
         this.optionsTabRoot = options_1.OptionsPage;
+        favoritesService_1.FavoritesService.getInstance();
+        document.addEventListener('pause', favoritesService_1.FavoritesService.getInstance().saveFavorites, false);
+        document.addEventListener('resume', favoritesService_1.FavoritesService.getInstance().loadFavorites, false);
     }
     TabsPage = __decorate([
         core_1.Component({
@@ -333,7 +345,8 @@ var TabsPage = (function () {
     return TabsPage;
 }());
 exports.TabsPage = TabsPage;
-},{"../calendar/calendar":4,"../matches/matches":7,"../options/options":8,"../teams/teams":11,"@angular/core":162}],10:[function(require,module,exports){
+
+},{"../../services/favoritesService":13,"../calendar/calendar":4,"../matches/matches":7,"../options/options":8,"../teams/teams":11,"@angular/core":162}],10:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -364,6 +377,7 @@ var TeamDetailsPage = (function () {
     return TeamDetailsPage;
 }());
 exports.TeamDetailsPage = TeamDetailsPage;
+
 },{"../../services/modalitiesFactory":15,"@angular/core":162,"ionic-angular":426}],11:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -400,6 +414,7 @@ var TeamsPage = (function () {
     return TeamsPage;
 }());
 exports.TeamsPage = TeamsPage;
+
 },{"../../services/modalitiesFactory":15,"../teamDetails/teamDetails":10,"@angular/core":162,"ionic-angular":426}],12:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -448,6 +463,7 @@ var EntitiesFactory = (function () {
     return EntitiesFactory;
 }());
 exports.EntitiesFactory = EntitiesFactory;
+
 },{"@angular/core":162}],13:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -474,7 +490,6 @@ var FavoritesService = (function () {
             throw new Error("You cannot use new in singletons. Use getInstance() instead.");
         this.modalities = modalitiesFactory.getModalities();
         this.favorites = new typescript_collections_1.Set();
-        //this.loadFavorites();
     }
     FavoritesService.getInstance = function () {
         if (FavoritesService.instance == null) {
@@ -500,29 +515,51 @@ var FavoritesService = (function () {
         return this.refreshResults;
     };
     FavoritesService.prototype.loadFavorites = function () {
+        console.log("Loading favorites...");
         var filePath;
-        /*if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
+        if (this.device.platform == "iOS") {
             filePath = cordova.file.dataDirectory.syncedDataDirectory;
-        } else {
+        }
+        else {
             filePath = cordova.file.dataDirectory;
         }
-
         filePath += FAVORITES_FILENAME;
-
-        window.resolveLocalFileSystemURL(filePath, function(fileEntry : any) {
-          fileEntry.file(function (file) {
-            var reader = new FileReader();
-
-            reader.onloadend = function (event) {
-              //FavoritesService.getInstance().setFavorites(new Uint8Array(event.target.result));
-              console.log(new Uint8Array(event.target.result));
-            }
-
-            reader.readAsArrayBuffer(file);
-          }, function() {
-            console.log("Error reading from file.");
-          });
-        }, this.recreateFavorites());*/
+        window.resolveLocalFileSystemURL(filePath, function (fileEntry) {
+            fileEntry.file(function (file) {
+                var reader = new FileReader();
+                reader.onloadend = function () {
+                    //FavoritesService.getInstance().setFavorites(new Uint8Array(event.target.result));
+                    console.log(this.result);
+                };
+                reader.readAsArrayBuffer(file);
+            }, function () {
+                console.log("Error reading from file.");
+            });
+        }, function () {
+            console.log("Error finding file.");
+        });
+    };
+    FavoritesService.prototype.saveFavorites = function () {
+        console.log("Saving favorites...");
+        var filePath;
+        if (this.device.platform == "iOS") {
+            filePath = cordova.file.dataDirectory.syncedDataDirectory;
+        }
+        else {
+            filePath = cordova.file.dataDirectory;
+        }
+        filePath += FAVORITES_FILENAME;
+        window.resolveLocalFileSystemURL(filePath, function (fileEntry) {
+            fileEntry.createWriter(function (fileWriter, favorites) {
+                fileWriter.onwriteend = function () {
+                    console.log("Favorites succesfully saved.");
+                };
+                fileWriter.onerror = function (error) {
+                    console.log("Error saving favorites. (" + error.toString() + ")");
+                };
+                fileWriter.write(favorites);
+            });
+        });
     };
     FavoritesService.isCreating = false;
     FavoritesService = __decorate([
@@ -532,6 +569,7 @@ var FavoritesService = (function () {
     return FavoritesService;
 }());
 exports.FavoritesService = FavoritesService;
+
 },{"../../node_modules/typescript-collections":552,"./modalitiesFactory":15,"@angular/core":162,"ionic-native":453}],14:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -548,8 +586,8 @@ var favoritesService_1 = require('./favoritesService');
 var match_1 = require('../classes/match');
 var matches = [
     new match_1.Match(new Date(2016, 7, 12, 14, 0), 0, 0, 1, 1, 0, 'Pavilhão Desportivo Luís Falcão'),
-    new match_1.Match(new Date(2016, 7, 14, 14, 0), 7, 0, null, 1, null, 'Pavilhão Desportivo Luís Falcão'),
-    new match_1.Match(new Date(2016, 8, 20, 17, 0), 7, 0, null, 2, null, 'Campo FADEUP'),
+    new match_1.Match(new Date(2016, 7, 14, 14, 0), 2, 0, null, 1, null, 'Pavilhão Desportivo Luís Falcão'),
+    new match_1.Match(new Date(2016, 8, 20, 17, 0), 4, 0, null, 2, null, 'Campo FADEUP'),
     new match_1.Match(new Date(2016, 9, 19, 18, 30), 7, 0, null, 2, null, 'Pavilhão Desportivo Luís Falcão')
 ];
 var LAST_MATCHES_LENGTH = 3;
@@ -618,6 +656,7 @@ var MatchesFactory = (function () {
     return MatchesFactory;
 }());
 exports.MatchesFactory = MatchesFactory;
+
 },{"../classes/match":2,"./favoritesService":13,"@angular/core":162}],15:[function(require,module,exports){
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
@@ -660,6 +699,7 @@ var ModalitiesFactory = (function () {
     return ModalitiesFactory;
 }());
 exports.ModalitiesFactory = ModalitiesFactory;
+
 },{"../classes/modality":3,"@angular/core":162}],16:[function(require,module,exports){
 "use strict";
 function __export(m) {

@@ -189,6 +189,12 @@ var FavoritesPage = (function () {
             this.toggles[modalityId] = false;
         }
     };
+    FavoritesPage.prototype.save = function () {
+        this.favoritesService.saveFavorites();
+    };
+    FavoritesPage.prototype.load = function () {
+        this.favoritesService.loadFavorites();
+    };
     FavoritesPage = __decorate([
         core_1.Component({
             templateUrl: 'build/pages/favorites/favorites.html',
@@ -490,6 +496,7 @@ var FavoritesService = (function () {
             throw new Error("You cannot use new in singletons. Use getInstance() instead.");
         this.modalities = modalitiesFactory.getModalities();
         this.favorites = new typescript_collections_1.Set();
+        this.loadFavorites();
     }
     FavoritesService.getInstance = function () {
         if (FavoritesService.instance == null) {
@@ -542,6 +549,7 @@ var FavoritesService = (function () {
     FavoritesService.prototype.saveFavorites = function () {
         console.log("Saving favorites...");
         var filePath;
+        console.log(cordova.file === undefined);
         if (this.device.platform == "iOS") {
             filePath = cordova.file.dataDirectory.syncedDataDirectory;
         }
@@ -550,7 +558,9 @@ var FavoritesService = (function () {
         }
         filePath += FAVORITES_FILENAME;
         window.resolveLocalFileSystemURL(filePath, function (fileEntry) {
+            console.log("Creating writer...");
             fileEntry.createWriter(function (fileWriter, favorites) {
+                console.log("Writer created.");
                 fileWriter.onwriteend = function () {
                     console.log("Favorites succesfully saved.");
                 };
@@ -559,6 +569,8 @@ var FavoritesService = (function () {
                 };
                 fileWriter.write(favorites);
             });
+        }, function (error) {
+            console.log(error.toString());
         });
     };
     FavoritesService.isCreating = false;

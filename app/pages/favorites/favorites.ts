@@ -15,10 +15,6 @@ export class FavoritesPage {
     private favoritesService: FavoritesService;
 
     //FIXME: Figure out a better way to do this.
-    //This variable is needed in order to use the ngModelChange directive
-    //in ion-toggles because it needs a ngModel directive as well that binds
-    //to this variable.
-    private placeholder: boolean;
     //Needed because right now there is no checked directive in ion-toggles,
     //so the toggles can't be initialized with the correct value
     private toggles: boolean[];
@@ -44,5 +40,13 @@ export class FavoritesPage {
             this.favoritesService.removeFavorite(modalityId);
             this.toggles[modalityId] = false;
         }
+    }
+
+    save() : void {
+      this.favoritesService.saveFavorites();
+    }
+
+    load() : void {
+      this.favoritesService.loadFavorites();
     }
 }

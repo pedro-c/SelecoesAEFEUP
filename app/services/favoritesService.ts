@@ -21,6 +21,8 @@ export class FavoritesService {
 
     this.modalities = modalitiesFactory.getModalities();
     this.favorites = new Set<number>();
+
+    this.loadFavorites();
   }
 
   public static getInstance(): FavoritesService {
@@ -86,6 +88,8 @@ export class FavoritesService {
     console.log("Saving favorites...");
     var filePath: string;
 
+    console.log((<any>cordova).file === undefined);
+
     if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
       filePath = (<any>cordova).file.dataDirectory.syncedDataDirectory;
     } else {
@@ -95,7 +99,9 @@ export class FavoritesService {
     filePath += FAVORITES_FILENAME;
 
     (<any>window).resolveLocalFileSystemURL(filePath, function(fileEntry: any) {
+      console.log("Creating writer...");
       fileEntry.createWriter(function(fileWriter: any, favorites : Set<number>) {
+        console.log("Writer created.");
 
         fileWriter.onwriteend = function() {
           console.log("Favorites succesfully saved.");
@@ -107,6 +113,8 @@ export class FavoritesService {
 
         fileWriter.write(favorites);
       });
+    }, function(error) {
+      console.log(error.toString());
     });
   }
 }

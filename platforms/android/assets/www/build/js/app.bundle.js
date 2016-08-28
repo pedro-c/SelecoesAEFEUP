@@ -540,16 +540,28 @@ var FavoritesService = (function () {
         }
         var favorites = this.favorites;
         ionic_native_1.File.readAsText(filePath, FAVORITES_FILENAME).then(function (result) {
-            var temp = new typescript_collections_1.Set();
-            temp = JSON.parse(result);
-            console.log(temp);
-            favorites.clear;
+            //TODO: Deserialize the saved set.
+            var temp;
+            temp = FavoritesService.deserializeSet(result);
+            favorites.clear();
             favorites.union(temp);
             console.log(favorites);
         }).catch(function (error) {
             console.log("Error reading favorites file. " + error.message);
             favorites.clear();
         });
+    };
+    //TODO: maybe get a better way of doing this?
+    FavoritesService.deserializeSet = function (json) {
+        var temp = JSON.parse(json).dictionary.table;
+        var set = new typescript_collections_1.Set();
+        //for .. in gives the properties name
+        //then we acess them to retrieve its key
+        //and add it to the set.
+        for (var x in temp) {
+            set.add(temp[x].key);
+        }
+        return set;
     };
     FavoritesService.prototype.saveFavorites = function () {
         console.log("Saving favorites...");

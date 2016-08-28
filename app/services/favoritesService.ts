@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {ModalitiesFactory} from './modalitiesFactory';
 import {File, Device} from 'ionic-native';
 import {Modality} from '../classes/modality';
-import {Set, util} from '../../node_modules/typescript-collections';
+import {Set} from '../../node_modules/typescript-collections';
 
 const FAVORITES_FILENAME: string = "favorites.dat";
 
@@ -58,33 +58,38 @@ export class FavoritesService {
         console.log("Loading favorites...");
         var filePath: string;
 
-        if (this.device.platform == "iOS") { //If the platform is iOS, save the data in a directory synced with iCloud.
+        //If the platform is iOS, save the data in a directory synced with iCloud.
+        if (this.device.platform == "iOS") {
             filePath = (<any>cordova).file.dataDirectory.syncedDataDirectory;
         } else {
             filePath = (<any>cordova).file.dataDirectory;
         }
 
-        let favorites = this.favorites;
+        let favorites: Set<number> = this.favorites;
 
         File.readAsText(filePath, FAVORITES_FILENAME).then(function(result) {
-          //TODO: Deserialize the saved set.
-            let temp : Set<number> = new Set<number>();
-            temp = JSON.parse(result);
-            console.log(temp);
-            favorites.clear();
-            //favorites.union(<Set<number>>temp);
-            console.log(favorites);
+            FavoritesService.deserializeIntoSet(result, favorites);
         }).catch(function(error) {
             console.log("Error reading favorites file. " + error.message);
             favorites.clear();
         });
     }
 
+    private static deserializeIntoSet(json: string, set: Set<number>) {
+        let temp = JSON.parse(json).dictionary.table;
+        set.clear();
+
+        //for .. in gives the properties name
+        //then we acess them to retrieve its key
+        //and add it to the set.
+        for (let x in temp) {
+            set.add(temp[x].key);
+        }
+    }
+
     public saveFavorites() {
         console.log("Saving favorites...");
         var filePath: string;
-
-        console.log((<any>cordova).file === undefined);
 
         //If the platform is iOS, save the data in a directory synced with iCloud.
         if (this.device.platform == "iOS") {
@@ -113,48 +118,5 @@ export class FavoritesService {
         }).catch(function(error) {
             console.log("The favorites file could not be created. " + error.message);
         });
-
-        /*
-        File.writeFile is not available as of the writing of this code
-        Because of that, a workaround is necessary.
-        Leave this code commented as it is supposed to work when
-        File.writeFile is implemented
-
-
-        //Checks if the favorites file exists
-        //If it does, it is overwritten
-        //If it doesn't, it is created and then written to
-        File.checkFile(filePath, FAVORITES_FILENAME).catch(function(error) {
-            //If the file was not found
-            File.createFile(filePath, FAVORITES_FILENAME, false).then(function() {
-            }).catch(function(error) {
-                console.log("The favorites file could not be created. " + error.message);
-            });
-        }).then(function() {
-            //write to file
-            console.log("Escreve pro ficheiro");
-            File.writeFile(filePath, FAVORITES_FILENAME, util.makeString(this.favorites), true);
-        });*/
-
-        //filePath += FAVORITES_FILENAME;
-
-        /*(<any>window).resolveLocalFileSystemURL(filePath, function(fileEntry: any) {
-            console.log("Creating writer...");
-            fileEntry.createWriter(function(fileWriter: any, favorites: Set<number>) {
-                console.log("Writer created.");
-
-                fileWriter.onwriteend = function() {
-                    console.log("Favorites succesfully saved.");
-                };
-
-                fileWriter.onerror = function(error) {
-                    console.log("Error saving favorites. (" + error.toString() + ")");
-                };
-
-                fileWriter.write(favorites);
-            });
-        }, function(error) {
-            console.log(error.toString());
-        });*/
     }
 }

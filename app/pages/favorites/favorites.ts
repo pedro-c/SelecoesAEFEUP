@@ -24,12 +24,14 @@ export class FavoritesPage {
         this.favoritesService = FavoritesService.getInstance();
         this.toggles = [];
 
-        for (let i: number = 0; i < this.modalities.length; i++) {
-            if (this.favoritesService.isModalityOnFavorites(i))
-                this.toggles.push(true);
-            else
-                this.toggles.push(false);
-        }
+        //Initialize the toggles with the values from the service.
+        for (let i: number = 0; i < this.modalities.length; i++)
+            this.toggles.push(this.favoritesService.isModalityOnFavorites(i));
+    }
+
+    refreshFavorites() : void {
+      for (let i: number = 0; i < this.modalities.length; i++)
+          this.toggles[i] = this.favoritesService.isModalityOnFavorites(i);
     }
 
     toggled(modalityId: number, event: any): void {
@@ -48,5 +50,13 @@ export class FavoritesPage {
 
     load() : void {
       this.favoritesService.loadFavorites();
+      console.log(this.toggles);
+      this.refreshFavorites();
+      console.log(this.toggles);
+    }
+
+    ionViewWillEnter() : void {
+      console.log("Ion View Will Enter");
+      this.refreshFavorites();
     }
 }

@@ -172,13 +172,14 @@ var FavoritesPage = (function () {
         this.modalities = modalitiesFactory.getModalities();
         this.favoritesService = favoritesService_1.FavoritesService.getInstance();
         this.toggles = [];
-        for (var i = 0; i < this.modalities.length; i++) {
-            if (this.favoritesService.isModalityOnFavorites(i))
-                this.toggles.push(true);
-            else
-                this.toggles.push(false);
-        }
+        //Initialize the toggles with the values from the service.
+        for (var i = 0; i < this.modalities.length; i++)
+            this.toggles.push(this.favoritesService.isModalityOnFavorites(i));
     }
+    FavoritesPage.prototype.refreshFavorites = function () {
+        for (var i = 0; i < this.modalities.length; i++)
+            this.toggles[i] = this.favoritesService.isModalityOnFavorites(i);
+    };
     FavoritesPage.prototype.toggled = function (modalityId, event) {
         if (event) {
             this.favoritesService.addFavorite(modalityId);
@@ -194,6 +195,13 @@ var FavoritesPage = (function () {
     };
     FavoritesPage.prototype.load = function () {
         this.favoritesService.loadFavorites();
+        console.log(this.toggles);
+        this.refreshFavorites();
+        console.log(this.toggles);
+    };
+    FavoritesPage.prototype.ionViewWillEnter = function () {
+        console.log("Ion View Will Enter");
+        this.refreshFavorites();
     };
     FavoritesPage = __decorate([
         core_1.Component({
@@ -516,7 +524,7 @@ var FavoritesService = (function () {
     };
     FavoritesService.prototype.removeFavorite = function (modalityId) {
         this.refreshResults = true;
-        this.favorites.add(modalityId);
+        this.favorites.remove(modalityId);
     };
     FavoritesService.prototype.refreshMatches = function () {
         return this.refreshResults;
@@ -530,48 +538,85 @@ var FavoritesService = (function () {
         else {
             filePath = cordova.file.dataDirectory;
         }
-        filePath += FAVORITES_FILENAME;
-        window.resolveLocalFileSystemURL(filePath, function (fileEntry) {
-            fileEntry.file(function (file) {
-                var reader = new FileReader();
-                reader.onloadend = function () {
-                    //FavoritesService.getInstance().setFavorites(new Uint8Array(event.target.result));
-                    console.log(this.result);
-                };
-                reader.readAsArrayBuffer(file);
-            }, function () {
-                console.log("Error reading from file.");
-            });
-        }, function () {
-            console.log("Error finding file.");
+        var favorites = this.favorites;
+        ionic_native_1.File.readAsText(filePath, FAVORITES_FILENAME).then(function (result) {
+            var temp = new typescript_collections_1.Set();
+            temp = JSON.parse(result);
+            console.log(temp);
+            favorites.clear;
+            favorites.union(temp);
+            console.log(favorites);
+        }).catch(function (error) {
+            console.log("Error reading favorites file. " + error.message);
+            favorites.clear();
         });
     };
     FavoritesService.prototype.saveFavorites = function () {
         console.log("Saving favorites...");
         var filePath;
         console.log(cordova.file === undefined);
+        //If the platform is iOS, save the data in a directory synced with iCloud.
         if (this.device.platform == "iOS") {
             filePath = cordova.file.dataDirectory.syncedDataDirectory;
         }
         else {
             filePath = cordova.file.dataDirectory;
         }
-        filePath += FAVORITES_FILENAME;
-        window.resolveLocalFileSystemURL(filePath, function (fileEntry) {
-            console.log("Creating writer...");
-            fileEntry.createWriter(function (fileWriter, favorites) {
-                console.log("Writer created.");
+        var toWrite = this.favorites;
+        //Creates the file to write in and writes the favorites Set.
+        ionic_native_1.File.createFile(filePath, FAVORITES_FILENAME, true).then(function (fileEntry) {
+            fileEntry.createWriter(function (fileWriter) {
                 fileWriter.onwriteend = function () {
-                    console.log("Favorites succesfully saved.");
+                    console.log("Finished writing to favorites file.");
                 };
                 fileWriter.onerror = function (error) {
+                    console.log("Error writing to favorites file. " + error.toString());
+                };
+                fileWriter.write(toWrite);
+            });
+        }).catch(function (error) {
+            console.log("The favorites file could not be created. " + error.message);
+        });
+        /*
+        File.writeFile is not available as of the writing of this code
+        Because of that, a workaround is necessary.
+        Leave this code commented as it is supposed to work when
+        File.writeFile is implemented
+
+
+        //Checks if the favorites file exists
+        //If it does, it is overwritten
+        //If it doesn't, it is created and then written to
+        File.checkFile(filePath, FAVORITES_FILENAME).catch(function(error) {
+            //If the file was not found
+            File.createFile(filePath, FAVORITES_FILENAME, false).then(function() {
+            }).catch(function(error) {
+                console.log("The favorites file could not be created. " + error.message);
+            });
+        }).then(function() {
+            //write to file
+            console.log("Escreve pro ficheiro");
+            File.writeFile(filePath, FAVORITES_FILENAME, util.makeString(this.favorites), true);
+        });*/
+        //filePath += FAVORITES_FILENAME;
+        /*(<any>window).resolveLocalFileSystemURL(filePath, function(fileEntry: any) {
+            console.log("Creating writer...");
+            fileEntry.createWriter(function(fileWriter: any, favorites: Set<number>) {
+                console.log("Writer created.");
+
+                fileWriter.onwriteend = function() {
+                    console.log("Favorites succesfully saved.");
+                };
+
+                fileWriter.onerror = function(error) {
                     console.log("Error saving favorites. (" + error.toString() + ")");
                 };
+
                 fileWriter.write(favorites);
             });
-        }, function (error) {
+        }, function(error) {
             console.log(error.toString());
-        });
+        });*/
     };
     FavoritesService.isCreating = false;
     FavoritesService = __decorate([

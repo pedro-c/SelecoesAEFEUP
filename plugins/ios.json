@@ -7,9 +7,6 @@
         "files": {}
     },
     "installed_plugins": {
-        "cordova-plugin-console": {
-            "PACKAGE_NAME": "com.ionicframework.selecoesaefeup474790"
-        },
         "cordova-plugin-device": {
             "PACKAGE_NAME": "com.ionicframework.selecoesaefeup474790"
         },
@@ -26,6 +23,9 @@
             "PACKAGE_NAME": "com.ionicframework.selecoesaefeup474790"
         },
         "cordova-plugin-file": {
+            "PACKAGE_NAME": "com.ionicframework.selecoesaefeup474790"
+        },
+        "cordova-plugin-console": {
             "PACKAGE_NAME": "com.ionicframework.selecoesaefeup474790"
         }
     },

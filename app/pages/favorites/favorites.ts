@@ -29,7 +29,7 @@ export class FavoritesPage {
             this.toggles.push(this.favoritesService.isModalityOnFavorites(i));
     }
 
-    //Refresh favorites not working properly
+    //Refresh favorites not working properly when the load button is pressed
     refreshFavorites() : void {
       for (let i: number = 0; i < this.modalities.length; i++)
           this.toggles[i] = this.favoritesService.isModalityOnFavorites(i);
@@ -57,7 +57,6 @@ export class FavoritesPage {
     }
 
     ionViewWillEnter() : void {
-      console.log("Ion View Will Enter");
       this.refreshFavorites();
     }
 }

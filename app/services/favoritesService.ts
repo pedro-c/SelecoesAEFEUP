@@ -1,8 +1,9 @@
 import {Injectable} from '@angular/core';
 import {ModalitiesFactory} from './modalitiesFactory';
-import {File, Device} from 'ionic-native';
+import {File} from 'ionic-native';
 import {Modality} from '../classes/modality';
 import {Set} from '../../node_modules/typescript-collections';
+import {Platform} from 'ionic-angular';
 
 const FAVORITES_FILENAME: string = "favorites.dat";
 
@@ -15,7 +16,7 @@ export class FavoritesService {
     private static instance: FavoritesService;
     private static isCreating: boolean = false;
 
-    constructor(private modalitiesFactory: ModalitiesFactory, private file: File, private device: Device) {
+    constructor(private modalitiesFactory: ModalitiesFactory, private file: File, private platform: Platform) {
         if (!FavoritesService.isCreating)
             throw new Error("You cannot use new in singletons. Use getInstance() instead.");
 
@@ -29,7 +30,7 @@ export class FavoritesService {
         if (FavoritesService.instance == null) {
             FavoritesService.isCreating = true;
             //TODO: Not sure if this is the correct way to make this
-            FavoritesService.instance = new FavoritesService(new ModalitiesFactory(), new File(), new Device());
+            FavoritesService.instance = new FavoritesService(new ModalitiesFactory(), new File(), new Platform());
             FavoritesService.isCreating = false;
         }
 
@@ -58,8 +59,13 @@ export class FavoritesService {
         console.log("Loading favorites...");
         var filePath: string;
 
+        if (!this.platform.is('mobile')) {
+            console.log("Not in a mobile device. Favorites not loaded.");
+            return;
+        }
+
         //If the platform is iOS, save the data in a directory synced with iCloud.
-        if (this.device.platform == "iOS") {
+        if (this.platform.is('ios')) {
             filePath = (<any>cordova).file.dataDirectory.syncedDataDirectory;
         } else {
             filePath = (<any>cordova).file.dataDirectory;
@@ -91,8 +97,14 @@ export class FavoritesService {
         console.log("Saving favorites...");
         var filePath: string;
 
+
+        if (!this.platform.is('mobile')) {
+            console.log("Not in a mobile device. Favorites not saved.");
+            return;
+        }
+
         //If the platform is iOS, save the data in a directory synced with iCloud.
-        if (this.device.platform == "iOS") {
+        if (this.platform.is('ios')) {
             filePath = (<any>cordova).file.dataDirectory.syncedDataDirectory;
         } else {
             filePath = (<any>cordova).file.dataDirectory;
